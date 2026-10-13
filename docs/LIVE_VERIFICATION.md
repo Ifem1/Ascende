@@ -9,7 +9,8 @@
 - Source commit: `edfe1da1634abeb92ec091e562838b64093df3a9`; SHA-256 `FA411EDC689686D2E793508D38D6C20E39996E264325632A367B018CC74CC930`. Direct `gen_getContractCode` retrieval produced the identical digest.
 - Deployment receipt: `ACCEPTED`, `MAJORITY_AGREE` (5 agree); deployer `0xD6423aE82a975d55C6CeaC222827A727325e0459`.
 - The contract counter was `0` before tests. The immutable fixtures below are pinned to source commit `edfe1da` and each request was re-fetched by validators against its committed byte length and digest.
-- A local Next.js production build configured with this address used the frontend's GenLayerJS read path and returned two live records: Program 1 `CLOSED_SUCCESS` with two `FINAL_QUALIFIED` milestones, Program 2 `CLOSED_STOPPED` with a `FINAL_NOT_QUALIFIED` first milestone. Program counter: `2`. The public Vercel project initially had blank address/RPC variables; they are being corrected and its production deployment will be recorded separately after verification.
+- A local Next.js production build configured with this address used the frontend's GenLayerJS read path and returned two live records: Program 1 `CLOSED_SUCCESS` with two `FINAL_QUALIFIED` milestones, Program 2 `CLOSED_STOPPED` with a `FINAL_NOT_QUALIFIED` first milestone. Program counter: `2`.
+- Production frontend: [ascende-sand.vercel.app](https://ascende-sand.vercel.app/), current Vercel Production alias. Its public build settings contain the same contract address and Studionet RPC. A public browser load verified the live home page and both canonical program links; direct Playwright navigation from the sandbox was blocked by its `ERR_NETWORK_ACCESS_DENIED` firewall, while the five local/CI E2E scenarios pass using a simulated wallet provider.
 
 ### Positive lifecycle and challenge provenance
 

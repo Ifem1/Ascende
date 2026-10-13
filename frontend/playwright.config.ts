@@ -13,7 +13,7 @@ export default defineConfig({
   projects: [process.env.CI
     ? { name: "chromium", use: { ...devices["Desktop Chrome"] } }
     : { name: "edge", use: { ...devices["Desktop Chrome"], channel: "msedge" } }],
-  webServer: {
+  webServer: process.env.PLAYWRIGHT_BASE_URL ? undefined : {
     command: `node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port ${port}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
