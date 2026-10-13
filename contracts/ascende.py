@@ -577,6 +577,11 @@ class Ascende(gl.Contract):
     @gl.public.write
     def close_program(self, program_id: u256) -> str:
         program = self._load(program_id)
+        # A successful final milestone closes the program when its tranche
+        # vests. Treat an explicit follow-up close as a harmless read of that
+        # terminal state instead of rejecting the already-completed lifecycle.
+        if program["status"] in ("CLOSED_SUCCESS", "CLOSED_STOPPED"):
+            return program["status"]
         if program["status"] != "ACTIVE":
             _fail("PROGRAM_NOT_ACTIVE")
         terminal_failure = any(m["status"] in ("FINAL_NOT_QUALIFIED", "FINAL_UNRESOLVED") for m in program["milestones"])

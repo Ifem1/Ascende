@@ -69,13 +69,13 @@ def _create(contract, vm, funder, args=None):
     return contract.create_program(*args)
 
 
-def _seal_and_evaluate(contract, vm, recipient, program_id, verdict="QUALIFIED", url=URL_A, body=BODY_A):
+def _seal_and_evaluate(contract, vm, recipient, program_id, verdict="QUALIFIED", url=URL_A, body=BODY_A, milestone_index=0):
     vm.sender = recipient
-    contract.submit_evidence(program_id, 0, _manifest(url, body))
+    contract.submit_evidence(program_id, milestone_index, _manifest(url, body))
     vm.mock_web(url, {"status": 200, "body": body})
     vm.mock_llm("independent milestone evidence evaluator", json.dumps({"classification": verdict}))
     vm.sender = recipient
-    return contract.evaluate_milestone(program_id, 0)
+    return contract.evaluate_milestone(program_id, milestone_index)
 
 
 def test_exact_funding_stores_program_and_frozen_tranches(direct_vm, direct_deploy):
@@ -235,6 +235,19 @@ def test_not_qualified_finalization_stops_stage_and_refunds_unused_only(direct_v
     assert accounting["locked_wei"] == "0"
     assert accounting["refund_claimable_wei"] == str(5 * WEI)
     assert accounting["earned_claimable_wei"] == "0"
+    assert contract.close_program(program_id) == "CLOSED_STOPPED"
+
+
+def test_successful_completion_accepts_idempotent_close(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    for index in (0, 1):
+        assert _seal_and_evaluate(contract, direct_vm, direct_bob, program_id, milestone_index=index) == "QUALIFIED"
+        _advance(direct_vm, 120)
+        assert contract.finalize_milestone(program_id, index) == "FINAL_QUALIFIED"
+    assert json.loads(contract.get_program(program_id))["status"] == "CLOSED_SUCCESS"
+    assert contract.close_program(program_id) == "CLOSED_SUCCESS"
+    assert contract.close_program(program_id) == "CLOSED_SUCCESS"
 
 
 def test_challenge_requires_exact_bond_and_new_manifest(direct_vm, direct_deploy, direct_bob):
