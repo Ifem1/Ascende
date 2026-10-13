@@ -7,6 +7,7 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
+  workers: process.env.CI ? undefined : 1,
   reporter: "list",
   use: { baseURL, trace: "retain-on-failure" },
   projects: [process.env.CI

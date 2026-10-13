@@ -1,6 +1,6 @@
 # 09 — Two-cycle actual Studionet economic verification
 
-**No transaction here is claimed complete.** These are instructions after deployment of actual contract. Use tiny testnet GEN amounts and two controlled, externally signed wallets (A=funder, B=recipient). Never store keys. Request human signing if wallet unavailable. Exact tx construction derives from the generated compiled ABI; examples are conceptual.
+This is a reusable execution checklist. The current executed test cycles and receipts are in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md); they belong to the exact contract address and source hash named there. For future releases, use tiny testnet GEN amounts and controlled wallets (A=funder, B=recipient), never store keys, and preserve the resulting receipts without reusing earlier deployment evidence.
 
 ## Preconditions
 

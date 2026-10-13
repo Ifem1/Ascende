@@ -11,3 +11,5 @@ frontend/.playwright-browsers/
 frontend/playwright-report/
 frontend/test-results/
 frontend/.vitest/
+
+.vercel

@@ -2,6 +2,8 @@
 
 This is the highest-risk part of ASCENDE. The protocol is not complete merely because a payout button works. A terminal decision, actual transfer initiation, and **confirmed delivery** are three distinct facts.
 
+Current implementation and test boundary: the contract enforces exact funding, separate principal/bond ledgers, one-time payment authorization and transfer submission. The current Studionet test record includes positive, challenge, negative/refund, and three finalized child receipts; all child values are still pending in contract storage because no authenticated callback exists. Failed payable recovery is unsupported, so the feature remains **NOT READY for production-safe escrow**. See [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md) and [SECURITY.md](SECURITY.md).
+
 ## Funding and frozen budgets
 
 The funder sends exactly `sum(tranches)` GEN wei using `@gl.public.write.payable` + `gl.message.value`. Zero budgets, overflow, mismatch, overpayment, unexpected native transfer, invalid addresses and more than five tranches must fail. Keep challenge-bond ledger separate from tranche custody. Values are u256 wei; `1 GEN = 10^18 wei`, no JS floating point or `Number(BigInt)` for financial amounts.

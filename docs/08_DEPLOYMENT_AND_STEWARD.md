@@ -1,5 +1,9 @@
 # 08 — Release, documentation and steward signoff
 
+## Current release record
+
+Source commit `edfe1da1634abeb92ec091e562838b64093df3a9` is deployed to Studionet 61999 at `0x03b3525C550E5281747E686b87d19aDbD5f4F10b`, with source SHA-256 `FA411EDC689686D2E793508D38D6C20E39996E264325632A367B018CC74CC930` and deployment transaction `0x2e609aa4f01eee4ec9118e7586932f1365eecd021326507d2c607f9f59de0f4f`. Actions run `38467395487` passed. Live evidence: [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). **Steward verdict remains NOT READY for production-safe escrow** because failed payable recovery, child-transfer reconciliation, and final redirect authority are unsupported.
+
 ## Network
 
 Stable Studionet **61999 (`0xF22F`)** only, RPC `https://studio.genlayer.com/api`, explorer `https://explorer-studio.genlayer.com`. Studio-dev 61997 is an unrelated preview chain. Use repository-local verified CLI (candidate 0.39.1) after preflight. Final deployment address must be discovered and documented from real receipt, NEVER guessed.
