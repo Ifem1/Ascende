@@ -6,7 +6,7 @@ import { WalletControl } from "@/components/wallet-control";
 
 const links = [
   ["Programs", "/programs"], ["Create", "/create"], ["My Work", "/my-work"],
-  ["Activity", "/activity"], ["Docs", "/docs"],
+  ["Treasury", "/treasury"], ["History", "/activity"], ["Docs", "/docs"],
 ];
 export function SiteHeader() {
   const pathname = usePathname();

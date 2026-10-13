@@ -1,3 +1,3 @@
-# CI workflows must be implemented by Codex after toolchain/ABI is pinned
+# CI workflows
 
-Do not copy a green-looking placeholder workflow. Target matrix and gates in docs/07 and docs/08. The handoff archive does NOT claim any CI success yet.
+The contract workflow validates and lints `contracts/ascende.py`, generates the contract schema artifact, and runs the contract test suite. The frontend workflow runs the configured frontend checks. See `docs/TESTING.md` for the equivalent local commands and `docs/LIVE_VERIFICATION.md` for the current testnet deployment evidence.

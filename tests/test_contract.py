@@ -332,3 +332,106 @@ def test_program_accounting_conserves_principal_after_vest_and_submission(direct
         "locked_wei", "earned_claimable_wei", "recipient_authorized_wei", "funder_authorized_wei", "refund_claimable_wei",
         "recipient_pending_wei", "recipient_delivered_wei", "funder_pending_wei", "funder_refunded_wei"))
     assert buckets == int(accounting["funded_wei"])
+
+
+def test_evidence_source_query_and_authority_prefix_spoofs_are_rejected(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    direct_vm.sender = direct_bob
+    with direct_vm.expect_revert("INVALID_OR_UNAUTHORIZED_MANIFEST"):
+        contract.submit_evidence(program_id, 0, _manifest("https://evidence.example.org.evil/project/a", BODY_A))
+    with direct_vm.expect_revert("INVALID_OR_UNAUTHORIZED_MANIFEST"):
+        contract.submit_evidence(program_id, 0, _manifest("https://evidence.example.org/project-evil/a", BODY_A))
+    with direct_vm.expect_revert("INVALID_OR_UNAUTHORIZED_MANIFEST"):
+        contract.submit_evidence(program_id, 0, _manifest("https://evidence.example.org/project/%2e%2e/private", BODY_A))
+    with direct_vm.expect_revert("INVALID_OR_UNAUTHORIZED_MANIFEST"):
+        contract.submit_evidence(program_id, 0, _manifest("https://evidence.example.org/project/a?version=mutable", BODY_A))
+
+
+def test_versioned_path_authority_allows_at_sign_but_rejects_userinfo(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    args = list(_program())
+    milestones = json.loads(args[3])
+    prefix = "https://unpkg.com/genlayer-js@1.1.8/"
+    milestones[0]["authorities"][0]["prefix"] = prefix
+    args[3] = json.dumps(milestones)
+    program_id = _create(contract, direct_vm, direct_vm.sender, tuple(args))
+    direct_vm.sender = direct_bob
+    manifest = _manifest(prefix + "package.json", BODY_A)
+    contract.submit_evidence(program_id, 0, manifest)
+    stored = json.loads(contract.get_evidence_manifest(program_id, 0))
+    assert stored["manifest"][0]["url"] == prefix + "package.json"
+
+    args = list(_program())
+    milestones = json.loads(args[3])
+    milestones[0]["authorities"][0]["prefix"] = "https://user@evidence.example.org/project/"
+    args[3] = json.dumps(milestones)
+    direct_vm.sender = create_address("funder2")
+    with direct_vm.expect_revert("INVALID_AUTHORITIES"):
+        _create(contract, direct_vm, direct_vm.sender, tuple(args))
+
+
+def test_frozen_criteria_and_authorities_are_unchanged_after_creation(direct_vm, direct_deploy):
+    contract = direct_deploy("contracts/ascende.py")
+    args = list(_program())
+    original = json.loads(args[3])
+    program_id = _create(contract, direct_vm, direct_vm.sender, tuple(args))
+    original[0]["criteria"][0] = "attacker altered the rubric"
+    original[0]["authorities"][0]["prefix"] = "https://evil.example/"
+    saved = json.loads(contract.get_program(program_id))["milestones"][0]
+    assert saved["criteria"][0] == "The published delivery record confirms the first release passed its stated tests."
+    assert saved["authorities"][0]["prefix"] == PREFIX
+
+
+def test_zero_and_excess_withdrawals_do_not_create_payment_operations(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    assert _seal_and_evaluate(contract, direct_vm, direct_bob, program_id) == "QUALIFIED"
+    _advance(direct_vm, 120)
+    contract.finalize_milestone(program_id, 0)
+    direct_vm.sender = direct_bob
+    with direct_vm.expect_revert("INVALID_PAYMENT_AMOUNT"):
+        contract.request_withdrawal(program_id, "0")
+    with direct_vm.expect_revert("WITHDRAWAL_EXCEEDS_EARNED_CLAIM"):
+        contract.request_withdrawal(program_id, str(2 * WEI + 1))
+    program = json.loads(contract.get_program(program_id))
+    assert program["operations"] == []
+    assert program["earned_claimable_wei"] == str(2 * WEI)
+
+
+def test_refund_requires_terminal_close_and_is_reserved_once(direct_vm, direct_deploy):
+    contract = direct_deploy("contracts/ascende.py")
+    funder = direct_vm.sender
+    program_id = _create(contract, direct_vm, funder)
+    with direct_vm.expect_revert("REFUND_EXCEEDS_ENTITLEMENT"):
+        contract.request_refund(program_id, str(WEI))
+    direct_vm.sender = create_address("bob")
+    assert _seal_and_evaluate(contract, direct_vm, direct_vm.sender, program_id, "NOT_QUALIFIED") == "NOT_QUALIFIED"
+    _advance(direct_vm, 120)
+    contract.finalize_milestone(program_id, 0)
+    contract.close_program(program_id)
+    direct_vm.sender = funder
+    operation_id = contract.request_refund(program_id, str(5 * WEI))
+    with direct_vm.expect_revert("REFUND_EXCEEDS_ENTITLEMENT"):
+        contract.request_refund(program_id, "1")
+    operation = json.loads(contract.get_transfer_attempt(program_id, str(operation_id)))
+    assert operation["destination"] == "0x" + bytes(funder).hex()
+    assert operation["amount_wei"] == str(5 * WEI)
+    assert operation["status"] == "AUTHORIZED"
+
+
+def test_recovery_flag_does_not_restore_pending_entitlement(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    assert _seal_and_evaluate(contract, direct_vm, direct_bob, program_id) == "QUALIFIED"
+    _advance(direct_vm, 120)
+    contract.finalize_milestone(program_id, 0)
+    direct_vm.sender = direct_bob
+    operation_id = contract.request_withdrawal(program_id, str(WEI))
+    contract.submit_payment(program_id, str(operation_id))
+    contract.mark_transfer_unresolved(program_id, str(operation_id))
+    accounting = json.loads(contract.get_program_accounting(program_id))
+    assert accounting["recipient_pending_wei"] == str(WEI)
+    assert accounting["earned_claimable_wei"] == str(WEI)
+    with direct_vm.expect_revert("PAYMENT_ALREADY_SUBMITTED_OR_CLOSED"):
+        contract.submit_payment(program_id, str(operation_id))

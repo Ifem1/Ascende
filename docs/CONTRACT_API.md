@@ -1,36 +1,45 @@
-# Ascende contract API — freeze status
+# Ascende contract API
 
-**Status: NOT FROZEN.** No contract source or generated schema exists yet. The signatures below are a requirements inventory from `docs/02_PROTOCOL_STATE_AND_API.md`, not a callable ABI. Frontend writes must remain disabled until the contract compiles under the pinned stable runtime, its generated schema is checked in, and the economic delivery gate in `docs/04_TREASURY_AND_PAYMENT_SAFETY.md` has a safe design.
+This API is implemented in `contracts/ascende.py`. Direct Mode successfully loads and executes the deployed-method surface in local tests. Generated schema extraction is still blocked on this workstation because `genvm-lint` cannot read its SDK artifact cache under `%USERPROFILE%\.cache\genvm-linter`; do not treat this table as generated output.
 
-## Required public surface (provisional)
+All addresses are normalized to lowercase. GEN values are integer wei strings unless a method returns `u256`. Milestone indices are zero-based. JSON arguments and JSON view results are strings.
 
-| Method | Intended access | Required behavior |
+## Writes
+
+| Method | Signature | Value / authorization |
 |---|---|---|
-| `create_program` | payable | Freeze recipient, 2–5 milestones, source policy, rules and deadlines; require `msg.value` to equal the exact nonzero tranche sum. |
-| `submit_evidence` | recipient | Accept one bounded manifest against frozen authorities and deadlines; commit its digest and byte lengths. |
-| `evaluate_milestone` | public | Independently inspect authenticated source bytes; return only a supported typed business/technical classification. |
-| `challenge_milestone` | funder or recipient, payable | Accept only the exact frozen bond during the challenge window and bind a new review to the existing evidence lineage. |
-| `resolve_challenge` | public | Independently reevaluate under the frozen rubric and settle only the predeclared bond consequence. |
-| `finalize_milestone` | public | Finalize after the challenge period; vest a tranche and unlock the next stage only for final qualification. |
-| `retry_evaluation` / `finalize_unresolved` | public | Apply finite technical retry and unresolved rules without turning source failure into business failure. |
-| `close_program` | public | Close only under a frozen terminal condition and account for unearned principal. |
-| `request_withdrawal` / `request_refund` | owner-gated | **Blocked pending an authenticated child-transfer recovery mechanism. Do not implement by clearing credits and emitting an EOA transfer.** |
-| Required views | public | Canonical IDs, frozen program/stage records, evidence/resolution history, accounting, claims and transfer-attempt status. |
+| `create_program` | `(recipient: str, title: str, purpose: str, milestones_json: str, policy_json: str) -> u256` | Payable; exact sum of tranche wei. Caller becomes funder. Freezes 2–5 milestones and policy. |
+| `submit_evidence` | `(program_id: u256, milestone_index: u256, manifest_json: str) -> str` | Recipient only; one authorized manifest while stage is open and before deadline. |
+| `evaluate_milestone` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless; independently fetches and validates evidence, then semantic evaluation under custom consensus. |
+| `challenge_milestone` | `(program_id: u256, milestone_index: u256, manifest_json: str) -> u256` | Payable; funder or recipient; exact frozen bond, new authorized source manifest, one challenge in the window. |
+| `resolve_challenge` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless independent reevaluation and deterministic bond allocation. |
+| `finalize_milestone` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless after challenge window; only final qualification earns its tranche and opens the next stage. |
+| `finalize_unresolved` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless after all bounded retries and retry grace. |
+| `close_program` | `(program_id: u256) -> str` | Permissionless only after a final failure/unresolved stage or all stages qualify; unused principal becomes funder refund entitlement. |
+| `request_withdrawal` | `(program_id: u256, amount_wei: str) -> u256` | Frozen recipient; reserves no more than earned claimable balance. |
+| `request_refund` | `(program_id: u256, amount_wei: str) -> u256` | Funder; reserves no more than refund entitlement. |
+| `request_bond_withdrawal` | `(program_id: u256, amount_wei: str) -> u256` | Funder or recipient; reserves no more than caller's bond entitlement. |
+| `submit_payment` | `(program_id: u256, operation_id: str) -> str` | Permissionless, once per authorized immutable operation; emits a single EOA external transfer and records submitted/pending, not delivered. |
+| `mark_transfer_unresolved` | `(program_id: u256, operation_id: str) -> str` | Public status transition from submitted to unresolved; does not restore entitlement or enable retry. It is not an authenticated child failure proof. |
 
-Exact parameter types/order, return shapes, storage schema, event names and error behavior must be derived from compiled source and generated schema. No TypeScript ABI is asserted by this document.
+## Views
 
-## Compatibility evidence available locally
+| Method | Signature | Result |
+|---|---|---|
+| `get_program_counter` | `() -> u256` | Total programs. |
+| `list_program_ids` | `(offset: u256, limit: u256) -> str` | JSON array of one-based IDs; limit capped at 50. |
+| `get_program` | `(program_id: u256) -> str` | Full program JSON including milestones, operations and history; empty string when absent. |
+| `get_milestone` | `(program_id: u256, milestone_index: u256) -> str` | One frozen milestone and current state. |
+| `get_milestones` | `(program_id: u256) -> str` | JSON milestone array. |
+| `get_evidence_manifest` | `(program_id: u256, milestone_index: u256) -> str` | JSON root and manifest. |
+| `get_resolution_history` | `(program_id: u256, offset: u256, limit: u256) -> str` | JSON history slice; limit capped at 100. |
+| `get_program_accounting` | `(program_id: u256) -> str` | JSON principal and bond bucket values, plus program status. |
+| `get_transfer_attempt` | `(program_id: u256, operation_id: str) -> str` | JSON immutable destination/amount/purpose/status operation; empty string if absent. |
+| `get_protocol_accounting` | `() -> str` | JSON sum of protocol principal and bond buckets. |
+| `get_capabilities` | `(program_id: u256, account: str) -> str` | JSON role and claim booleans; `delivery_recovery_supported` is false. |
 
-- Python: 3.12.10
-- `genlayer-test`: 0.29.2
-- `genlayer-py`: 0.16.3
-- Global `genlayer --version`: 0.39.1. This is not a repository-local installation and is not used as a substitute for the required local pin.
-- Node: v24.16.0; npm: 11.13.0.
-- npm registry metadata request for `genlayer-js@1.1.8` did not return before timeout; no JS SDK lockfile was created.
-- GenVM version and Studionet compatibility have not been independently established.
+## Transfer state guarantee
 
-## Why payout ABI is blocked
+Payment authorization, submission and recipient delivery are separate. `submit_payment` is one-shot and only moves reserved amounts into pending buckets. An EOA transfer uses the documented EVM external-message interface. The contract has no authenticated child-result callback or reconciliation view in this implementation; neither `mark_transfer_unresolved` nor an explorer observation can safely release the reservation for a second transfer.
 
-The official GenLayer value-transfer documentation states that a value-bearing message is debited when emitted and is not automatically returned if its child transaction fails. The documented external EOA transfer API does not provide a contract-callable proof/recovery path. A public caller-supplied hash, screenshot, or “mark failed” flag cannot safely authorize restoring a claim. Therefore no payout/refund write can be frozen without either a verified protocol-native authenticated reconciliation primitive or explicit approval for a separately reviewed settlement rail.
-
-References: [GenLayer Value Transfers](https://docs.genlayer.com/developers/intelligent-contracts/features/value-transfers), [GenLayer Messages](https://docs.genlayer.com/developers/intelligent-contracts/features/messages).
+The frontend uses the signatures above for its writes and treasury/history reads. It has not been generated from the ABI schema because that extraction gate is blocked as described above. Re-run `genvm-lint schema --json contracts/ascende.py` in an environment with a readable compatible GenVM SDK cache before deployment.

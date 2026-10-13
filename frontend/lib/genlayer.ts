@@ -86,6 +86,25 @@ export async function readProgramAccounting(id: number) {
   return JSON.parse(raw) as Record<string, string | number>;
 }
 
+export async function readProtocolAccounting() {
+  const client = readClient();
+  const raw = await client.readContract({
+    address: requireDeployment(),
+    functionName: "get_protocol_accounting",
+    args: [],
+  });
+  if (typeof raw !== "string") throw new Error("Unexpected protocol accounting response from contract");
+  return JSON.parse(raw) as Record<string, string>;
+}
+
+export async function readProgramOperations(id: number) {
+  const client = readClient();
+  const raw = await client.readContract({ address: requireDeployment(), functionName: "get_program", args: [BigInt(id)] });
+  if (typeof raw !== "string" || raw.length === 0) throw new Error(`Program ${id} is not available`);
+  const program = JSON.parse(raw) as { operations?: Array<Record<string, unknown>> };
+  return program.operations ?? [];
+}
+
 export async function readProgramHistory(id: number) {
   const client = readClient();
   const raw = await client.readContract({ address: requireDeployment(), functionName: "get_resolution_history", args: [BigInt(id), 0n, 100n] });

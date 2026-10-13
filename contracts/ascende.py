@@ -62,13 +62,18 @@ def _authority_prefix_valid(prefix: object) -> bool:
         return False
     if len(prefix) > 300 or any(ord(ch) < 33 for ch in prefix):
         return False
-    if "@" in prefix or "#" in prefix or "?" in prefix or "\\" in prefix:
+    if "#" in prefix or "?" in prefix or "\\" in prefix:
+        return False
+    if re.search(r"%(?:2e|2f|5c)", prefix, flags=re.IGNORECASE):
         return False
     tail = prefix[8:]
     host = tail.split("/", 1)[0]
-    if not host or host.lower() != host or "." not in host:
+    if not host or "@" in host or host.lower() != host or "." not in host:
         return False
     if not prefix.endswith("/"):
+        return False
+    path = tail[len(host):]
+    if any(part in (".", "..") for part in path.split("/")):
         return False
     return True
 
@@ -76,9 +81,18 @@ def _authority_prefix_valid(prefix: object) -> bool:
 def _authority_matches(url: object, prefix: str) -> bool:
     if not isinstance(url, str) or len(url) > 500:
         return False
-    if any(ord(ch) < 33 for ch in url) or "#" in url or "\\" in url:
+    if any(ord(ch) < 33 for ch in url) or "#" in url or "?" in url or "\\" in url:
         return False
     if not url.startswith("https://"):
+        return False
+    if re.search(r"%(?:2e|2f|5c)", url, flags=re.IGNORECASE):
+        return False
+    tail = url[8:]
+    host = tail.split("/", 1)[0]
+    if "@" in host:
+        return False
+    path = tail[len(host):]
+    if any(part in (".", "..") for part in path.split("/")):
         return False
     # Prefixes must end on a path boundary, preventing host/path-prefix tricks.
     return url.startswith(prefix)
