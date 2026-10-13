@@ -31,6 +31,8 @@ def _fail(message: str) -> None:
 
 
 def _now() -> int:
+    # GenVM binds datetime.now() to the transaction context and supplies the
+    # same value to every validator; it is not the host wall clock.
     return int(datetime.now(timezone.utc).timestamp())
 
 
@@ -322,6 +324,7 @@ class Ascende(gl.Contract):
                 "provisional_until": 0,
                 "challenge_used": False,
                 "challenge": None,
+                "decision_history": [],
             })
         if int(gl.message.value) != total:
             _fail("EXACT_FUNDING_REQUIRED")
@@ -399,6 +402,17 @@ class Ascende(gl.Contract):
         milestone["attempts"] = int(milestone["attempts"]) + 1
         result = self._evaluate(milestone)
         now = _now()
+        decision_id = len(milestone["decision_history"]) + 1
+        previous_decision_id = decision_id - 1 if decision_id > 1 else None
+        milestone["decision_history"].append({
+            "id": decision_id,
+            "kind": "EVALUATION",
+            "attempt": milestone["attempts"],
+            "evidence_root": milestone["manifest_root"],
+            "result": result,
+            "previous_decision_id": previous_decision_id,
+            "time": now,
+        })
         if result in ("QUALIFIED", "NOT_QUALIFIED"):
             self._set_provisional(milestone, result, now, int(program["policy"]["challenge_window"]))
         else:
@@ -406,7 +420,7 @@ class Ascende(gl.Contract):
             milestone["result"] = result
             milestone["retry_after"] = now + int(program["policy"]["retry_spacing"])
             milestone["retry_deadline"] = now + int(program["policy"]["retry_grace"])
-        program["history"].append({"kind": "EVALUATION", "milestone": int(milestone_index), "result": result, "attempt": milestone["attempts"], "time": now})
+        program["history"].append({"kind": "EVALUATION", "milestone": int(milestone_index), "decision_id": decision_id, "evidence_root": milestone["manifest_root"], "result": result, "attempt": milestone["attempts"], "time": now})
         self._save(program)
         return result
 
@@ -430,12 +444,42 @@ class Ascende(gl.Contract):
         root = _manifest_root(manifest)
         if root == milestone["manifest_root"]:
             _fail("CHALLENGE_REQUIRES_NEW_EVIDENCE")
-        milestone["challenge"] = {"challenger": sender, "manifest": manifest, "root": root, "bond_wei": str(bond), "prior_result": milestone["result"]}
+        prior_result = milestone["result"]
+        prior_manifest = milestone["manifest"]
+        prior_root = milestone["manifest_root"]
+        now = _now()
+        challenge_id = len(milestone["decision_history"]) + 1
+        milestone["challenge"] = {
+            "id": challenge_id,
+            "challenger": sender,
+            "manifest": manifest,
+            "root": root,
+            "bond_wei": str(bond),
+            "prior_result": prior_result,
+            "prior_manifest": prior_manifest,
+            "prior_manifest_root": prior_root,
+            "opened_at": now,
+            "resolution": None,
+        }
+        # A challenge is a new frozen evidence version. If its review is
+        # inconclusive, bounded retries must re-evaluate these bytes, while the
+        # original submission remains archived in the challenge record.
+        milestone["manifest"] = manifest
+        milestone["manifest_root"] = root
+        milestone["decision_history"].append({
+            "id": challenge_id,
+            "kind": "CHALLENGE_OPENED",
+            "evidence_root": root,
+            "previous_evidence_root": prior_root,
+            "prior_result": prior_result,
+            "challenger": sender,
+            "time": now,
+        })
         milestone["status"] = "CHALLENGED"
         milestone["challenge_used"] = True
         program["bond_received_wei"] = str(int(program["bond_received_wei"]) + bond)
         program["bond_locked_wei"] = str(int(program["bond_locked_wei"]) + bond)
-        program["history"].append({"kind": "CHALLENGED", "milestone": int(milestone_index), "root": root, "challenger": sender, "time": _now()})
+        program["history"].append({"kind": "CHALLENGED", "milestone": int(milestone_index), "challenge_id": challenge_id, "root": root, "manifest": manifest, "previous_root": prior_root, "previous_manifest": prior_manifest, "prior_result": prior_result, "challenger": sender, "bond_wei": str(bond), "time": now})
         self._save(program)
         return u256(len(program["history"]))
 
@@ -471,8 +515,21 @@ class Ascende(gl.Contract):
         else:
             key = "bond_recipient_claimable_wei"
         program[key] = str(int(program[key]) + bond)
-        program["history"].append({"kind": "CHALLENGE_RESOLVED", "milestone": int(milestone_index), "result": result, "flipped": flipped, "bond_owner": claimant, "time": now})
-        milestone["challenge"] = None
+        resolution = {
+            "result": result,
+            "flipped": flipped,
+            "bond_owner": claimant,
+            "bond_wei": str(bond),
+            "evidence_root": challenge["root"],
+            "previous_evidence_root": challenge["prior_manifest_root"],
+            "prior_result": prior,
+            "time": now,
+        }
+        challenge["resolution"] = resolution
+        decision_id = len(milestone["decision_history"]) + 1
+        resolution["decision_id"] = decision_id
+        milestone["decision_history"].append({"id": decision_id, "kind": "CHALLENGE_RESOLUTION", **resolution})
+        program["history"].append({"kind": "CHALLENGE_RESOLVED", "milestone": int(milestone_index), "challenge_id": challenge["id"], "decision_id": decision_id, "manifest": challenge["manifest"], **resolution})
         self._save(program)
         return result
 
@@ -498,7 +555,7 @@ class Ascende(gl.Contract):
                 program["status"] = "CLOSED_SUCCESS"
         else:
             milestone["status"] = "FINAL_NOT_QUALIFIED"
-        program["history"].append({"kind": milestone["status"], "milestone": index, "time": _now()})
+        program["history"].append({"kind": milestone["status"], "milestone": index, "result": result, "evidence_root": milestone["manifest_root"], "tranche_wei": str(amount), "earned_wei": str(amount if result == "QUALIFIED" else 0), "time": _now()})
         self._save(program)
         return milestone["status"]
 
@@ -528,12 +585,13 @@ class Ascende(gl.Contract):
             _fail("PROGRAM_NOT_TERMINAL")
         if all_qualified:
             program["status"] = "CLOSED_SUCCESS"
+            unused = 0
         else:
             program["status"] = "CLOSED_STOPPED"
             unused = int(program["locked_wei"])
             program["locked_wei"] = "0"
             program["refund_claimable_wei"] = str(int(program["refund_claimable_wei"]) + unused)
-        program["history"].append({"kind": program["status"], "time": _now()})
+        program["history"].append({"kind": program["status"], "refund_released_wei": str(unused), "time": _now()})
         self._save(program)
         return program["status"]
 
@@ -686,7 +744,14 @@ class Ascende(gl.Contract):
     def get_evidence_manifest(self, program_id: u256, milestone_index: u256) -> str:
         program = self._load(program_id)
         milestone = self._milestone(program, milestone_index)
-        return _json({"root": milestone["manifest_root"], "manifest": milestone["manifest"]})
+        challenge = milestone["challenge"]
+        versions = [{"kind": "SUBMISSION", "root": milestone["manifest_root"], "manifest": milestone["manifest"]}]
+        if isinstance(challenge, dict):
+            versions = [
+                {"kind": "SUBMISSION", "root": challenge["prior_manifest_root"], "manifest": challenge["prior_manifest"]},
+                {"kind": "CHALLENGE", "root": challenge["root"], "manifest": challenge["manifest"]},
+            ]
+        return _json({"root": milestone["manifest_root"], "manifest": milestone["manifest"], "versions": versions, "decision_history": milestone["decision_history"], "challenge": challenge})
 
     @gl.public.view
     def get_resolution_history(self, program_id: u256, offset: u256, limit: u256) -> str:

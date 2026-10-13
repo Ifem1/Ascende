@@ -24,6 +24,10 @@ def _advance(vm, seconds: int):
     vm.warp((current + timedelta(seconds=seconds)).isoformat())
 
 
+def _warp_epoch(vm, timestamp: int):
+    vm.warp(datetime.fromtimestamp(timestamp, timezone.utc).isoformat().replace("+00:00", "Z"))
+
+
 def _manifest(url=URL_A, body=BODY_A):
     return json.dumps([{
         "url": url,
@@ -83,6 +87,33 @@ def test_exact_funding_stores_program_and_frozen_tranches(direct_vm, direct_depl
     assert program["funded_wei"] == str(5 * WEI)
     assert [m["status"] for m in program["milestones"]] == ["OPEN", "LOCKED"]
     assert contract.get_program_counter() == 1
+
+
+def test_created_at_comes_from_transaction_context_timestamp(direct_vm, direct_deploy):
+    contract = direct_deploy("contracts/ascende.py")
+    tx_time = int(datetime.fromisoformat(direct_vm._datetime.replace("Z", "+00:00")).timestamp())
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    program = json.loads(contract.get_program(program_id))
+    assert program["created_at"] == tx_time
+
+
+@pytest.mark.parametrize("offset, succeeds", [(0, True), (1, False)])
+def test_evidence_deadline_exact_boundary(direct_vm, direct_deploy, direct_bob, offset, succeeds):
+    contract = direct_deploy("contracts/ascende.py")
+    tx_time = int(datetime.fromisoformat(direct_vm._datetime.replace("Z", "+00:00")).timestamp())
+    args = list(_program())
+    milestones = json.loads(args[3])
+    deadline = tx_time + 120
+    milestones[0]["deadline"] = deadline
+    args[3] = json.dumps(milestones)
+    program_id = _create(contract, direct_vm, direct_vm.sender, tuple(args))
+    direct_vm.sender = direct_bob
+    _warp_epoch(direct_vm, deadline + offset)
+    if succeeds:
+        assert len(contract.submit_evidence(program_id, 0, _manifest())) == 64
+    else:
+        with direct_vm.expect_revert("EVIDENCE_DEADLINE_PASSED"):
+            contract.submit_evidence(program_id, 0, _manifest())
 
 
 @pytest.mark.parametrize("sent", [0, 5 * WEI - 1, 5 * WEI + 1])
@@ -255,6 +286,71 @@ def test_losing_challenger_bond_can_be_withdrawn_once(direct_vm, direct_deploy, 
     assert accounting["bond_pending_wei"] == str(WEI // 10)
     with direct_vm.expect_revert("BOND_WITHDRAWAL_EXCEEDS_CLAIM"):
         contract.request_bond_withdrawal(program_id, str(WEI // 10))
+
+
+def test_challenge_preserves_both_evidence_versions_and_decision_lineage(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    direct_vm.sender = direct_bob
+    contract.submit_evidence(program_id, 0, _manifest())
+    direct_vm.mock_web(URL_A, {"status": 200, "body": BODY_A})
+    direct_vm.mock_llm(URL_A, json.dumps({"classification": "QUALIFIED"}))
+    assert contract.evaluate_milestone(program_id, 0) == "QUALIFIED"
+    original_manifest = json.loads(_manifest())
+    challenge_manifest = json.loads(_manifest(URL_B, BODY_B))
+    direct_vm.sender = direct_bob
+    direct_vm.value = WEI // 10
+    contract.challenge_milestone(program_id, 0, _manifest(URL_B, BODY_B))
+    challenged = json.loads(contract.get_program(program_id))["milestones"][0]
+    assert challenged["manifest"] == challenge_manifest
+    assert challenged["challenge"]["prior_manifest"] == original_manifest
+    assert challenged["challenge"]["manifest"] == challenge_manifest
+    assert challenged["decision_history"][-1]["previous_evidence_root"] == hashlib.sha256(
+        json.dumps(original_manifest, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    direct_vm.mock_web(URL_B, {"status": 200, "body": BODY_B})
+    direct_vm.mock_llm(URL_B, json.dumps({"classification": "NOT_QUALIFIED"}))
+    assert contract.resolve_challenge(program_id, 0) == "NOT_QUALIFIED"
+    resolved = json.loads(contract.get_program(program_id))["milestones"][0]
+    evidence_record = json.loads(contract.get_evidence_manifest(program_id, 0))
+    assert resolved["challenge"]["resolution"]["result"] == "NOT_QUALIFIED"
+    assert resolved["challenge"]["resolution"]["flipped"] is True
+    assert [version["kind"] for version in evidence_record["versions"]] == ["SUBMISSION", "CHALLENGE"]
+    assert evidence_record["versions"][0]["manifest"] == original_manifest
+    assert evidence_record["versions"][1]["manifest"] == challenge_manifest
+    assert evidence_record["decision_history"] == resolved["decision_history"]
+    assert [entry["kind"] for entry in resolved["decision_history"]] == [
+        "EVALUATION", "CHALLENGE_OPENED", "CHALLENGE_RESOLUTION",
+    ]
+    events = json.loads(contract.get_resolution_history(program_id, 0, 100))
+    challenged_event = next(event for event in events if event["kind"] == "CHALLENGED")
+    resolved_event = next(event for event in events if event["kind"] == "CHALLENGE_RESOLVED")
+    assert challenged_event["manifest"] == challenge_manifest
+    assert challenged_event["previous_manifest"] == original_manifest
+    assert resolved_event["manifest"] == challenge_manifest
+    assert resolved_event["prior_result"] == "QUALIFIED"
+    assert resolved_event["result"] == "NOT_QUALIFIED"
+    assert resolved_event["bond_owner"] == "0x" + direct_bob.hex()
+
+
+def test_challenge_and_finalization_timestamp_boundaries(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    _seal_and_evaluate(contract, direct_vm, direct_bob, program_id, "QUALIFIED")
+    milestone = json.loads(contract.get_program(program_id))["milestones"][0]
+    direct_vm.sender = direct_bob
+    direct_vm.value = WEI // 10
+    _warp_epoch(direct_vm, milestone["provisional_until"])
+    contract.challenge_milestone(program_id, 0, _manifest(URL_B, BODY_B))
+    direct_vm.mock_web(URL_B, {"status": 200, "body": BODY_B})
+    direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps({"classification": "QUALIFIED"}))
+    contract.resolve_challenge(program_id, 0)
+    resolved = json.loads(contract.get_program(program_id))["milestones"][0]
+    _warp_epoch(direct_vm, resolved["provisional_until"])
+    with direct_vm.expect_revert("CHALLENGE_WINDOW_STILL_OPEN"):
+        contract.finalize_milestone(program_id, 0)
+    _warp_epoch(direct_vm, resolved["provisional_until"] + 1)
+    assert contract.finalize_milestone(program_id, 0) == "FINAL_QUALIFIED"
 
 
 def test_unresolved_attempts_never_become_denial_and_then_unlock_refund(direct_vm, direct_deploy, direct_bob):

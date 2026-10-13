@@ -1,6 +1,6 @@
-# Ascende state matrix — requirements, not an implemented contract
+# Ascende state matrix
 
-**Implementation status: BLOCKED before ABI freeze.** This table records the required transition policy. It is not evidence that any transition currently executes on-chain.
+The contract implements these transitions. Direct Mode tests exercise the important economic and deadline boundaries; this matrix describes contract state, not a claim of production solvency. Live proof is address/source-specific and recorded in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md).
 
 | Current state | Trigger / guard | Next state | Economic effect |
 |---|---|---|---|
@@ -15,7 +15,7 @@
 | `CHALLENGED` | Independent review agrees on a business result | `PROVISIONAL_*` then final under frozen window | No payout until final; settle bond by frozen rule. |
 | `RETRYABLE` | Frozen finite retry/grace policy exhausted | `FINAL_UNRESOLVED` | No earned tranche; closure/refund only under frozen policy. |
 | Terminal milestone / unresolved program | Frozen close condition satisfied | `CLOSED_SUCCESS` / `CLOSED_STOPPED` | Only genuinely unearned principal becomes refund obligation. |
-| Entitlement/refund obligation | Safe delivery mechanism proven | transfer attempt state | Reserve exactly once and distinguish pending, delivered, failed, ambiguous. **No implementation exists.** |
+| Entitlement/refund obligation | Authorized owner requests payment | `AUTHORIZED` then `TRANSFER_SUBMITTED` | Reserve exactly once before one EOA child transfer; absent an authenticated child result, delivery remains unresolved. |
 
 ## Global invariants
 
@@ -26,6 +26,6 @@
 - A failed or ambiguous child delivery cannot be restored to claimable balance without authenticated proof; it cannot be resent automatically.
 - Funder refunds exclude earned and pending obligations. Recipient claims exclude locked and refundable principal.
 
-## Freeze criteria
+## Release boundary
 
-Replace this document with generated-state evidence only after contract compilation, exact pinned toolchain verification, Direct Mode behavioral coverage, and the child-transfer recovery gate have passed. Every transition and deadline boundary must be exercised against executed contract calls.
+The contract enforces accounting and one-shot submission, but cannot authenticate child delivery/failure or recover value attached to failed payable calls. These limits block production-safe escrow even when the state transitions and tests pass.

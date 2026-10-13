@@ -1,6 +1,24 @@
 # Live Studionet verification
 
-**Completed on the stable Studionet test network (chain 61999 / `0xF22F`). This is test evidence, not production approval.** Four programs were exercised with the supplied unlocked test wallets and a total of 0.24 GEN in program escrow, plus challenge bonds and one failed 0.06 GEN creation attempt. The contract and wallet balances below were queried after finalization. No private key is included here.
+**Current candidate:** stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production approval.
+
+## Current release candidate
+
+- Contract: `0xb47Cc771D53846246016D78D39e59AAC0884D827`
+- Deployment transaction: [`0xbabe65aade68a23989009ce95a9106181512f9d396458103c5141da38f3e3a29`](https://explorer-studio.genlayer.com/tx/0xbabe65aade68a23989009ce95a9106181512f9d396458103c5141da38f3e3a29)
+- Source SHA-256: `8BFD9B82A65458D2CFC11499E10681A83E283EDC355BB88F389697F884E665CC`; fetched deployed code hashes identically.
+- Deployment receipt: `ACCEPTED`, `MAJORITY_AGREE` (3 agree, 2 idle); deployer `0xD6423aE82a975d55C6CeaC222827A727325e0459`.
+- A fresh `get_program_counter` read returned `0` before any release-candidate test lifecycle.
+- Live positive/challenge/refund cycles: **pending**. They must use only this contract address and immutable test fixtures committed in the canonical release.
+- Frontend production build was configured for this address. A browser read returned the live empty registry (`No programs found`), matching `get_program_counter=0`.
+
+Do not cite the historical receipts below as evidence for the current source or address.
+
+## Historical deployment (superseded)
+
+The following results belong only to the older address and source hash. They are retained to explain the known unrecoverable residues and must not be treated as proof of the current release.
+
+**Completed on the stable Studionet test network (chain 61999 / `0xF22F`).** Four programs were exercised with supplied unlocked test wallets and 0.24 GEN in program escrow, plus challenge bonds and one failed 0.06 GEN creation attempt. No private key is included here.
 
 ## Deployment
 

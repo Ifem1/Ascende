@@ -1,6 +1,6 @@
 # Ascende contract API
 
-This API is implemented in `contracts/ascende.py`. Direct Mode successfully loads and executes the deployed-method surface in local tests. Generated schema extraction is still blocked on this workstation because `genvm-lint` cannot read its SDK artifact cache under `%USERPROFILE%\.cache\genvm-linter`; do not treat this table as generated output.
+This API is implemented in `contracts/ascende.py`. Generated ABI schema is [`contracts/ascende.schema.json`](../contracts/ascende.schema.json), produced with the pinned GenVM `v0.2.16` SDK. CI pins that same SDK to avoid an incompatible cached prerelease.
 
 All addresses are normalized to lowercase. GEN values are integer wei strings unless a method returns `u256`. Milestone indices are zero-based. JSON arguments and JSON view results are strings.
 
@@ -31,7 +31,7 @@ All addresses are normalized to lowercase. GEN values are integer wei strings un
 | `get_program` | `(program_id: u256) -> str` | Full program JSON including milestones, operations and history; empty string when absent. |
 | `get_milestone` | `(program_id: u256, milestone_index: u256) -> str` | One frozen milestone and current state. |
 | `get_milestones` | `(program_id: u256) -> str` | JSON milestone array. |
-| `get_evidence_manifest` | `(program_id: u256, milestone_index: u256) -> str` | JSON root and manifest. |
+| `get_evidence_manifest` | `(program_id: u256, milestone_index: u256) -> str` | JSON active root/manifest, immutable submission/challenge evidence versions, and decision history. |
 | `get_resolution_history` | `(program_id: u256, offset: u256, limit: u256) -> str` | JSON history slice; limit capped at 100. |
 | `get_program_accounting` | `(program_id: u256) -> str` | JSON principal and bond bucket values, plus program status. |
 | `get_transfer_attempt` | `(program_id: u256, operation_id: str) -> str` | JSON immutable destination/amount/purpose/status operation; empty string if absent. |
@@ -42,4 +42,4 @@ All addresses are normalized to lowercase. GEN values are integer wei strings un
 
 Payment authorization, submission and recipient delivery are separate. `submit_payment` is one-shot and only moves reserved amounts into pending buckets. An EOA transfer uses the documented EVM external-message interface. The contract has no authenticated child-result callback or reconciliation view in this implementation; neither `mark_transfer_unresolved` nor an explorer observation can safely release the reservation for a second transfer.
 
-The frontend uses the signatures above for its writes and treasury/history reads. It has not been generated from the ABI schema because that extraction gate is blocked as described above. Re-run `genvm-lint schema --json contracts/ascende.py` in an environment with a readable compatible GenVM SDK cache before deployment.
+The frontend uses the signatures above for its writes and treasury/history reads. Challenge state preserves both manifests, their roots, prior result, challenge resolution, and append-only decision records. This does not establish final redirect authority or authenticated child-transfer delivery; see [SECURITY.md](SECURITY.md).

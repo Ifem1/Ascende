@@ -1,5 +1,39 @@
 import { expect, test } from "@playwright/test";
 
+test("wallet connection, network switch, copy, and disconnect stay in wallet control", async ({ page }) => {
+  const address = "0x1234567890123456789012345678901234567890";
+  await page.addInitScript((account) => {
+    let chainId = "0x1";
+    let authorized = false;
+    const listeners = new Map<string, Array<(...args: unknown[]) => void>>();
+    const provider = {
+      request: async ({ method }: { method: string }) => {
+        if (method === "eth_accounts") return authorized ? [account] : [];
+        if (method === "eth_requestAccounts") { authorized = true; return [account]; }
+        if (method === "eth_chainId") return chainId;
+        if (method === "wallet_switchEthereumChain") { chainId = "0xf22f"; for (const listener of listeners.get("chainChanged") ?? []) listener(chainId); return null; }
+        throw new Error(`Unexpected test wallet method: ${method}`);
+      },
+      on: (event: string, listener: (...args: unknown[]) => void) => listeners.set(event, [...(listeners.get(event) ?? []), listener]),
+      removeListener: (event: string, listener: (...args: unknown[]) => void) => listeners.set(event, (listeners.get(event) ?? []).filter((current) => current !== listener)),
+    };
+    Object.defineProperty(window, "ethereum", { configurable: true, value: provider });
+    Object.defineProperty(window.navigator, "clipboard", { configurable: true, value: { writeText: async (value: string) => { (window as Window & { __copied?: string }).__copied = value; } } });
+  }, address);
+  await page.goto("/");
+  await page.getByRole("button", { name: /connect wallet/i }).click();
+  await page.getByRole("button", { name: /browser wallet/i }).click();
+  await expect(page.getByRole("button", { name: /wrong network · switch/i })).toBeVisible();
+  await page.getByRole("button", { name: /wrong network · switch/i }).click();
+  await expect(page.getByRole("button", { name: /studionet · 61999/i })).toBeVisible();
+  await page.getByRole("button", { name: /0x1234.*7890/i }).click();
+  await page.getByRole("button", { name: /copy full address/i }).click();
+  await expect(page.getByRole("status")).toContainText(/address copied/i);
+  expect(await page.evaluate(() => (window as Window & { __copied?: string }).__copied)).toBe(address);
+  await page.getByRole("button", { name: /disconnect/i }).click();
+  await expect(page.getByRole("button", { name: /connect wallet/i })).toBeVisible();
+});
+
 test("home shows canonical on-chain data or an explicit unavailable state", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /progress is earned/i })).toBeVisible();

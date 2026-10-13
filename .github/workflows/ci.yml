@@ -7,6 +7,11 @@ on:
 permissions:
   contents: read
 
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: "utf-8"
+  GENVM_VERSION: "v0.2.16"
+
 jobs:
   contract:
     runs-on: windows-latest

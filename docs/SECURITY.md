@@ -1,19 +1,22 @@
-# Security and payment guarantees
+# Security and release status
 
-## Implemented controls
+**Release verdict: NOT READY for production-safe escrow.** The remaining transfer and evidence-provenance limitations below are release blockers. Stable Studionet is used for test evidence only.
 
-- The contract holds the entire frozen tranche total before activation; milestones progress in order and only a final qualified milestone earns its fixed tranche.
-- Evidence manifest URLs must match frozen HTTPS authority prefixes. Exact response byte length and SHA-256 are checked independently during leader and validator execution. A bad hash/length becomes `SOURCE_UNAVAILABLE`, not a business denial.
-- Validator output is restricted to bounded classes and compared by independent execution. VM/consensus errors are allowed to propagate instead of being converted into a verdict.
-- Withdrawals, refunds and challenge-bond claims each create a durable `AUTHORIZED` operation that binds a unique ID, destination, amount and purpose. A second write submits that operation once; submitted operations cannot be reauthorized or resent.
-- `TRANSFER_SUBMITTED` and `DELIVERY_UNRESOLVED` remain reserved. Delivered counters stay zero because no contract-authenticated EOA delivery callback is available in the implemented interface.
+## Verified contract controls
 
-## Remaining risks and release blockers
+- Program funding is exact and milestone budgets, criteria, authorities, and policy are frozen at creation. Milestones progress in order; only final qualification vests its tranche.
+- Evidence URLs must match the frozen HTTPS path authority. The requested response must be status 200 and match the committed byte length and SHA-256 during leader and validator review. A mismatch is `SOURCE_UNAVAILABLE`, never a business denial.
+- Prompt instructions tell the model to treat source bytes as hostile data and disregard embedded instructions. The validator independently fetches and evaluates the evidence; only the bounded classification is compared. This reduces injection risk but does not prove model correctness or objective truth.
+- Challenge records preserve the submitted and challenged manifests, their hashes, prior result, reviewer result, bond owner, and timestamps. `decision_history` and contract history link the decision sequence; challenge evidence remains active for bounded retries after technical failure.
+- Python `datetime.now(timezone.utc)` is bound by GenVM to the transaction context timestamp and is identical across validators; it is not a validator host clock. Deadline comparisons use that transaction timestamp. See [GenLayer transaction context](https://docs.genlayer.com/developers/intelligent-contracts/features/transaction-context).
+- Withdrawals, refunds, and bond claims reserve a unique immutable operation before the one permitted EOA child transfer. Submitted and ambiguous operations remain pending and cannot be resent from contract state.
 
-- Authority prefixes validate the requested URL. Redirect handling and final-response-origin enforcement have not been established; a permitted URL that redirects elsewhere could violate intended provenance.
-- Source responses and model interpretation can change or be unavailable between leader and validators. The contract treats technical failure as retryable, but live consensus behavior is unproven.
-- A triggered EOA transfer is asynchronous. We have not demonstrated child success/failure, exact recipient credit, or a contract-authenticated failed-transfer recovery path on Studionet. `mark_transfer_unresolved` records uncertainty but does not restore funds or permit a retry.
-- Direct Mode does not execute live native EOA child transfers. No deployed contract, live transaction, or recipient balance proof exists.
-- Semantic GenVM lint/build validation and remote CI execution remain incomplete. Local typecheck, lint, production build, unit tests, and browser assertions have passed; see [TESTING.md](TESTING.md) for the Windows Playwright shutdown caveat and dependency audit status.
+## Known limitations and release blockers
 
-Therefore the code prevents duplicate authorization/submission within the contract state machine, but **does not guarantee lossless delivery or recoverability**. Do not describe it as production-safe escrow until the live boundary and provenance controls are independently established.
+- The pinned Web Access response surface used here exposes status and body, but not an enforceable final response URL or a no-redirect request option. Authority checks therefore establish the requested URL, not the final redirect destination. Final source authority has **not** been verified. Do not treat current URL-prefix checks as redirect protection.
+- Prompt-injection resistance is prompt guidance plus independent classification agreement, not a security boundary. A compromised or misleading authoritative source and correlated model errors remain possible. The current classification-only agreement cannot prove the underlying criterion is true.
+- GenLayer EOA child transfers are asynchronous and have no authenticated child-result callback in this contract. `mark_transfer_unresolved` is only an uncertainty marker; it does not prove failure, return funds, or permit retry. A parent success, child lookup, explorer status, or off-chain balance observation cannot safely authorize a second send on-chain.
+- A failed payable call may credit native GEN to the contract while its failed execution leaves no matching program or bond state. There is no method on the deployed addresses to identify the payer and safely return this surplus. Existing documented residues are 0.0002 GEN on `0x1cC1130daeA4a26f0be748063a903d254b4CCe96` and 0.06 GEN on the superseded `0xB8c2965026223a39d78f3834FBe0646cB3747C21`; neither is recoverable through the deployed interfaces.
+- Consequently, the obligation ledger is not a proof of physical solvency or lossless EOA delivery. A new contract deployment does not repair balances stranded at old addresses. No automatic resend, unauthenticated failure assertion, or admin sweep is safe to add.
+
+Do not use Ascende for production escrow until the transfer rail supplies authenticated delivery/failure reconciliation and failed payable value is safely attributable, and until final source authority can be enforced. A separately audited settlement design would need explicit approval; this repository does not add an EVM vault.

@@ -17,11 +17,12 @@ export function WalletControl() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
   const [provider, setProvider] = useState<InjectedProvider>();
+  const [disconnected, setDisconnected] = useState(false);
   const [wallets, setWallets] = useState<DiscoveredWallet[]>([]);
   const popup = useRef<HTMLDivElement>(null);
   const correct = chain === TARGET_CHAIN_ID;
   useEffect(() => {
-    const active = provider ?? getProvider();
+    const active = provider ?? (disconnected ? undefined : getProvider());
     if (!active) return;
     let live = true;
     const refresh = async () => {
@@ -34,13 +35,13 @@ export function WalletControl() {
     };
     const changedAccounts = (...args: unknown[]) => { const value=args[0]; setAddress(Array.isArray(value) && typeof value[0]==="string" ? value[0] : ""); setMenu(false); };
     const changedChain = (...args: unknown[]) => { setChain(normalizedChainId(args[0])); setMenu(false); };
-    const disconnected = () => { setAddress(""); setMenu(false); setActiveProvider(null); };
+    const handleDisconnect = () => { setDisconnected(true); setAddress(""); setMenu(false); setProvider(undefined); setActiveProvider(null); };
     active.on?.("accountsChanged", changedAccounts);
     active.on?.("chainChanged", changedChain);
-    active.on?.("disconnect", disconnected);
+    active.on?.("disconnect", handleDisconnect);
     void refresh();
-    return () => { live=false; active.removeListener?.("accountsChanged",changedAccounts); active.removeListener?.("chainChanged",changedChain); active.removeListener?.("disconnect",disconnected); };
-  },[provider]);
+    return () => { live=false; active.removeListener?.("accountsChanged",changedAccounts); active.removeListener?.("chainChanged",changedChain); active.removeListener?.("disconnect",handleDisconnect); };
+  },[provider, disconnected]);
   useEffect(() => {
     const found = new Map<string, DiscoveredWallet>();
     const announce = (event: Event) => {
@@ -68,6 +69,7 @@ export function WalletControl() {
     try {
       const acc = await selected.request({method:"eth_requestAccounts"});
       const cid = await selected.request({method:"eth_chainId"});
+      setDisconnected(false);
       setProvider(selected);setActiveProvider(selected);
       setAddress(Array.isArray(acc) && typeof acc[0]==="string" ? acc[0] : "");
       setChain(normalizedChainId(cid));setSelector(false);
@@ -103,7 +105,7 @@ export function WalletControl() {
       <div className="pop-header"><div><small>CONNECTED WALLET</small><strong>{shortAddress(address)}</strong></div><button type="button" className="icon-btn" onClick={()=>setMenu(false)} aria-label="Close wallet menu"><X size={17}/></button></div>
       <button type="button" className="menu-action" onClick={()=>void copyAddress()}><Copy size={16}/>Copy full address</button>
       <a className="menu-action" href={`${EXPLORER}/address/${address}`} target="_blank" rel="noreferrer"><ExternalLink size={16}/>View in Explorer</a>
-      <button type="button" className="menu-action menu-danger" onClick={()=>{setAddress("");setMenu(false);setProvider(undefined);setActiveProvider(null);setNote("Disconnected from Ascende (wallet authorization remains managed by your wallet)");}}><LogOut size={16}/>Disconnect</button>
+      <button type="button" className="menu-action menu-danger" onClick={()=>{setDisconnected(true);setAddress("");setMenu(false);setProvider(undefined);setActiveProvider(null);setNote("Disconnected from Ascende (wallet authorization remains managed by your wallet)");}}><LogOut size={16}/>Disconnect</button>
     </div>}
     {selector && <div className="wallet-modal-layer" role="presentation" onMouseDown={(e)=>{if(e.target===e.currentTarget)setSelector(false);}}><div className="wallet-modal" role="dialog" aria-modal="true" aria-label="Connect an injected wallet">
       <div className="pop-header"><div><small>SECURE CONNECTION</small><h2>Connect wallet</h2></div><button type="button" className="icon-btn" aria-label="Close dialog" onClick={()=>setSelector(false)}><X size={18}/></button></div>

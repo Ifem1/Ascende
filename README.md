@@ -6,7 +6,7 @@ Ascende is a GenLayer-native milestone funding application for stable Studionet 
 
 The single principal Intelligent Contract is implemented in [`contracts/ascende.py`](contracts/ascende.py). Direct Mode exercises its funding, role, evidence, validator, challenge, sequential-finalization, refund, bond, payment-authorization, one-time submission, and unresolved states. The Next.js app reads live contract state when a verified deployment address is configured and gates wallet writes to Studionet 61999. No mock programs or TVL are shipped.
 
-Native EOA child transfers are recorded as submitted, never delivered. A claim first becomes a durable `AUTHORIZED` operation bound to an immutable ID, destination and amount. A separate call can submit that ID once. A submitted operation can be marked unresolved; it stays reserved and cannot be resent. The current documented EOA transfer interface does not prove recipient credit or provide a contract-authenticated failed-delivery recovery path, so safe economic recovery and production readiness remain unproven. No live transfer or contract deployment is claimed.
+The current stable Studionet deployment and live receipts are documented in [`docs/LIVE_VERIFICATION.md`](docs/LIVE_VERIFICATION.md). Contract source changes require a new address; prior live evidence applies only to the source hash and address named in that record. Native EOA child transfers remain `TRANSFER_SUBMITTED`/pending because this interface cannot authenticate recipient credit or safely recover an ambiguous/failed child. Failed payable calls can also leave value at a contract without matching state. Those unresolved value paths make production-safe escrow unproven; this is a release blocker, not a guarantee of recovery.
 
 ## Contract interface
 
@@ -38,6 +38,6 @@ npm run e2e
 
 Build before browser E2E: Playwright starts the production server against the generated `.next` output.
 
-Set `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS` only to a verified Studionet deployment address. Reads are unavailable until a deployment exists. Do not add secrets to `.env` or commit wallet keys.
+Set `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS` and `NEXT_PUBLIC_GENLAYER_RPC` before building the frontend. Public environment values are embedded at build time. Do not add secrets to `.env` or commit wallet keys.
 
 See [`docs/SECURITY.md`](docs/SECURITY.md), [`docs/TESTING.md`](docs/TESTING.md), [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md), and [`docs/LIVE_VERIFICATION.md`](docs/LIVE_VERIFICATION.md) for reviewed guarantees and release evidence.

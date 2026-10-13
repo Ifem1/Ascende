@@ -1,6 +1,7 @@
 import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
 import { ExecutionResult, TransactionStatus } from "genlayer-js/types";
+import { GENLAYER_RPC } from "./network";
 
 export const CHAIN_ID = "0xf22f";
 export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS ?? "";
@@ -28,7 +29,7 @@ export type ProgramRecord = {
   locked_wei: string;
   earned_claimable_wei: string;
   refund_claimable_wei: string;
-  milestones: Array<{ status: string; tranche_wei: string; deadline: number; criteria: string[]; authorities: Array<{ prefix: string; role: string; required: boolean }>; manifest_root: string; result: string; provisional_until: number; retry_after: number; challenge_used: boolean }>;
+  milestones: Array<{ status: string; tranche_wei: string; deadline: number; criteria: string[]; authorities: Array<{ prefix: string; role: string; required: boolean }>; manifest: Array<{ url: string; sha256: string; byte_length: number }>; manifest_root: string; result: string; provisional_until: number; retry_after: number; challenge_used: boolean; challenge?: { challenger: string; manifest: Array<{ url: string; sha256: string; byte_length: number }>; root: string; prior_manifest: Array<{ url: string; sha256: string; byte_length: number }>; prior_manifest_root: string; prior_result: string; bond_wei: string; resolution?: { result: string; flipped: boolean; bond_owner: string; bond_wei: string; time: number } | null } | null; decision_history?: Array<{ id: number; kind: string; evidence_root?: string; previous_evidence_root?: string; result?: string; prior_result?: string; time: number }> }>;
 };
 
 export function parseGen(value: string): bigint {
@@ -45,11 +46,11 @@ export function formatGen(wei: string | bigint): string {
 }
 
 export function readClient() {
-  return createClient({ chain: studionet });
+  return createClient({ chain: studionet, endpoint: GENLAYER_RPC });
 }
 
 export function writeClient(account: string, provider: Eip1193Provider) {
-  return createClient({ chain: studionet, account: account as `0x${string}`, provider: provider as never });
+  return createClient({ chain: studionet, endpoint: GENLAYER_RPC, account: account as `0x${string}`, provider: provider as never });
 }
 
 export function requireDeployment() {

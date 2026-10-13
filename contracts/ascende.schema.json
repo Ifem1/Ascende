@@ -1,0 +1,371 @@
+{
+  "ctor": {
+    "params": [],
+    "kwparams": {}
+  },
+  "methods": {
+    "challenge_milestone": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "milestone_index",
+          "int"
+        ],
+        [
+          "manifest_json",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "int",
+      "payable": true
+    },
+    "close_program": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
+    "create_program": {
+      "params": [
+        [
+          "recipient",
+          "string"
+        ],
+        [
+          "title",
+          "string"
+        ],
+        [
+          "purpose",
+          "string"
+        ],
+        [
+          "milestones_json",
+          "string"
+        ],
+        [
+          "policy_json",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "int",
+      "payable": true
+    },
+    "evaluate_milestone": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "milestone_index",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
+    "finalize_milestone": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "milestone_index",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
+    "finalize_unresolved": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "milestone_index",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
+    "get_capabilities": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "account",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_evidence_manifest": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "milestone_index",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_milestone": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "milestone_index",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_milestones": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_program": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_program_accounting": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_program_counter": {
+      "params": [],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "int"
+    },
+    "get_protocol_accounting": {
+      "params": [],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_resolution_history": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "offset",
+          "int"
+        ],
+        [
+          "limit",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_transfer_attempt": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "operation_id",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "list_program_ids": {
+      "params": [
+        [
+          "offset",
+          "int"
+        ],
+        [
+          "limit",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "mark_transfer_unresolved": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "operation_id",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
+    "request_bond_withdrawal": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "amount_wei",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "int",
+      "payable": false
+    },
+    "request_refund": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "amount_wei",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "int",
+      "payable": false
+    },
+    "request_withdrawal": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "amount_wei",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "int",
+      "payable": false
+    },
+    "resolve_challenge": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "milestone_index",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
+    "submit_evidence": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "milestone_index",
+          "int"
+        ],
+        [
+          "manifest_json",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
+    "submit_payment": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "operation_id",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    }
+  }
+}
