@@ -1,0 +1,9 @@
+# Testing and CI
+
+The contract's Direct Mode tests run against the GenLayer VM harness and include funding authorization, role enforcement, malformed funding, evidence authority and integrity, validator disagreement, source and model failure handling, qualified and unqualified milestones, retry/unresolved closure, challenge bond rules, challenge replay, sequential progression, refund entitlement, bond withdrawal, duplicate payment authorization/submission, unresolved transfer retention, and principal conservation.
+
+The latest local run passed **23 tests** (`pytest -p no:cacheprovider --tb=short -q tests/test_contract.py`). It used `genlayer-test 0.29.2`, `genlayer-py 0.16.3`, Python 3.12.10, and the cached GenVM `v0.2.16` bundle. The Windows test conftest pins that runner and works around a tempfile cleanup defect in the harness; CI installs the same checksummed release archive.
+
+The frontend's latest local checks passed TypeScript, ESLint, a production build, and **4 Vitest unit tests**. The Chromium run reported all **3 browser assertions passed** (honest empty state, creation wizard, and mobile overflow). On this Windows host, Playwright left its server process alive after reporting the passing cases, so the local command needed interruption; the GitHub Actions job is configured to build first and run the same suite against the production server, but CI has not run remotely.
+
+The suite does not simulate a live emitted child EOA transfer, failed-child recovery, recipient balance credit, or multi-validator Studionet execution. Those remain live-network gates. Production dependency audit previously reported zero vulnerabilities; the full audit identified five high-severity advisories in a dev-only `braces` dependency chain. The registry did not provide the advisory's patched version during the attempted update, and a later audit retry could not reach the registry, so the development dependency finding remains unresolved.

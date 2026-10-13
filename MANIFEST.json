@@ -1,0 +1,232 @@
+{
+  "project": "ASCENDE",
+  "handoff_date": "2026-10-13",
+  "status": "specification_plus_unverified_frontend_starter",
+  "items": [
+    {
+      "path": ".github/workflows/README.md",
+      "bytes": 228,
+      "sha256": "14c1806173cba36dbfdedc878998b5695851d99d32d3c8d8b2ef82b3cb6499e2"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 108,
+      "sha256": "8caa929a317e1e2c6acf00c029273f85d83464eb8809fea109ec164e1f7a0dff"
+    },
+    {
+      "path": "CODEX_MASTER_HANDOFF.md",
+      "bytes": 13667,
+      "sha256": "0cb541c9ccdfb2261c154ddbbb6d00d428029f0bc1205f2bcdbc40cbf524889d"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4299,
+      "sha256": "fdbcc15aa71a0d58be08f95e249e8f7f2ebc0dfea36767c69c372437d007e936"
+    },
+    {
+      "path": "contracts/README.md",
+      "bytes": 436,
+      "sha256": "5a7ecd71aa1215e8467b2d5087d71be3f8407b06b09321541019de6f16376fdf"
+    },
+    {
+      "path": "design/CONCEPT_ONLY-not-live-product.png",
+      "bytes": 1741755,
+      "sha256": "5fbc6820494764dfa157bfcd52cb26127e1d635dff64ed7c4246f9dc71fd578d"
+    },
+    {
+      "path": "docs/01_PRODUCT_LOCK.md",
+      "bytes": 5236,
+      "sha256": "03b2e0f8a0cd2872447f79069d9c22c6b20a12727c83337ec97db491491e585c"
+    },
+    {
+      "path": "docs/02_PROTOCOL_STATE_AND_API.md",
+      "bytes": 6456,
+      "sha256": "870006a8787b1154099200cf0d712eb864e89db65f818faec690332cb7d8b708"
+    },
+    {
+      "path": "docs/03_EVIDENCE_AND_CONSENSUS.md",
+      "bytes": 6565,
+      "sha256": "7de97ee8733dfb2055dd5796cb900fe732226871797ca9b1c30c8457c2d56da3"
+    },
+    {
+      "path": "docs/04_TREASURY_AND_PAYMENT_SAFETY.md",
+      "bytes": 5247,
+      "sha256": "604232fa139b256ad70cb354ecc93e9f2c69589520a1392ac2429ab00af137c6"
+    },
+    {
+      "path": "docs/05_FRONTEND_AND_BRAND.md",
+      "bytes": 5066,
+      "sha256": "c6873e3e033eda3204def73c2c9d6e15e5f96ca603a0fbb76e75c00ccebe28eb"
+    },
+    {
+      "path": "docs/06_WALLET_AND_SDK.md",
+      "bytes": 4003,
+      "sha256": "6b1eb8416fc4a7043f16d6eb4330a37ac649c6f7949c2f7b4345e82568ef56b3"
+    },
+    {
+      "path": "docs/07_TEST_AND_ADVERSARIAL_MATRIX.md",
+      "bytes": 4445,
+      "sha256": "0fcf6e9e5fd68744a248cf79e50f4dd8f4dd0514438747cc275513ffc320e197"
+    },
+    {
+      "path": "docs/08_DEPLOYMENT_AND_STEWARD.md",
+      "bytes": 3761,
+      "sha256": "2c2800804de049a7b88740ffe9df68fd0b112d776c735fe75755fa9d642280d9"
+    },
+    {
+      "path": "docs/09_LIVE_RUNBOOK.md",
+      "bytes": 4399,
+      "sha256": "b4f22d9ecb69447e2df886cd0a5132307ff10e50f74ab44f0a0aebbd5b38c415"
+    },
+    {
+      "path": "docs/10_THREAT_MODEL.md",
+      "bytes": 3001,
+      "sha256": "0a208886d2a0d45ee5ab94771fe9491ba772c2d6c7ebc83eaccac8f34878f992"
+    },
+    {
+      "path": "docs/11_SOURCE_API_REFERENCES.md",
+      "bytes": 2783,
+      "sha256": "d87e2c5632a0807311142dd2735287018ea3f97ee37e96ef243c6e1b4e1352f4"
+    },
+    {
+      "path": "examples/test-fixtures/README.md",
+      "bytes": 342,
+      "sha256": "dd7cbcdd8f05358b0f1aa67e22a80e742997beff76ae7cde8580e3b9bf92f3b6"
+    },
+    {
+      "path": "examples/test-fixtures/not-qualified.json",
+      "bytes": 177,
+      "sha256": "2e1f4e4ae7000f3e4a46e55e127cd4ff811a81d7463419bd9e10bf634592af1c"
+    },
+    {
+      "path": "examples/test-fixtures/qualified.json",
+      "bytes": 173,
+      "sha256": "7cab23671864cf7aa8a373e6936c39b171662f266a64c4a6de3b302bddb306e4"
+    },
+    {
+      "path": "frontend-starter/.env.example",
+      "bytes": 237,
+      "sha256": "1c3c0e3774ec21535c62bc2326c73a31a5bdb7ab29fcd5578ebf1a72821ecead"
+    },
+    {
+      "path": "frontend-starter/.gitignore",
+      "bytes": 48,
+      "sha256": "0dfb0cd8dc5395b23140ca2730f4e864c5e3139cd0c0d39306b813418f6b005b"
+    },
+    {
+      "path": "frontend-starter/README.md",
+      "bytes": 1055,
+      "sha256": "829a83d956a35dbabba63273e976e320f5e39b3b277486388923648d15d271e3"
+    },
+    {
+      "path": "frontend-starter/app/activity/page.tsx",
+      "bytes": 493,
+      "sha256": "a117ebea653b79dc0eb2c2c440c377581a1f19b3788de0d30942757e3397aead"
+    },
+    {
+      "path": "frontend-starter/app/create/page.tsx",
+      "bytes": 566,
+      "sha256": "466bb3f03ba1bc2895dc3cf0545045a4e90d2aef4fbb28f3138eb81dee0de20a"
+    },
+    {
+      "path": "frontend-starter/app/docs/page.tsx",
+      "bytes": 1520,
+      "sha256": "cdc605c437512c7ab6a4dfa144deecdeb49457fecfddcaedd6b9134a4bcbcd9c"
+    },
+    {
+      "path": "frontend-starter/app/globals.css",
+      "bytes": 11005,
+      "sha256": "616578c3860cd5ab202b6d675d3989eaa1d67e3dbf3a07c76600fcd72150995c"
+    },
+    {
+      "path": "frontend-starter/app/layout.tsx",
+      "bytes": 749,
+      "sha256": "6ebc3a1c5d5656dbffe44df80907c020f1b5607dfc20bcc4b97282b2298e0fff"
+    },
+    {
+      "path": "frontend-starter/app/my-work/page.tsx",
+      "bytes": 548,
+      "sha256": "32591259991c504bcd3ce4a5ccd1e000a51089877d265da63e961c73a9ca3bde"
+    },
+    {
+      "path": "frontend-starter/app/page.tsx",
+      "bytes": 3465,
+      "sha256": "29476cc88477a824eafac9cb7a6182c2844afae564899d0de3c9187f6a478772"
+    },
+    {
+      "path": "frontend-starter/app/programs/page.tsx",
+      "bytes": 506,
+      "sha256": "8be0cf686294eeebbf47efe22414e41e0bdb7f22d30d503b698ff29553743bcc"
+    },
+    {
+      "path": "frontend-starter/components/site-header.tsx",
+      "bytes": 870,
+      "sha256": "4f2a94f91b01d127daf00a77120ff7e9fb1f4c46a0136f722e362efcee224afe"
+    },
+    {
+      "path": "frontend-starter/components/starter-page.tsx",
+      "bytes": 1112,
+      "sha256": "be8d631a98ac597762697143a4fbf8d306f3d122285c52a5bc06cffa6ab0130e"
+    },
+    {
+      "path": "frontend-starter/components/wallet-control.tsx",
+      "bytes": 7357,
+      "sha256": "afdedccfd050de1582975f3c93be16185f85307808b8a0305bef1b397c5f69b7"
+    },
+    {
+      "path": "frontend-starter/eslint.config.mjs",
+      "bytes": 313,
+      "sha256": "8f5252c9ca326a715bd4acc73a995c37553ed164cb7c278595372ea2142f0034"
+    },
+    {
+      "path": "frontend-starter/lib/network.ts",
+      "bytes": 871,
+      "sha256": "bdc813e77a1956e14b3b48c1c87f46acf9001e0619a9089040f1b3822d7c6e55"
+    },
+    {
+      "path": "frontend-starter/next-env.d.ts",
+      "bytes": 133,
+      "sha256": "899d99352204798b1ec170798fc4e3978c7410f812461b1c4bfc15224d960828"
+    },
+    {
+      "path": "frontend-starter/next.config.ts",
+      "bytes": 125,
+      "sha256": "c6fec4f61ecfd5790f04386c4cb408679d5797900eeb956456ee527b164fe6e8"
+    },
+    {
+      "path": "frontend-starter/package.json",
+      "bytes": 617,
+      "sha256": "89b57375a136d28d9b1fdd8c5359156b1608237bf86515160401d8cb072ce18f"
+    },
+    {
+      "path": "frontend-starter/public/ascende-hero.png",
+      "bytes": 1011619,
+      "sha256": "0b35c50dd07621abd2da0cf936da20808bc04f3a89c049932cf87e596e306ca5"
+    },
+    {
+      "path": "frontend-starter/public/ascende-mark.svg",
+      "bytes": 344,
+      "sha256": "f16b5d1b1279ffa7f5c72257317cca0d57529f94932f46abf7c8ad1d99eff7a6"
+    },
+    {
+      "path": "frontend-starter/tsconfig.json",
+      "bytes": 562,
+      "sha256": "1519b3e409b0059442adaf1c0c663021214e914c0f80b40cbba705e378aa4537"
+    },
+    {
+      "path": "scripts/preflight.ps1",
+      "bytes": 631,
+      "sha256": "5fb17ce64c4d36f133d2b0d84b6363c358616a6081d9d81676c6e931b5ebcd64"
+    },
+    {
+      "path": "scripts/preflight.sh",
+      "bytes": 438,
+      "sha256": "095f6c5caafa99620c0443bea5b24e2daeeb521d2ab3462edda1270e1b9de791"
+    },
+    {
+      "path": "tests/README.md",
+      "bytes": 237,
+      "sha256": "204adb30c86ab230b69f687a0bb2ffabaa415c8645f9db4c31f236aad85f7805"
+    }
+  ]
+}

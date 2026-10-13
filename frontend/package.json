@@ -1,0 +1,31 @@
+{
+  "name": "ascende-frontend-starter",
+  "private": true,
+  "version": "0.1.0-handoff",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint app components lib",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "genlayer-js": "^1.1.8",
+    "lucide-react": "0.468.0",
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^9.30.0",
+    "eslint-config-next": "^16.4.0",
+    "typescript": "^5.8.3",
+    "vitest": "^5.0.4"
+  }
+}

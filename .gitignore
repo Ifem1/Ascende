@@ -1,0 +1,13 @@
+node_modules/
+**/.next/
+**/.env.local
+**/dist/
+**/.pytest_cache/
+**/__pycache__/
+*.pyc
+*.tsbuildinfo
+.venv/
+frontend/.playwright-browsers/
+frontend/playwright-report/
+frontend/test-results/
+frontend/.vitest/
