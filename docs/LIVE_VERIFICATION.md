@@ -16,6 +16,10 @@ Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production
 - This demonstrates the expected rejection and once-only refund path on the new source. It does not demonstrate every rejection code, any production guarantee, or recovery of the 5 wei stranded at the historical deployment below.
 - Production frontend is aliased at [ascende-sand.vercel.app](https://ascende-sand.vercel.app/), deployment [`dpl_CiC6u1u6444z4J58Lvbd68a7MyiJ`](https://vercel.com/ifem1s-projects/ascende/CiC6u1u6444z4J58Lvbd68a7MyiJ), status `READY`. Its public `/programs` response returned HTTP 200 and the served client bundle contains this contract address. This verifies config delivery, not a wallet-signed frontend transaction.
 
+## Production injected-wallet verification — pending
+
+The user reports manually switching the injected Chrome wallet to a supplied test account and a wrong network, then asked to skip repeating those steps. The browser-control session became unavailable before the resulting account and chain could be independently read or a screenshot captured; this is recorded as user-reported, not independently verified. No browser-originated creation transaction or newly created program is recorded yet. The CLI-signed rejected-payable/refund transactions above do not substitute for that required frontend test.
+
 ## Previous source — historical full lifecycle evidence
 
 The following release evidence is source-matched only to its historical deployment and does not verify the current source.

@@ -105,6 +105,15 @@ test("treasury separates submitted transfers from recorded delivery", async ({ p
   ), { timeout: 20_000 }).toBe(true);
 });
 
+test("docs page links to current deployment evidence and states settlement limits", async ({ page }) => {
+  await page.goto("/docs");
+  await expect(page.getByText("0x884676bCDE191A9D9c79B3111812425E15824836")).toBeVisible();
+  await expect(page.getByText(/child receipt reports a 2-wei credit/i)).toBeVisible();
+  await expect(page.getByRole("link", { name: /read the live verification record/i }))
+    .toHaveAttribute("href", "https://github.com/Ifem1/Ascende/blob/main/docs/LIVE_VERIFICATION.md");
+  await expect(page.getByText(/no deployment or live transfer proof is published yet/i)).toHaveCount(0);
+});
+
 test("mobile layout has no horizontal page overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
