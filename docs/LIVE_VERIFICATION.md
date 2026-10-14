@@ -4,7 +4,7 @@ Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production
 
 ## Current source — rejected payable and bounded refund
 
-- Contract source commit: [`d80148c4fadd23c01fb4bff39d46bd1508951bbe`](https://github.com/Ifem1/Ascende/commit/d80148c4fadd23c01fb4bff39d46bd1508951bbe). The documentation/config release is pushed on `main`; CI run [38634751653](https://github.com/Ifem1/Ascende/actions/runs/38634751653) passed for repository HEAD `fc0e67879a64071dfe61cb0c5ce3fcd68dce3f57`.
+- Contract source commit: [`d80148c4fadd23c01fb4bff39d46bd1508951bbe`](https://github.com/Ifem1/Ascende/commit/d80148c4fadd23c01fb4bff39d46bd1508951bbe). The current frontend and documentation release is tracked on `main`; see the [CI workflow runs](https://github.com/Ifem1/Ascende/actions/workflows/ci.yml) for commit-specific results.
 - Contract: `0x884676bCDE191A9D9c79B3111812425E15824836`.
 - Deployment transaction: [`0xe502d1640c1612979018be4aafde8eaea83afc29cc1ed49a341c775d5559b2a7`](https://explorer-studio.genlayer.com/tx/0xe502d1640c1612979018be4aafde8eaea83afc29cc1ed49a341c775d5559b2a7), accepted on stable Studionet 61999 with `MAJORITY_AGREE` and 5/5 validator votes.
 - Deployed `contracts/ascende.py` SHA-256: `7CA854631AFFF1861006BD8BC9F32A1425DF40C1BA402D88177FE74E853E7D6A`. `genlayer code` readback exactly matched the local source bytes after newline normalization.
@@ -14,7 +14,7 @@ Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production
 - Once-only refund submission: parent [`0xe08fc9df399ec722e9a7037c559a3cbae1855f2ba9dbaa532d9a34574b64e040`](https://explorer-studio.genlayer.com/tx/0xe08fc9df399ec722e9a7037c559a3cbae1855f2ba9dbaa532d9a34574b64e040) finalized. Contract readback shows operation 1 `TRANSFER_SUBMITTED`, pending 2 wei, delivered 0, delivery status `UNVERIFIABLE`.
 - Triggered child [`0x8221e192dbe93929c0d2ce8b3b1ae88ae60fa6ae8d46d5c55a2217bbea7d02b9`](https://explorer-studio.genlayer.com/tx/0x8221e192dbe93929c0d2ce8b3b1ae88ae60fa6ae8d46d5c55a2217bbea7d02b9) finalized with `value_credited=true`, value 2 wei, and recipient equal to the original sender. This is external receipt evidence only; contract storage correctly remains pending.
 - This demonstrates the expected rejection and once-only refund path on the new source. It does not demonstrate every rejection code, any production guarantee, or recovery of the 5 wei stranded at the historical deployment below.
-- Production frontend is aliased at [ascende-sand.vercel.app](https://ascende-sand.vercel.app/), deployment [`dpl_CiC6u1u6444z4J58Lvbd68a7MyiJ`](https://vercel.com/ifem1s-projects/ascende/CiC6u1u6444z4J58Lvbd68a7MyiJ), status `READY`. Its public `/programs` response returned HTTP 200 and the served client bundle contains this contract address. This verifies config delivery, not a wallet-signed frontend transaction.
+- Production frontend is aliased at [ascende-sand.vercel.app](https://ascende-sand.vercel.app/). On 2026-10-14, Vercel inspection reported the current production deployment `READY`; `/`, `/programs`, `/create`, `/my-work`, `/treasury`, `/activity`, and `/docs` each returned HTTP 200, and the rendered Docs page contained this contract address without the superseded “no deployment” claim. These are route/config smoke checks, not proof of a wallet-signed frontend transaction.
 
 ## Production injected-wallet verification — pending
 
