@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, RefreshCw } from "lucide-react";
 import { formatGen, listPrograms, ProgramRecord, readProgramAccounting, readProgramOperations, readProtocolAccounting } from "@/lib/genlayer";
+import { RejectedPayableCreditPanel } from "@/components/rejected-payable-credit";
 
 type Row = { program: ProgramRecord; accounting: Record<string, string | number>; operations: Array<Record<string, unknown>> };
 const buckets = [
@@ -46,6 +47,7 @@ export function TreasuryDashboard() {
   useEffect(() => { void Promise.resolve().then(refresh); }, [refresh]);
 
   return <section className="treasury-dashboard" aria-live="polite">
+    <RejectedPayableCreditPanel/>
     <div className="registry-toolbar"><div><span className="eyebrow">CANONICAL CONTRACT ACCOUNTING</span><h2>Protocol treasury</h2></div><button className="action secondary" type="button" onClick={() => void refresh()} disabled={loading}><RefreshCw size={15}/>{loading ? "Reading chain" : "Refresh"}</button></div>
     {loading && <p className="registry-state">Reading the protocol ledger from the configured Studionet contract…</p>}
     {error && <div className="glass-card form-alert" role="alert"><strong>Treasury read unavailable</strong><p>{error}</p><p>Ascende displays no cached or estimated balances when canonical state cannot be read.</p></div>}

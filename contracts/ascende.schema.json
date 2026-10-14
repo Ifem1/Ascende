@@ -218,6 +218,28 @@
       "readonly": true,
       "ret": "string"
     },
+    "get_rejected_payable_credit": {
+      "params": [
+        [
+          "owner",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
+    "get_rejected_payable_ledger": {
+      "params": [
+        [
+          "owner",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": true,
+      "ret": "string"
+    },
     "get_resolution_history": {
       "params": [
         [
@@ -315,6 +337,18 @@
       "ret": "int",
       "payable": false
     },
+    "request_rejected_payable_refund": {
+      "params": [
+        [
+          "amount_wei",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "int",
+      "payable": false
+    },
     "request_withdrawal": {
       "params": [
         [
@@ -373,6 +407,18 @@
           "program_id",
           "int"
         ],
+        [
+          "operation_id",
+          "string"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
+    "submit_rejected_payable_refund": {
+      "params": [
         [
           "operation_id",
           "string"

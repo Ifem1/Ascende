@@ -4,10 +4,10 @@ The checked-in workflow is the release gate: [GitHub Actions](https://github.com
 
 ## Local release checks
 
-- Contract Direct Mode: **55 passed** with Python 3.12.10, `genlayer-test 0.29.2`, `genlayer-py 0.16.3`, and checksum-verified GenVM `v0.2.16`.
-- GenVM lint: **3 checks passed**. Semantic validation: **25 methods** (11 view, 14 write). Generated schema matches `contracts/ascende.schema.json`.
-- Frontend: TypeScript, ESLint, Vitest (**5 tests**), and Next.js production build passed.
-- Playwright covers wallet connection, wrong-network switching, copy/disconnect, on-chain data or explicit unavailable states, creation wizard review, treasury pending-delivery wording, and mobile overflow. The local Edge run completed all five scenarios; wallet-provider behavior is simulated in these E2E cases. Live transactions were separately signed through GenLayerJS using the authorized test wallets and are listed in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md).
+- Contract Direct Mode: **57 passed** with Python 3.12.10, `genlayer-test 0.29.2`, `genlayer-py 0.16.3`, and checksum-verified GenVM `v0.2.16`.
+- GenVM lint: **3 checks passed**. Semantic validation: **29 methods** (13 view, 16 write). Generated schema matches `contracts/ascende.schema.json`.
+- Frontend: TypeScript, ESLint, Vitest (**10 tests**), and Next.js production build passed.
+- Playwright covers wallet connection, wrong-network switching, copy/disconnect, on-chain data or explicit unavailable states, creation wizard review, rejected-payment credit panel availability, treasury pending-delivery wording, and mobile overflow. All six local Edge scenarios reported `ok`, but the Windows runner did not exit after the final test during teardown; CI must provide the clean process-exit result. Wallet-provider behavior is simulated in these E2E cases. Live evidence in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md) applies to the older deployment, not the current source changes.
 - Windows CI sets `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` and pins `GENVM_VERSION=v0.2.16` to avoid console encoding errors and runtime drift.
 
 Reproduce from the repository root in PowerShell:

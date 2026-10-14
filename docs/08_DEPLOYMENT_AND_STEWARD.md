@@ -4,7 +4,7 @@
 
 The contract source deployed at `86436b4824cc18699a35dc09779c2aa38a46e4d6` includes the liveness, accounting validation, evidence and consensus changes. The working tree extends its test and release record; the exact final GitHub commit and CI result are identified by the current repository HEAD and [Actions](https://github.com/Ifem1/Ascende/actions/workflows/ci.yml). A source-matched stable Studionet deployment at `0xC2F0F3E18B69F398385652A55F423a1e339b4290` is recorded in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md), including positive, negative, expiry, challenge and abandoned-review paths.
 
-**Steward verdict: NOT READY for production-safe escrow.** The native interface does not authenticate external child-transfer delivery/failure back into contract state; failed payable values may be stranded without a program record; the pinned Web Access response does not expose enforceable final redirect authority. See [SECURITY.md](SECURITY.md).
+**Steward verdict: NOT READY for production-safe escrow.** Current source accounts only for an allowlisted set of expected payable validation rejections; unexpected VM failures may still leave value unaccounted, and the older deployed address has no credit methods. The native interface does not authenticate external child-transfer delivery/failure back into contract state, and pinned Web Access does not expose enforceable final redirect authority. See [SECURITY.md](SECURITY.md).
 
 ## Network
 

@@ -127,10 +127,13 @@ def test_milestone_deadlines_must_be_strictly_increasing(direct_vm, direct_deplo
     milestones[0]["deadline"] = base + deadlines[0]
     milestones[1]["deadline"] = base + deadlines[1]
     args[3] = json.dumps(milestones)
+    sender = direct_vm.sender
     direct_vm.value = 5 * WEI
-    with direct_vm.expect_revert("INVALID_MILESTONE_BUDGET_OR_DEADLINE"):
-        contract.create_program(*args)
+    assert int(contract.create_program(*args)) == 0
     assert contract.get_program_counter() == 0
+    credit = json.loads(contract.get_rejected_payable_credit("0x" + bytes(sender).hex()))
+    assert credit["credited_wei"] == credit["available_wei"] == str(5 * WEI)
+    assert json.loads(contract.get_rejected_payable_ledger("0x" + bytes(sender).hex()))["rejections"][0]["reason"] == "INVALID_MILESTONE_BUDGET_OR_DEADLINE"
 
 
 def test_permissionless_missing_evidence_expiry_releases_only_unused_principal(direct_vm, direct_deploy):
@@ -247,39 +250,129 @@ def test_evidence_deadline_exact_boundary(direct_vm, direct_deploy, direct_bob, 
 @pytest.mark.parametrize("sent", [0, 5 * WEI - 1, 5 * WEI + 1])
 def test_wrong_funding_amount_reverts(direct_vm, direct_deploy, sent):
     contract = direct_deploy("contracts/ascende.py")
+    sender = direct_vm.sender
     direct_vm.value = sent
-    with direct_vm.expect_revert("EXACT_FUNDING_REQUIRED"):
-        contract.create_program(*_program())
+    assert int(contract.create_program(*_program())) == 0
     assert contract.get_program_counter() == 0
+    credit = json.loads(contract.get_rejected_payable_credit("0x" + bytes(sender).hex()))
+    assert int(credit["credited_wei"]) == sent
+    assert int(credit["available_wei"]) == sent
+    if sent:
+        ledger = json.loads(contract.get_rejected_payable_ledger("0x" + bytes(sender).hex()))
+        assert ledger["rejections"][0]["reason"] == "EXACT_FUNDING_REQUIRED"
 
 
 def test_invalid_recipient_and_funder_recipient_alias_revert(direct_vm, direct_deploy):
     contract = direct_deploy("contracts/ascende.py")
+    sender = direct_vm.sender
     direct_vm.value = 5 * WEI
     args = list(_program(recipient="invalid"))
-    with direct_vm.expect_revert("INVALID_RECIPIENT"):
-        contract.create_program(*args)
+    assert int(contract.create_program(*args)) == 0
     direct_vm.value = 5 * WEI
     args = list(_program(recipient=str(create_address("default_sender"))))
-    with direct_vm.expect_revert("FUNDER_CANNOT_BE_RECIPIENT"):
-        contract.create_program(*args)
+    assert int(contract.create_program(*args)) == 0
+    assert contract.get_program_counter() == 0
+    ledger = json.loads(contract.get_rejected_payable_ledger("0x" + bytes(sender).hex()))
+    assert ledger["credited_wei"] == ledger["available_wei"] == str(10 * WEI)
+    assert [entry["reason"] for entry in ledger["rejections"]] == ["INVALID_RECIPIENT", "FUNDER_CANNOT_BE_RECIPIENT"]
 
 
 def test_malformed_and_oversized_program_configuration_never_creates_state(direct_vm, direct_deploy):
     contract = direct_deploy("contracts/ascende.py")
+    sender = direct_vm.sender
     args = list(_program())
     args[3] = "{" + (" " * 33_000)
     direct_vm.value = 5 * WEI
-    with direct_vm.expect_revert("INVALID_MILESTONES_JSON"):
-        contract.create_program(*args)
+    assert int(contract.create_program(*args)) == 0
     args = list(_program())
     milestones = json.loads(args[3])
     milestones[0]["unrecognized"] = "ignored-field"
     args[3] = json.dumps(milestones)
     direct_vm.value = 5 * WEI
-    with direct_vm.expect_revert("INVALID_MILESTONE"):
-        contract.create_program(*args)
+    assert int(contract.create_program(*args)) == 0
     assert contract.get_program_counter() == 0
+    ledger = json.loads(contract.get_rejected_payable_ledger("0x" + bytes(sender).hex()))
+    assert ledger["credited_wei"] == ledger["available_wei"] == str(10 * WEI)
+    assert [entry["reason"] for entry in ledger["rejections"]] == ["INVALID_MILESTONES_JSON", "INVALID_MILESTONE"]
+
+
+def test_rejected_payable_deposits_accumulate_once_and_are_claimed_once(direct_vm, direct_deploy):
+    contract = direct_deploy("contracts/ascende.py")
+    sender = direct_vm.sender
+    owner = "0x" + bytes(sender).hex()
+    invalid = list(_program(recipient="not-an-address"))
+    for amount in (2, 3):
+        direct_vm.sender = sender
+        direct_vm.value = amount
+        assert int(contract.create_program(*invalid)) == 0
+
+    assert contract.get_program_counter() == 0
+    ledger = json.loads(contract.get_rejected_payable_ledger(owner))
+    assert ledger["credited_wei"] == ledger["available_wei"] == "5"
+    assert ledger["authorized_wei"] == ledger["pending_wei"] == "0"
+    assert [entry["amount_wei"] for entry in ledger["rejections"]] == ["2", "3"]
+
+    stranger = create_address("rejected-credit-stranger")
+    direct_vm.sender = stranger
+    with direct_vm.expect_revert("REJECTED_REFUND_EXCEEDS_CREDIT"):
+        contract.request_rejected_payable_refund("1")
+    with direct_vm.expect_revert("REJECTED_REFUND_OPERATION_NOT_FOUND"):
+        contract.submit_rejected_payable_refund("1")
+
+    direct_vm.sender = sender
+    with direct_vm.expect_revert("REJECTED_REFUND_EXCEEDS_CREDIT"):
+        contract.request_rejected_payable_refund("6")
+    operation_id = contract.request_rejected_payable_refund("5")
+    with direct_vm.expect_revert("REJECTED_REFUND_EXCEEDS_CREDIT"):
+        contract.request_rejected_payable_refund("1")
+    reserved = json.loads(contract.get_rejected_payable_credit(owner))
+    assert reserved["available_wei"] == "0"
+    assert reserved["authorized_wei"] == "5"
+    assert reserved["pending_wei"] == "0"
+
+    direct_vm.sender = stranger
+    with direct_vm.expect_revert("REJECTED_REFUND_OPERATION_NOT_FOUND"):
+        contract.submit_rejected_payable_refund(str(int(operation_id)))
+    direct_vm.sender = sender
+    assert contract.submit_rejected_payable_refund(str(int(operation_id))) == str(int(operation_id))
+    with direct_vm.expect_revert("PAYMENT_ALREADY_SUBMITTED_OR_CLOSED"):
+        contract.submit_rejected_payable_refund(str(int(operation_id)))
+    submitted = json.loads(contract.get_rejected_payable_credit(owner))
+    assert submitted["credited_wei"] == "5"
+    assert submitted["available_wei"] == submitted["authorized_wei"] == "0"
+    assert submitted["pending_wei"] == "5"
+    assert submitted["delivery_confirmed_wei"] == "0"
+    assert submitted["delivery_status"] == "UNVERIFIABLE"
+    assert json.loads(contract.get_rejected_payable_ledger(owner))["operations"][0]["status"] == "TRANSFER_SUBMITTED"
+    assert int(submitted["credited_wei"]) == sum(int(submitted[key]) for key in ("available_wei", "authorized_wei", "pending_wei"))
+
+
+def test_wrong_party_and_expired_challenges_receive_sender_attributed_credit(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    _seal_and_evaluate(contract, direct_vm, direct_bob, program_id)
+    bond = WEI // 10
+    stranger = create_address("challenge-stranger")
+    direct_vm.sender = stranger
+    direct_vm.value = bond
+    assert int(contract.challenge_milestone(program_id, 0, _manifest(URL_B, BODY_B))) == 0
+    stranger_owner = str(stranger).lower()
+    assert json.loads(contract.get_rejected_payable_ledger(stranger_owner))["rejections"][0]["reason"] == "NOT_PROGRAM_PARTY"
+    program = json.loads(contract.get_program(program_id))
+    assert program["milestones"][0]["challenge"] is None
+    assert program["bond_received_wei"] == "0"
+
+    _advance(direct_vm, 61)
+    direct_vm.sender = direct_bob
+    direct_vm.value = bond
+    assert int(contract.challenge_milestone(program_id, 0, _manifest(URL_B, BODY_B))) == 0
+    bob_owner = "0x" + bytes(direct_bob).hex()
+    bob_ledger = json.loads(contract.get_rejected_payable_ledger(bob_owner))
+    assert bob_ledger["rejections"][0]["reason"] == "CHALLENGE_WINDOW_CLOSED"
+    assert bob_ledger["credited_wei"] == bob_ledger["available_wei"] == str(bond)
+    program = json.loads(contract.get_program(program_id))
+    assert program["milestones"][0]["challenge"] is None
+    assert program["bond_received_wei"] == "0"
 
 
 def test_oversized_manifest_is_rejected_before_sealing(direct_vm, direct_deploy, direct_bob):
@@ -455,11 +548,16 @@ def test_challenge_requires_exact_bond_and_new_manifest(direct_vm, direct_deploy
     _seal_and_evaluate(contract, direct_vm, direct_bob, program_id)
     direct_vm.sender = direct_bob
     direct_vm.value = 1
-    with direct_vm.expect_revert("EXACT_CHALLENGE_BOND_REQUIRED"):
-        contract.challenge_milestone(program_id, 0, _manifest(URL_B, BODY_B))
+    assert int(contract.challenge_milestone(program_id, 0, _manifest(URL_B, BODY_B))) == 0
     direct_vm.value = WEI // 10
-    with direct_vm.expect_revert("CHALLENGE_REQUIRES_NEW_EVIDENCE"):
-        contract.challenge_milestone(program_id, 0, _manifest())
+    assert int(contract.challenge_milestone(program_id, 0, _manifest())) == 0
+    program = json.loads(contract.get_program(program_id))
+    assert program["milestones"][0]["challenge"] is None
+    assert program["bond_received_wei"] == "0"
+    credit = json.loads(contract.get_rejected_payable_credit("0x" + bytes(direct_bob).hex()))
+    assert credit["credited_wei"] == credit["available_wei"] == str(1 + WEI // 10)
+    reasons = json.loads(contract.get_rejected_payable_ledger("0x" + bytes(direct_bob).hex()))["rejections"]
+    assert [entry["reason"] for entry in reasons] == ["EXACT_CHALLENGE_BOND_REQUIRED", "CHALLENGE_REQUIRES_NEW_EVIDENCE"]
 
 
 def test_challenge_replay_is_rejected(direct_vm, direct_deploy, direct_bob):
@@ -469,8 +567,12 @@ def test_challenge_replay_is_rejected(direct_vm, direct_deploy, direct_bob):
     direct_vm.sender = direct_bob
     direct_vm.value = WEI // 10
     contract.challenge_milestone(program_id, 0, _manifest(URL_B, BODY_B))
-    with direct_vm.expect_revert("CHALLENGE_ALREADY_USED"):
-        contract.challenge_milestone(program_id, 0, _manifest(URL_B, BODY_B))
+    assert int(contract.challenge_milestone(program_id, 0, _manifest(URL_B, BODY_B))) == 0
+    program = json.loads(contract.get_program(program_id))
+    assert program["bond_received_wei"] == str(WEI // 10)
+    credit = json.loads(contract.get_rejected_payable_credit("0x" + bytes(direct_bob).hex()))
+    assert credit["credited_wei"] == credit["available_wei"] == str(WEI // 10)
+    assert json.loads(contract.get_rejected_payable_ledger("0x" + bytes(direct_bob).hex()))["rejections"][-1]["reason"] == "CHALLENGE_ALREADY_USED"
 
 
 def test_losing_challenger_bond_can_be_withdrawn_once(direct_vm, direct_deploy, direct_bob):
@@ -767,8 +869,10 @@ def test_versioned_path_authority_allows_at_sign_but_rejects_userinfo(direct_vm,
     milestones[0]["authorities"][0]["prefix"] = "https://user@evidence.example.org/project/"
     args[3] = json.dumps(milestones)
     direct_vm.sender = create_address("funder2")
-    with direct_vm.expect_revert("INVALID_AUTHORITIES"):
-        _create(contract, direct_vm, direct_vm.sender, tuple(args))
+    assert int(_create(contract, direct_vm, direct_vm.sender, tuple(args))) == 0
+    credit = json.loads(contract.get_rejected_payable_credit(str(direct_vm.sender).lower()))
+    assert credit["credited_wei"] == credit["available_wei"] == str(5 * WEI)
+    assert json.loads(contract.get_rejected_payable_ledger(str(direct_vm.sender).lower()))["rejections"][0]["reason"] == "INVALID_AUTHORITIES"
 
 
 def test_frozen_criteria_and_authorities_are_unchanged_after_creation(direct_vm, direct_deploy):

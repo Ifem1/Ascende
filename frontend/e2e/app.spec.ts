@@ -96,6 +96,8 @@ test("program creation wizard validates and reviews frozen tranches", async ({ p
 
 test("treasury separates submitted transfers from recorded delivery", async ({ page }) => {
   await page.goto("/treasury");
+  await expect(page.getByRole("heading", { name: /rejected-payment credit/i })).toBeVisible();
+  await expect(page.getByText(/connect an injected wallet to inspect any credit/i)).toBeVisible();
   await expect(page.getByRole("heading", { name: /protocol treasury/i })).toBeVisible();
   await expect.poll(async () => (
     await page.getByText(/recipient transfer pending/i).isVisible().catch(() => false)

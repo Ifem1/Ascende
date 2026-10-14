@@ -1,6 +1,6 @@
 # Live Studionet verification
 
-Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production approval.
+Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production approval. The existing address below is historical for the payable-credit correction: it does not run the current checkout and must not be cited as evidence for the new payable rejection ledger. A source-matched deployment and fresh rejected-payment lifecycle are still required.
 
 ## Current release — source-matched live test
 

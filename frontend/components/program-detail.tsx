@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, CircleDot, Clock3, RefreshCw } from "lucide-react";
-import { Eip1193Provider, formatGen, prepareWrite, ProgramRecord, readProgram, readProgramAccounting, readProgramCapabilities, readProgramHistory, readTransaction, PreparedWrite, submitPreparedWrite } from "@/lib/genlayer";
+import { Eip1193Provider, formatGen, prepareWrite, ProgramRecord, readProgram, readProgramAccounting, readProgramCapabilities, readProgramHistory, readRejectedPayableCredit, readTransaction, PreparedWrite, submitPreparedWrite } from "@/lib/genlayer";
 import { getActiveProvider } from "@/lib/wallet-store";
 import { recoveryActions } from "@/lib/capabilities";
 import { parsePositiveGen, validateEvidenceEntry } from "@/lib/preflight";
@@ -132,7 +132,21 @@ export function ProgramDetail({ id }: { id: number }) {
         setHash(tx); setLastTransactions((current) => { const next = [...current, tx]; localStorage.setItem(`ascende:program:${id}:tx`, next.join(",")); return next; });
       });
       if (!result.successful) throw new Error(`Transaction ${result.hash} finalized but its execution failed.`);
-      setPrepared(null); setAction(""); setNotice(`Execution succeeded: ${result.hash}`);
+      if (action === "challenge_milestone") {
+        const refreshed = await readProgram(id);
+        const challenge = refreshed?.milestones[stage]?.challenge;
+        if (!challenge || challenge.challenger.toLowerCase() !== prepared.account.toLowerCase()) {
+          const credit = await readRejectedPayableCredit(prepared.account);
+          setAction(""); setPrepared(null);
+          setNotice(`The challenge transaction finalized, but no challenge was recorded. The contract records ${formatGen(credit.available_wei)} GEN as refundable credit for this wallet. Child transfer delivery is unverified. Transaction: ${result.hash}`);
+          await refresh();
+          return;
+        }
+        setNotice(`Challenge state verified on-chain · ${result.hash}`);
+      } else {
+        setNotice(`Execution finalized · ${result.hash}`);
+      }
+      setPrepared(null); setAction("");
       await refresh();
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Transaction failed. Reconcile the original hash before retrying."); }
     finally { setBusy(false); }
@@ -170,7 +184,7 @@ export function ProgramDetail({ id }: { id: number }) {
         {!(["submit_evidence", "challenge_milestone", "request_withdrawal", "request_refund", "request_bond_withdrawal"] as const).includes(action as "submit_evidence" | "challenge_milestone" | "request_withdrawal" | "request_refund" | "request_bond_withdrawal") && eligibleActions().map((item) => <button className="action primary full-action" key={item.action} disabled={busy || !account} type="button" onClick={() => {setPrepared(null);setError("");setNotice("");setHash("");setAction(item.action);if(item.action === "submit_evidence" || item.action === "challenge_milestone"){setUrl("");setDigest("");setByteLength("");}else if(item.action === "request_withdrawal" || item.action === "request_refund" || item.action === "request_bond_withdrawal"){setAmount("");}else{void prepare(item.action);}}}>{item.label} <ArrowUpRight size={16}/></button>)}
         {program.operations.filter((operation) => operation.status === "AUTHORIZED").map((operation) => <button className="action secondary full-action" key={operation.id} disabled={busy || !account} type="button" onClick={() => {setPrepared(null);setError("");setNotice("");setHash("");setAction("submit_payment");void prepare("submit_payment", operation.id);}}>Submit authorized transfer #{operation.id} · {formatGen(operation.amount_wei)} GEN <ArrowUpRight size={16}/></button>)}
         {!eligibleActions().length && !action && <p>No action is available for this wallet and finalized state.</p>}
-        {action === "challenge_milestone" && <small>Frozen challenge bond: {formatGen(program.policy.challenge_bond_wei)} GEN. Payable calls cannot be value-simulated by the pinned SDK; a failed call may strand the attached GEN and is not automatically retried.</small>}
+        {action === "challenge_milestone" && <small>Frozen challenge bond: {formatGen(program.policy.challenge_bond_wei)} GEN. Payable calls cannot be value-simulated by the pinned SDK. Expected validation rejections are recorded as sender-attributed refundable credit; confirm the finalized challenge state after signing. Unexpected VM failures may still leave value without a credit. Never retry an ambiguous transaction.</small>}
         {prepared && <div className="fee-panel"><strong>{prepared.simulated ? "Simulation passed · confirm transaction" : "Payable call not simulated · review carefully"}</strong><span>Contract call: {prepared.call.functionName}({prepared.call.args.map((argument) => String(argument)).join(", ")})</span><span>Payable value: {formatGen(prepared.call.value ?? 0n)} GEN</span><span>SDK preflight cannot simulate value or guarantee execution. Do not retry if the wallet result is ambiguous; reconcile the original hash.</span><button type="button" className="action primary full-action" disabled={busy} onClick={() => void submit()}>{busy ? "Waiting for finality…" : "Sign and submit"}</button></div>}
       </>}</section>
       <section className="glass-card treasury-card"><span className="eyebrow">TREASURY OBLIGATIONS</span>{accounting && Object.entries(accounting).filter(([key]) => key.endsWith("_wei")).map(([key, value]) => <div key={key}><span>{key.replaceAll("_wei", "").replaceAll("_", " ")}</span><strong>{formatGen(String(value))} GEN</strong></div>)}<p>Transfer submitted and delivery verified are separate states. A submitted child transfer remains pending until a contract-authenticated delivery status exists.</p></section>

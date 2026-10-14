@@ -110,6 +110,42 @@ export async function readProtocolAccounting() {
   return JSON.parse(raw) as Record<string, string>;
 }
 
+export type RejectedPayableCredit = {
+  owner: string;
+  credited_wei: string;
+  available_wei: string;
+  authorized_wei: string;
+  pending_wei: string;
+  delivery_confirmed_wei: string;
+  delivery_status: string;
+};
+
+export type RejectedPayableLedger = {
+  owner: string;
+  credited_wei: string;
+  available_wei: string;
+  authorized_wei: string;
+  pending_wei: string;
+  rejections: Array<{ id: string; call: string; reason: string; amount_wei: string; time: number }>;
+  operations: Array<{ id: string; amount_wei: string; status: string; destination: string; purpose: string; created_at: number }>;
+};
+
+export async function readRejectedPayableCredit(owner: string): Promise<RejectedPayableCredit> {
+  const raw = await readClient().readContract({
+    address: requireDeployment(), functionName: "get_rejected_payable_credit", args: [owner],
+  });
+  if (typeof raw !== "string") throw new Error("Unexpected rejected-payment credit response from contract");
+  return JSON.parse(raw) as RejectedPayableCredit;
+}
+
+export async function readRejectedPayableLedger(owner: string): Promise<RejectedPayableLedger> {
+  const raw = await readClient().readContract({
+    address: requireDeployment(), functionName: "get_rejected_payable_ledger", args: [owner],
+  });
+  if (typeof raw !== "string") throw new Error("Unexpected rejected-payment ledger response from contract");
+  return JSON.parse(raw) as RejectedPayableLedger;
+}
+
 export async function readProgramOperations(id: number) {
   const client = readClient();
   const raw = await client.readContract({ address: requireDeployment(), functionName: "get_program", args: [BigInt(id)] });

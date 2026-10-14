@@ -21,6 +21,34 @@ MAX_U256 = 2**256
 MAX_EVIDENCE_BYTES = 64 * 1024
 MAX_TOTAL_EVIDENCE_BYTES = 128 * 1024
 MAX_DEADLINE_HORIZON = 365 * 24 * 60 * 60
+PAYABLE_REJECTION_CODES = {
+    "INVALID_RECIPIENT",
+    "FUNDER_CANNOT_BE_RECIPIENT",
+    "INVALID_PROGRAM_TEXT",
+    "INVALID_MILESTONES_JSON",
+    "INVALID_POLICY_JSON",
+    "INVALID_PROGRAM_CONFIGURATION",
+    "INVALID_MILESTONE",
+    "INVALID_MILESTONE_TRANCHE",
+    "INVALID_MILESTONE_DEADLINE",
+    "INVALID_MILESTONE_BUDGET_OR_DEADLINE",
+    "INVALID_CRITERIA",
+    "INVALID_CRITERION_TEXT",
+    "INVALID_AUTHORITIES",
+    "BUDGET_OVERFLOW",
+    "EXACT_FUNDING_REQUIRED",
+    "PROGRAM_NOT_FOUND",
+    "NOT_PROGRAM_PARTY",
+    "MILESTONE_NOT_FOUND",
+    "CHALLENGE_ALREADY_USED",
+    "NO_PROVISIONAL_DECISION",
+    "CHALLENGE_WINDOW_CLOSED",
+    "EXACT_CHALLENGE_BOND_REQUIRED",
+    "BOND_ACCOUNTING_OVERFLOW",
+    "INVALID_CHALLENGE_MANIFEST_JSON",
+    "INVALID_OR_UNAUTHORIZED_MANIFEST",
+    "CHALLENGE_REQUIRES_NEW_EVIDENCE",
+}
 
 
 @gl.evm.contract_interface
@@ -264,6 +292,7 @@ def _decision_agreement_key(packet: dict) -> str:
 
 class Ascende(gl.Contract):
     programs: DynArray[str]
+    rejected_payable_credits: DynArray[str]
     next_operation_id: u256
 
     def __init__(self):
@@ -280,6 +309,84 @@ class Ascende(gl.Contract):
     def _save(self, program: dict) -> None:
         index = int(program["id"]) - 1
         self.programs[index] = _json(program)
+
+    def _rejected_credit_index(self, owner: str) -> int:
+        for index in range(len(self.rejected_payable_credits)):
+            if json.loads(self.rejected_payable_credits[index])["owner"] == owner:
+                return index
+        return -1
+
+    def _empty_rejected_credit(self, owner: str) -> dict:
+        return {
+            "owner": owner,
+            "credited_wei": "0",
+            "available_wei": "0",
+            "authorized_wei": "0",
+            "pending_wei": "0",
+            "rejections": [],
+            "operations": [],
+        }
+
+    def _get_rejected_credit(self, owner: str) -> tuple[int, dict]:
+        index = self._rejected_credit_index(owner)
+        if index < 0:
+            return index, self._empty_rejected_credit(owner)
+        return index, json.loads(self.rejected_payable_credits[index])
+
+    def _save_rejected_credit(self, index: int, record: dict) -> None:
+        credited = int(record["credited_wei"])
+        available = int(record["available_wei"])
+        authorized = int(record["authorized_wei"])
+        pending = int(record["pending_wei"])
+        if min(credited, available, authorized, pending) < 0 or credited != available + authorized + pending:
+            _fail("REJECTED_CREDIT_ACCOUNTING_INVARIANT")
+        operation_authorized = 0
+        operation_pending = 0
+        for operation in record["operations"]:
+            if operation["owner"] != record["owner"] or operation["destination"] != record["owner"]:
+                _fail("REJECTED_CREDIT_DESTINATION_INVARIANT")
+            amount = _parse_uint(operation["amount_wei"], "payment_amount")
+            if operation["status"] == "AUTHORIZED":
+                operation_authorized += amount
+            elif operation["status"] == "TRANSFER_SUBMITTED":
+                operation_pending += amount
+            else:
+                _fail("REJECTED_CREDIT_OPERATION_STATUS_INVARIANT")
+        if operation_authorized != authorized or operation_pending != pending:
+            _fail("REJECTED_CREDIT_OPERATION_TOTAL_INVARIANT")
+        raw = _json(record)
+        if index < 0:
+            self.rejected_payable_credits.append(raw)
+        else:
+            self.rejected_payable_credits[index] = raw
+
+    def _record_rejected_payable(self, owner: str, call: str, reason: str, amount: int) -> None:
+        if amount <= 0:
+            return
+        index, record = self._get_rejected_credit(owner)
+        record["credited_wei"] = str(int(record["credited_wei"]) + amount)
+        record["available_wei"] = str(int(record["available_wei"]) + amount)
+        record["rejections"].append({
+            "id": str(len(record["rejections"]) + 1),
+            "call": call,
+            "reason": reason,
+            "amount_wei": str(amount),
+            "time": _now(),
+        })
+        self._save_rejected_credit(index, record)
+
+    def _rejection_reason(self, error: gl.vm.UserError) -> str:
+        reason = error.message
+        if not isinstance(reason, str) or reason not in PAYABLE_REJECTION_CODES:
+            raise error
+        return reason
+
+    def _next_payment_id(self) -> u256:
+        operation_id = self.next_operation_id
+        if int(operation_id) + 1 >= MAX_U256:
+            _fail("PAYMENT_OPERATION_ID_OVERFLOW")
+        self.next_operation_id = u256(int(operation_id) + 1)
+        return operation_id
 
     def _milestone(self, program: dict, milestone_index: u256) -> dict:
         index = int(milestone_index)
@@ -435,6 +542,55 @@ class Ascende(gl.Contract):
         policy_json: str,
     ) -> u256:
         funder = _address(gl.message.sender_address)
+        try:
+            data = self._prepare_program_data(
+                funder, recipient, title, purpose, milestones_json, policy_json,
+                int(gl.message.value),
+            )
+        except gl.vm.UserError as error:
+            reason = self._rejection_reason(error)
+            self._record_rejected_payable(funder, "CREATE_PROGRAM", reason, int(gl.message.value))
+            return u256(0)
+
+        program_id = u256(len(self.programs) + 1)
+        program = {
+            "id": int(program_id),
+            "funder": data["funder"],
+            "recipient": data["recipient"],
+            "title": data["title"],
+            "purpose": data["purpose"],
+            "created_at": data["created_at"],
+            "status": "ACTIVE",
+            "policy": data["policy"],
+            "milestones": data["milestones"],
+            "funded_wei": str(data["total"]),
+            "locked_wei": str(data["total"]),
+            "earned_wei": "0",
+            "earned_claimable_wei": "0",
+            "recipient_authorized_wei": "0",
+            "refund_claimable_wei": "0",
+            "funder_authorized_wei": "0",
+            "recipient_pending_wei": "0",
+            "recipient_delivered_wei": "0",
+            "funder_pending_wei": "0",
+            "funder_refunded_wei": "0",
+            "bond_received_wei": "0",
+            "bond_locked_wei": "0",
+            "bond_funder_claimable_wei": "0",
+            "bond_recipient_claimable_wei": "0",
+            "bond_authorized_wei": "0",
+            "bond_pending_wei": "0",
+            "bond_delivered_wei": "0",
+            "operations": [],
+            "history": [],
+        }
+        self.programs.append(_json(program))
+        return program_id
+
+    def _prepare_program_data(
+        self, funder: str, recipient: str, title: str, purpose: str,
+        milestones_json: str, policy_json: str, attached_value: int,
+    ) -> dict:
         if not isinstance(recipient, str):
             _fail("INVALID_RECIPIENT")
         recipient_normalized = recipient.lower()
@@ -493,43 +649,19 @@ class Ascende(gl.Contract):
                 "challenge": None,
                 "decision_history": [],
             })
-        if int(gl.message.value) != total:
+        if attached_value != total:
             _fail("EXACT_FUNDING_REQUIRED")
         frozen[0]["status"] = "OPEN"
-        program_id = u256(len(self.programs) + 1)
-        program = {
-            "id": int(program_id),
+        return {
             "funder": funder,
             "recipient": recipient_normalized,
             "title": title.strip(),
             "purpose": purpose.strip(),
             "created_at": now,
-            "status": "ACTIVE",
             "policy": policy,
             "milestones": frozen,
-            "funded_wei": str(total),
-            "locked_wei": str(total),
-            "earned_wei": "0",
-            "earned_claimable_wei": "0",
-            "recipient_authorized_wei": "0",
-            "refund_claimable_wei": "0",
-            "funder_authorized_wei": "0",
-            "recipient_pending_wei": "0",
-            "recipient_delivered_wei": "0",
-            "funder_pending_wei": "0",
-            "funder_refunded_wei": "0",
-            "bond_received_wei": "0",
-            "bond_locked_wei": "0",
-            "bond_funder_claimable_wei": "0",
-            "bond_recipient_claimable_wei": "0",
-            "bond_authorized_wei": "0",
-            "bond_pending_wei": "0",
-            "bond_delivered_wei": "0",
-            "operations": [],
-            "history": [],
+            "total": total,
         }
-        self.programs.append(_json(program))
-        return program_id
 
     @gl.public.write
     def submit_evidence(self, program_id: u256, milestone_index: u256, manifest_json: str) -> str:
@@ -595,31 +727,26 @@ class Ascende(gl.Contract):
 
     @gl.public.write.payable
     def challenge_milestone(self, program_id: u256, milestone_index: u256, manifest_json: str) -> u256:
-        program = self._load(program_id)
-        sender = self._party(program)
-        milestone = self._milestone(program, milestone_index)
-        if milestone["challenge_used"]:
-            _fail("CHALLENGE_ALREADY_USED")
-        if milestone["status"] not in ("PROVISIONAL_QUALIFIED", "PROVISIONAL_NOT_QUALIFIED"):
-            _fail("NO_PROVISIONAL_DECISION")
-        now = _now()
-        if now > int(milestone["provisional_until"]):
-            _fail("CHALLENGE_WINDOW_CLOSED")
-        bond = int(program["policy"]["challenge_bond_wei"])
-        if int(gl.message.value) != bond:
-            _fail("EXACT_CHALLENGE_BOND_REQUIRED")
-        if int(program["bond_received_wei"]) + bond >= MAX_U256:
-            _fail("BOND_ACCOUNTING_OVERFLOW")
-        manifest = _decode(manifest_json, "challenge_manifest", 8 * 1024)
-        if not _validate_manifest(manifest, milestone["authorities"]):
-            _fail("INVALID_OR_UNAUTHORIZED_MANIFEST")
-        root = _manifest_root(manifest)
-        if root == milestone["manifest_root"]:
-            _fail("CHALLENGE_REQUIRES_NEW_EVIDENCE")
-        prior_result = milestone["result"]
-        prior_manifest = milestone["manifest"]
-        prior_root = milestone["manifest_root"]
-        challenge_id = len(milestone["decision_history"]) + 1
+        sender = _address(gl.message.sender_address)
+        try:
+            data = self._prepare_challenge_data(
+                program_id, milestone_index, manifest_json, sender, int(gl.message.value),
+            )
+        except gl.vm.UserError as error:
+            reason = self._rejection_reason(error)
+            self._record_rejected_payable(sender, "CHALLENGE_MILESTONE", reason, int(gl.message.value))
+            return u256(0)
+
+        program = data["program"]
+        milestone = data["milestone"]
+        now = data["now"]
+        bond = data["bond"]
+        manifest = data["manifest"]
+        root = data["root"]
+        prior_result = data["prior_result"]
+        prior_manifest = data["prior_manifest"]
+        prior_root = data["prior_root"]
+        challenge_id = data["challenge_id"]
         milestone["challenge"] = {
             "id": challenge_id,
             "challenger": sender,
@@ -634,9 +761,6 @@ class Ascende(gl.Contract):
             "attempts": 0,
             "resolution": None,
         }
-        # A challenge is a new frozen evidence version. If its review is
-        # inconclusive, bounded retries must re-evaluate these bytes, while the
-        # original submission remains archived in the challenge record.
         milestone["manifest"] = manifest
         milestone["manifest_root"] = root
         self._start_review(milestone, "CHALLENGE", now, int(program["policy"]["retry_grace"]))
@@ -656,6 +780,45 @@ class Ascende(gl.Contract):
         program["history"].append({"kind": "CHALLENGED", "milestone": int(milestone_index), "challenge_id": challenge_id, "root": root, "manifest": manifest, "previous_root": prior_root, "previous_manifest": prior_manifest, "prior_result": prior_result, "challenger": sender, "bond_wei": str(bond), "time": now})
         self._save(program)
         return u256(len(program["history"]))
+
+    def _prepare_challenge_data(
+        self, program_id: u256, milestone_index: u256, manifest_json: str,
+        sender: str, attached_value: int,
+    ) -> dict:
+        program = self._load(program_id)
+        if sender not in (program["funder"], program["recipient"]):
+            _fail("NOT_PROGRAM_PARTY")
+        milestone = self._milestone(program, milestone_index)
+        if milestone["challenge_used"]:
+            _fail("CHALLENGE_ALREADY_USED")
+        if milestone["status"] not in ("PROVISIONAL_QUALIFIED", "PROVISIONAL_NOT_QUALIFIED"):
+            _fail("NO_PROVISIONAL_DECISION")
+        now = _now()
+        if now > int(milestone["provisional_until"]):
+            _fail("CHALLENGE_WINDOW_CLOSED")
+        bond = int(program["policy"]["challenge_bond_wei"])
+        if attached_value != bond:
+            _fail("EXACT_CHALLENGE_BOND_REQUIRED")
+        if int(program["bond_received_wei"]) + bond >= MAX_U256:
+            _fail("BOND_ACCOUNTING_OVERFLOW")
+        manifest = _decode(manifest_json, "challenge_manifest", 8 * 1024)
+        if not _validate_manifest(manifest, milestone["authorities"]):
+            _fail("INVALID_OR_UNAUTHORIZED_MANIFEST")
+        root = _manifest_root(manifest)
+        if root == milestone["manifest_root"]:
+            _fail("CHALLENGE_REQUIRES_NEW_EVIDENCE")
+        return {
+            "program": program,
+            "milestone": milestone,
+            "now": now,
+            "bond": bond,
+            "manifest": manifest,
+            "root": root,
+            "prior_result": milestone["result"],
+            "prior_manifest": milestone["manifest"],
+            "prior_root": milestone["manifest_root"],
+            "challenge_id": len(milestone["decision_history"]) + 1,
+        }
 
     @gl.public.write
     def resolve_challenge(self, program_id: u256, milestone_index: u256) -> str:
@@ -857,10 +1020,7 @@ class Ascende(gl.Contract):
     def _authorize_payment(self, program: dict, owner: str, amount: int, purpose: str) -> u256:
         if amount <= 0 or amount >= 2**256:
             _fail("INVALID_PAYMENT_AMOUNT")
-        operation_id = self.next_operation_id
-        if int(operation_id) + 1 >= MAX_U256:
-            _fail("PAYMENT_OPERATION_ID_OVERFLOW")
-        self.next_operation_id = u256(int(self.next_operation_id) + 1)
+        operation_id = self._next_payment_id()
         operation = {
             "id": str(int(operation_id)),
             "owner": owner,
@@ -924,6 +1084,58 @@ class Ascende(gl.Contract):
         program["bond_authorized_wei"] = str(int(program["bond_authorized_wei"]) + amount)
         operation_id = self._authorize_payment(program, owner, amount, "CHALLENGE_BOND")
         self._save(program)
+        return operation_id
+
+    @gl.public.write
+    def request_rejected_payable_refund(self, amount_wei: str) -> u256:
+        owner = _address(gl.message.sender_address)
+        amount = _parse_uint(amount_wei, "payment_amount")
+        index, credit = self._get_rejected_credit(owner)
+        if amount > int(credit["available_wei"]):
+            _fail("REJECTED_REFUND_EXCEEDS_CREDIT")
+        operation_id = self._next_payment_id()
+        credit["available_wei"] = str(int(credit["available_wei"]) - amount)
+        credit["authorized_wei"] = str(int(credit["authorized_wei"]) + amount)
+        credit["operations"].append({
+            "id": str(int(operation_id)),
+            "owner": owner,
+            "destination": owner,
+            "amount_wei": str(amount),
+            "purpose": "REJECTED_PAYABLE_REFUND",
+            "status": "AUTHORIZED",
+            "parent_tx": "",
+            "child_tx": "",
+            "created_at": _now(),
+        })
+        self._save_rejected_credit(index, credit)
+        return operation_id
+
+    @gl.public.write
+    def submit_rejected_payable_refund(self, operation_id: str) -> str:
+        owner = _address(gl.message.sender_address)
+        index, credit = self._get_rejected_credit(owner)
+        if index < 0:
+            _fail("REJECTED_REFUND_OPERATION_NOT_FOUND")
+        if not isinstance(operation_id, str) or not re.fullmatch(r"(?:0|[1-9][0-9]*)", operation_id):
+            _fail("INVALID_PAYMENT_OPERATION_ID")
+        operation = None
+        for item in credit["operations"]:
+            if item["id"] == operation_id:
+                operation = item
+                break
+        if operation is None:
+            _fail("REJECTED_REFUND_OPERATION_NOT_FOUND")
+        if operation["status"] != "AUTHORIZED":
+            _fail("PAYMENT_ALREADY_SUBMITTED_OR_CLOSED")
+        amount = _parse_uint(operation["amount_wei"], "payment_amount")
+        if int(credit["authorized_wei"]) < amount:
+            _fail("AUTHORIZED_ACCOUNTING_UNDERFLOW")
+        credit["authorized_wei"] = str(int(credit["authorized_wei"]) - amount)
+        credit["pending_wei"] = str(int(credit["pending_wei"]) + amount)
+        operation["status"] = "TRANSFER_SUBMITTED"
+        operation["submitted_at"] = _now()
+        self._save_rejected_credit(index, credit)
+        _Recipient(Address(owner)).emit_transfer(value=u256(amount))
         return operation_id
 
     @gl.public.write
@@ -1041,6 +1253,28 @@ class Ascende(gl.Contract):
         return ""
 
     @gl.public.view
+    def get_rejected_payable_credit(self, owner: str) -> str:
+        if not isinstance(owner, str) or not re.fullmatch(r"0x[0-9a-fA-F]{40}", owner):
+            _fail("INVALID_CREDIT_OWNER")
+        _, credit = self._get_rejected_credit(owner.lower())
+        return _json({
+            "owner": credit["owner"],
+            "credited_wei": credit["credited_wei"],
+            "available_wei": credit["available_wei"],
+            "authorized_wei": credit["authorized_wei"],
+            "pending_wei": credit["pending_wei"],
+            "delivery_confirmed_wei": "0",
+            "delivery_status": "UNVERIFIABLE",
+        })
+
+    @gl.public.view
+    def get_rejected_payable_ledger(self, owner: str) -> str:
+        if not isinstance(owner, str) or not re.fullmatch(r"0x[0-9a-fA-F]{40}", owner):
+            _fail("INVALID_CREDIT_OWNER")
+        _, credit = self._get_rejected_credit(owner.lower())
+        return _json(credit)
+
+    @gl.public.view
     def get_protocol_accounting(self) -> str:
         total = {
             "funded_wei": 0, "locked_wei": 0, "earned_claimable_wei": 0,
@@ -1051,11 +1285,20 @@ class Ascende(gl.Contract):
             "bond_locked_wei": 0, "bond_funder_claimable_wei": 0,
             "bond_recipient_claimable_wei": 0, "bond_pending_wei": 0,
             "bond_delivered_wei": 0,
+            "rejected_payable_credited_wei": 0, "rejected_payable_available_wei": 0,
+            "rejected_payable_authorized_wei": 0, "rejected_payable_pending_wei": 0,
         }
         for raw in self.programs:
             program = json.loads(raw)
             for key in total:
-                total[key] += int(program[key])
+                if key in program:
+                    total[key] += int(program[key])
+        for raw in self.rejected_payable_credits:
+            credit = json.loads(raw)
+            total["rejected_payable_credited_wei"] += int(credit["credited_wei"])
+            total["rejected_payable_available_wei"] += int(credit["available_wei"])
+            total["rejected_payable_authorized_wei"] += int(credit["authorized_wei"])
+            total["rejected_payable_pending_wei"] += int(credit["pending_wei"])
         return _json({key: str(value) for key, value in total.items()})
 
     @gl.public.view
