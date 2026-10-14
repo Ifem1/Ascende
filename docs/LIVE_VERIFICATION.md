@@ -1,8 +1,12 @@
 # Live Studionet verification
 
-**Current candidate:** stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production approval.
+Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production approval.
 
-## Current release candidate
+## Historical deployment — superseded source
+
+The following records belong to the earlier contract source at commit `edfe1da1634abeb92ec091e562838b64093df3a9`. They are preserved for audit context only and do not verify the corrected source in this release candidate. The fresh deployment and evidence for the corrected source will be recorded above these historical records after verification.
+
+## Historical release candidate
 
 - Contract: `0x03b3525C550E5281747E686b87d19aDbD5f4F10b`
 - Deployment transaction: [`0x2e609aa4f01eee4ec9118e7586932f1365eecd021326507d2c607f9f59de0f4f`](https://explorer-studio.genlayer.com/tx/0x2e609aa4f01eee4ec9118e7586932f1365eecd021326507d2c607f9f59de0f4f)
@@ -79,7 +83,7 @@ The diagnostic program's principal and challenge bond were then withdrawn exactl
 
 The live Programs registry lists all four on-chain programs and their finalized statuses. The live Treasury view displays the pending child transfers separately from confirmed contract accounting; it does not label an externally verified child credit as reconciled or paid. The browser currently has the Treasury dashboard open at `http://127.0.0.1:3102/treasury`.
 
-Validated locally: 29 contract tests, `genvm-lint lint contracts/ascende.py`, frontend typecheck/lint, 4 unit tests, all 4 browser E2E cases, and a production frontend build with the deployed contract address. The live cycle was signed by the supplied test wallets through the local SDK script; frontend live reads were verified in the browser.
+Historical local validation for that superseded source: 29 contract tests, frontend typecheck/lint, 4 unit tests, 4 browser E2E cases, and a production build. Current release checks are recorded in [TESTING.md](TESTING.md). The live cycle was signed by the supplied test wallets through the local SDK script; frontend live reads were verified in the browser.
 
 ## Remaining production requirement
 

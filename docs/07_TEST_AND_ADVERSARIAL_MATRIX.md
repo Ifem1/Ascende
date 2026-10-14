@@ -2,7 +2,7 @@
 
 **Counts are TARGETS, not claimed completion.** Favor behavioral assertions of actual executed contract functions over static grep and helper arithmetic. Each test must identify whether it runs in GenVM Direct Mode, unit Python, UI, or live chain.
 
-## Contract behavior (target ≥60 focused behavioral tests; ≥35 genuine Direct Mode)
+## Contract behavior (focused Direct Mode checks for each material transition; no test-count target)
 
 | Family | Minimum important cases |
 |---|---|

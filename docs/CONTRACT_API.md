@@ -13,9 +13,10 @@ All addresses are normalized to lowercase. GEN values are integer wei strings un
 | `evaluate_milestone` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless; independently fetches and validates evidence, then semantic evaluation under custom consensus. |
 | `challenge_milestone` | `(program_id: u256, milestone_index: u256, manifest_json: str) -> u256` | Payable; funder or recipient; exact frozen bond, new authorized source manifest, one challenge in the window. |
 | `resolve_challenge` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless independent reevaluation and deterministic bond allocation. |
-| `finalize_milestone` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless after challenge window; only final qualification earns its tranche and opens the next stage. |
-| `finalize_unresolved` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless after all bounded retries and retry grace. |
-| `close_program` | `(program_id: u256) -> str` | Permissionless only after a final failure/unresolved stage or all stages qualify; unused principal becomes funder refund entitlement. |
+| `finalize_milestone` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless after challenge window; only final qualification earns its tranche and opens the next stage. A newly eligible later stage is terminal-expired if its frozen deadline has passed. |
+| `expire_milestone` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless after an `OPEN` stage's evidence deadline; records `FINAL_EXPIRED` without vesting its tranche. |
+| `finalize_unresolved` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless after fixed review grace if no substantive result was finalized; unused retry opportunities do not convert the outcome to a business denial. |
+| `close_program` | `(program_id: u256) -> str` | Permissionless only after a final failure, unresolved, or expired stage, or all stages qualify; unused principal becomes funder refund entitlement. |
 | `request_withdrawal` | `(program_id: u256, amount_wei: str) -> u256` | Frozen recipient; reserves no more than earned claimable balance. |
 | `request_refund` | `(program_id: u256, amount_wei: str) -> u256` | Funder; reserves no more than refund entitlement. |
 | `request_bond_withdrawal` | `(program_id: u256, amount_wei: str) -> u256` | Funder or recipient; reserves no more than caller's bond entitlement. |
@@ -36,7 +37,7 @@ All addresses are normalized to lowercase. GEN values are integer wei strings un
 | `get_program_accounting` | `(program_id: u256) -> str` | JSON principal and bond bucket values, plus program status. |
 | `get_transfer_attempt` | `(program_id: u256, operation_id: str) -> str` | JSON immutable destination/amount/purpose/status operation; empty string if absent. |
 | `get_protocol_accounting` | `() -> str` | JSON sum of protocol principal and bond buckets. |
-| `get_capabilities` | `(program_id: u256, account: str) -> str` | JSON role and claim booleans; `delivery_recovery_supported` is false. |
+| `get_capabilities` | `(program_id: u256, account: str) -> str` | JSON role, claim, recipient-submission, deadline, evaluation, challenge, expiry, unresolved-finalization, and closure booleans; `delivery_recovery_supported` is false. |
 
 ## Transfer state guarantee
 

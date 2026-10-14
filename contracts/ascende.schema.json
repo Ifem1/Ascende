@@ -80,6 +80,22 @@
       "ret": "string",
       "payable": false
     },
+    "expire_milestone": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ],
+        [
+          "milestone_index",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
     "finalize_milestone": {
       "params": [
         [

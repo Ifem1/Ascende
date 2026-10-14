@@ -4,7 +4,7 @@
 
 This release targets stable GenLayer **Studionet chain 61999, hex `0xF22F`**, RPC `https://studio.genlayer.com/api`; it uses the native `studionet` chain from GenLayerJS `1.1.8`. Contract CLI used for deployment was GenLayer CLI `0.39.1`; tests pin `genlayer-test 0.29.2`, `genlayer-py 0.16.3`, and GenVM `v0.2.16`. Do not substitute Studio-dev 61997 or prerelease runtimes. The frontend lockfile and Python requirements are the version authorities.
 
-Python >=3.12 for tests; Node >=20 for Next App Router; always capture exact versions in docs/DEPLOYMENT.md. Some docs published later may not match pinned Studionet. Verify ABI/tool signature locally rather than guessing.
+Python >=3.12 for tests; Node 22 for Next App Router; always capture exact versions in docs/DEPLOYMENT.md. The contract schema is generated with GENVM_VERSION=v0.2.16; CI sets this and forces UTF-8 output on Windows.
 
 ## Connection and network guard
 
@@ -25,7 +25,7 @@ After write, wait for required finality **and** GenVM executed success. Then rer
 ## Frontend environment contract
 
 ```
-NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0x03b3525C550E5281747E686b87d19aDbD5f4F10b
+NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=<freshly-verified-address-from-LIVE_VERIFICATION.md>
 NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api
 ```
 

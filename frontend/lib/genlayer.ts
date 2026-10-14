@@ -29,7 +29,7 @@ export type ProgramRecord = {
   locked_wei: string;
   earned_claimable_wei: string;
   refund_claimable_wei: string;
-  milestones: Array<{ status: string; tranche_wei: string; deadline: number; criteria: string[]; authorities: Array<{ prefix: string; role: string; required: boolean }>; manifest: Array<{ url: string; sha256: string; byte_length: number }>; manifest_root: string; result: string; provisional_until: number; retry_after: number; challenge_used: boolean; challenge?: { challenger: string; manifest: Array<{ url: string; sha256: string; byte_length: number }>; root: string; prior_manifest: Array<{ url: string; sha256: string; byte_length: number }>; prior_manifest_root: string; prior_result: string; bond_wei: string; resolution?: { result: string; flipped: boolean; bond_owner: string; bond_wei: string; time: number } | null } | null; decision_history?: Array<{ id: number; kind: string; evidence_root?: string; previous_evidence_root?: string; result?: string; prior_result?: string; time: number }> }>;
+  milestones: Array<{ status: string; tranche_wei: string; deadline: number; terminal_reason?: string; terminal_time?: number; review_deadline?: number; attempts?: number; criteria: string[]; authorities: Array<{ prefix: string; role: string; required: boolean }>; manifest: Array<{ url: string; sha256: string; byte_length: number }>; manifest_root: string; result: string; provisional_until: number; retry_after: number; challenge_used: boolean; challenge?: { challenger: string; manifest: Array<{ url: string; sha256: string; byte_length: number }>; root: string; prior_manifest: Array<{ url: string; sha256: string; byte_length: number }>; prior_manifest_root: string; prior_result: string; bond_wei: string; resolution?: { result: string; flipped: boolean; bond_owner: string; bond_wei: string; time: number } | null } | null; decision_history?: Array<{ id: number; kind: string; evidence_root?: string; previous_evidence_root?: string; result?: string; prior_result?: string; time: number }> }>;
 };
 
 export function parseGen(value: string): bigint {
@@ -85,6 +85,18 @@ export async function readProgramAccounting(id: number) {
   const raw = await client.readContract({ address: requireDeployment(), functionName: "get_program_accounting", args: [BigInt(id)] });
   if (typeof raw !== "string") throw new Error("Unexpected accounting response from contract");
   return JSON.parse(raw) as Record<string, string | number>;
+}
+
+export async function readProgramCapabilities(id: number, account: string) {
+  const client = readClient();
+  const raw = await client.readContract({ address: requireDeployment(), functionName: "get_capabilities", args: [BigInt(id), account] });
+  if (typeof raw !== "string") throw new Error("Unexpected capabilities response from contract");
+  return JSON.parse(raw) as {
+    is_funder: boolean; is_recipient: boolean; can_withdraw: boolean; can_refund: boolean;
+    can_expire: boolean; can_finalize_unresolved: boolean; can_evaluate: boolean;
+    can_resolve_challenge: boolean; can_finalize: boolean; can_challenge: boolean; can_close: boolean; can_submit_evidence: boolean;
+    delivery_recovery_supported: false;
+  };
 }
 
 export async function readProtocolAccounting() {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { formatGen, parseGen, requireDeployment } from "./genlayer";
 import { normalizedChainId, TARGET_CHAIN_NUMBER } from "./network";
+import { recoveryActions } from "./capabilities";
 
 describe("GEN amount conversion", () => {
   it("uses exact 18-decimal integer arithmetic", () => {
@@ -26,5 +27,15 @@ describe("network and deployment guards", () => {
 
   it("refuses reads until a valid contract address is configured", () => {
     expect(() => requireDeployment()).toThrow(/not deployed/i);
+  });
+});
+
+describe("contract-gated milestone recovery actions", () => {
+  it("shows expiry and unresolved close only for eligible on-chain states", () => {
+    const eligible = { can_expire: true, can_finalize_unresolved: true, can_close: false };
+    expect(recoveryActions("OPEN", eligible)).toEqual({ expire: true, finalizeUnresolved: false, close: false });
+    expect(recoveryActions("CHALLENGE_RETRYABLE", eligible)).toEqual({ expire: false, finalizeUnresolved: true, close: false });
+    expect(recoveryActions("PROVISIONAL_QUALIFIED", eligible)).toEqual({ expire: false, finalizeUnresolved: false, close: false });
+    expect(recoveryActions("OPEN", null)).toEqual({ expire: false, finalizeUnresolved: false, close: false });
   });
 });
