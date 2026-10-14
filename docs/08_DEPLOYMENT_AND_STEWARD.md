@@ -16,7 +16,7 @@ Stable Studionet **61999 (`0xF22F`)** only, RPC `https://studio.genlayer.com/api
 2. Require lint, semantic validation, schema generation, Direct Mode, TypeScript, ESLint, unit tests, production build and Playwright to pass.
 3. Deploy only the exact tested source to a new stable Studionet address, then retrieve and hash deployed source.
 4. Record fresh positive, negative, missing-evidence and stalled-review transactions and verify actual child receipts separately from the contract's unresolved transfer ledger.
-5. Update the frontend address, deployment configuration and public Vercel build only after a new address and source parity are verified. The local frontend example and Vercel production deployment now point to the current address; the public Programs page read programs 1–3 from it.
+5. Update the frontend address, deployment configuration and public Vercel build only after a new address and source parity are verified. The local frontend configuration and Vercel production deployment point to the current address; a fresh public Programs page read returned programs 1–6 from it.
 6. Require a green GitHub Actions run for the final pushed commit and inspect its logs.
 
 ## Honest release status
