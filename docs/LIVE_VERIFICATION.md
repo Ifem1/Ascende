@@ -43,7 +43,10 @@ Funder `0xD6423aE82a975d55C6CeaC222827A727325e0459`; recipient `0x39680bd423437C
 
 - Create `0x791f9a02f93fc37131bd7685573982e487c1b75325a947e345b942163462352b`; evidence submission `0x6c204322e18f491b3ef184e70fa2e3bf478fab75e62e01ffeb47b288f5f238f7`; initial evaluation `0x5535ffb393ac67c226e9d4d161777ec552ac58856d2684fdadb6ac3d87293850` => `PROVISIONAL_QUALIFIED`.
 - Challenge `0xe28cfff0766a9d3756686fd21aa89ddf3adbeefb252cef521816fab1d343fcd6` committed a second immutable manifest/root and 1-wei bond. Resolution `0x277455da25591a87baa5e82b5093aba295b58b3e83f76656330f2526a7c224ff` independently evaluated the challenge evidence, returned `QUALIFIED`, and did not flip the result. Stored lineage includes decision IDs 1–3, previous and challenged roots, and resolution time.
-- Bond withdrawal authorization `0xdf71a4d50b0eb8be43ea226f33cf33ba01f7a9a78890d7be3c775272638eb380`; submission parent `0x2d8eb61595d9112b65d32300c84f748ae4612fbfabcd0e3ca798c38279d86667`; child `0xc01087ae491bf610088840e878c87739d48d1316ec0786ea2fea7cd869d27f93`, finalized, 1 wei to the recipient, `value_credited=true`. Contract accounting correctly remains bond pending and delivered=0 because there is no authenticated child callback. This verifies challenge and bond handling, not final milestone vesting or payment settlement.
+- After the frozen 15-minute challenge window, permissionless finalization `0x3080fabb979a225c8474131238fd30178c08cb199446bda5fb01f3c98a272abc` finalized with `MAJORITY_AGREE`; readback showed milestone 1 `FINAL_QUALIFIED`, 1 wei earned, and milestone 2 `OPEN`.
+- Milestone 2 evidence submission `0x6563218a135ca63a3529b5284bb026d6cae42277363bc896ac40acbca712b415` used the immutable `qualified-challenge.md` fixture (same 323-byte evidence root `37aa9932b2243df3569b65b9936d5a6fac976778d54eba884d16faf34f422e45`). Evaluation `0xb700472c4f477a12dfcaca108236de9295313a024422740d3998345089f6943d` reached `PROVISIONAL_QUALIFIED`; after the full frozen challenge window, finalization `0xd4551060b3edf1eaa6a792a08aab79e89b046a9eee07fd4afee599dd2c58d146` finalized with `MAJORITY_AGREE`. Readback: `CLOSED_SUCCESS`, both milestones `FINAL_QUALIFIED`, 2 wei claimable, 0 locked.
+- Withdrawal authorization `0xfce266f4abe625c9d92474ab93f734bba4b72c3a4049514d7a3ca73cd5efb835` created one 2-wei operation (ID `8`). Payment parent `0x9c4d9d923c718f7657e9f06f191d0f1d52d0171190eb08ed09495cbbd5895db4` finalized with `MAJORITY_AGREE`; child `0xa5d54d62fabcbec6d655503ac184f7716e31b7f26eaca825a748f491d62072a0` finalized with `NO_MAJORITY`, recipient matched, value 2 wei, `value_credited=true`. The contract correctly retains 2 wei as `recipient_pending_wei` and 0 as delivered because child outcome cannot be authenticated in contract state.
+- The bond child above is also finalized for 1 wei with `value_credited=true`, while bond delivery remains pending in contract storage. These child receipts demonstrate Studionet credits, not safe ledger reconciliation.
 
 ### Abandoned evidence evaluation and principal recovery — Program 5
 
@@ -57,7 +60,7 @@ Funder `0xD6423aE82a975d55C6CeaC222827A727325e0459`; recipient `0x39680bd423437C
 - After the frozen review grace, permissionless `finalize_unresolved` `0xaad489e83c213051a02fdfcc3165c00101034d7e1c0a989fb0dec540e5d7bad7` recorded `FINAL_UNRESOLVED`, reason `CHALLENGE_REVIEW_ABANDONED_BOND_RETURNED`. The locked bond became claimable by its recorded owner (the funder/challenger); it was not forfeited for review absence.
 - Closure `0xc4b7eb36bed26a4b9ffc20c54a3abccb62f1ff3b7d0ad2035bed38fd12c8bca2` => `CLOSED_STOPPED`. Refund parent `0x659d4cc9e43e4e8c75570d1f125fb684bac3aaa4130983baa5f75ae88e28e001`; child `0x51c55a2a603985990e3c7266e3f26b5d1e469a7b339c3b5b14c49e1e58a4efeb`, finalized, 2 wei to the funder. Bond parent `0x4ad4443cc0fa27e7bfa9b1d31eff2c53685f3ef025a97a36909fccdf51f930fe`; child `0x59c5b19170d17d98060be240d8a33fe3741f7565da1a7b89a4a06e0b57aaa2e3`, finalized, 1 wei to the recorded bond owner. Both child receipts report `value_credited=true`; contract accounting retains 2 wei principal pending and 1 wei bond pending, with 0 locked.
 
-The tests used 2 wei principal and a 1 wei bond per relevant program. Those transactions expand the observed pending ledger but do not create new failed-payable surplus. Program 4 remains provisional until its challenge/finality timing permits finalization; the live proof here is specifically challenge resolution, provenance, bond authorization and child receipt.
+The tests used 2 wei principal and 1 wei challenge bonds for programs 4 and 6. They expand the observed pending-transfer ledger but do not create new failed-payable surplus. Program 4 completed its challenged positive lifecycle through finalization and payment submission; its child credit remains externally observed and unreconciled in contract storage.
 
 ### Failed live calls and challenge boundary
 
@@ -71,7 +74,7 @@ The successful challenge-resolution and abandoned-review receipts above belong t
 
 ## Historical deployment — superseded source
 
-The following records belong to the earlier contract source at commit `edfe1da1634abeb92ec091e562838b64093df3a9`. They are preserved for audit context only and do not verify the corrected source in this release candidate. The fresh deployment and evidence for the corrected source will be recorded above these historical records after verification.
+The following records belong to the earlier contract source at commit `edfe1da1634abeb92ec091e562838b64093df3a9`. They are preserved for audit context only and do not verify the corrected source in this release. The current source-matched deployment and its verification are documented above.
 
 ## Historical release candidate
 
@@ -148,7 +151,7 @@ The diagnostic program's principal and challenge bond were then withdrawn exactl
 
 ## Frontend and verification
 
-The live Programs registry lists all four on-chain programs and their finalized statuses. The live Treasury view displays the pending child transfers separately from confirmed contract accounting; it does not label an externally verified child credit as reconciled or paid. The browser currently has the Treasury dashboard open at `http://127.0.0.1:3102/treasury`.
+At the time, the historical live Programs registry listed four programs on that superseded deployment. The historical Treasury view displayed pending child transfers separately from confirmed contract accounting; it did not label externally observed child credit as reconciled or paid.
 
 Historical local validation for that superseded source: 29 contract tests, frontend typecheck/lint, 4 unit tests, 4 browser E2E cases, and a production build. Current release checks are recorded in [TESTING.md](TESTING.md). The live cycle was signed by the supplied test wallets through the local SDK script; frontend live reads were verified in the browser.
 
