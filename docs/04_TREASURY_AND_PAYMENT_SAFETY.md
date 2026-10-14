@@ -2,7 +2,7 @@
 
 This is the highest-risk part of ASCENDE. The protocol is not complete merely because a payout button works. A terminal decision, actual transfer initiation, and **confirmed delivery** are three distinct facts.
 
-Current implementation and test boundary: the contract enforces exact funding, separate principal/bond ledgers, one-time payment authorization and transfer submission. The current Studionet test record includes positive, challenge, negative/refund, and three finalized child receipts; all child values are still pending in contract storage because no authenticated callback exists. Failed payable recovery is unsupported, so the feature remains **NOT READY for production-safe escrow**. See [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md) and [SECURITY.md](SECURITY.md).
+Current implementation and test boundary: the contract enforces exact funding, separate principal/bond ledgers, one-time payment authorization and transfer submission. The current Studionet record includes positive, challenge, negative/refund, missing-evidence expiry, and abandoned-evaluation/challenge recovery. Seven finalized child receipts (five 2-wei principal transfers and two 1-wei bond transfers) remain pending in contract storage because no authenticated callback exists. Five wei of failed payable value remains without matching state. Failed payable recovery is unsupported, so the feature remains **NOT READY for production-safe escrow**. See [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md) and [SECURITY.md](SECURITY.md).
 
 ## Funding and frozen budgets
 

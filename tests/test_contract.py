@@ -202,46 +202,6 @@ def test_capabilities_offer_permissionless_expiry_only_after_deadline(direct_vm,
     assert overdue["can_submit_evidence"] is False
 
 
-def test_capabilities_track_verified_deadline_and_recovery_eligibility(direct_vm, direct_deploy, direct_bob):
-    contract = direct_deploy("contracts/ascende.py")
-    recipient = "0x" + direct_bob.hex()
-    args = list(_program(recipient=recipient))
-    milestones = json.loads(args[3])
-    deadline = _now() + 120
-    milestones[0]["deadline"] = deadline
-    args[3] = json.dumps(milestones)
-    program_id = _create(contract, direct_vm, direct_vm.sender, tuple(args))
-    before = json.loads(contract.get_capabilities(program_id, recipient))
-    assert before["can_submit_evidence"] is True
-    assert before["can_expire"] is False
-    direct_vm.sender = direct_bob
-    contract.submit_evidence(program_id, 0, _manifest())
-    sealed = json.loads(contract.get_capabilities(program_id, recipient))
-    assert sealed["can_submit_evidence"] is False
-    assert sealed["can_finalize_unresolved"] is False
-    milestone = json.loads(contract.get_program(program_id))["milestones"][0]
-    _warp_epoch(direct_vm, milestone["review_deadline"] + 1)
-    overdue = json.loads(contract.get_capabilities(program_id, recipient))
-    assert overdue["can_finalize_unresolved"] is True
-    assert overdue["can_expire"] is False
-
-
-def test_capabilities_offer_permissionless_expiry_only_after_deadline(direct_vm, direct_deploy):
-    contract = direct_deploy("contracts/ascende.py")
-    args = list(_program())
-    milestones = json.loads(args[3])
-    deadline = _now() + 120
-    milestones[0]["deadline"] = deadline
-    args[3] = json.dumps(milestones)
-    program_id = _create(contract, direct_vm, direct_vm.sender, tuple(args))
-    _warp_epoch(direct_vm, deadline)
-    assert json.loads(contract.get_capabilities(program_id, ""))["can_expire"] is False
-    _warp_epoch(direct_vm, deadline + 1)
-    overdue = json.loads(contract.get_capabilities(program_id, ""))
-    assert overdue["can_expire"] is True
-    assert overdue["can_submit_evidence"] is False
-
-
 def test_later_milestone_expired_before_activation_preserves_earned_and_refunds_tranche(direct_vm, direct_deploy, direct_bob):
     contract = direct_deploy("contracts/ascende.py")
     args = list(_program())

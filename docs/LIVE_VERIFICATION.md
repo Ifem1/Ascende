@@ -9,7 +9,7 @@ Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production
 - Deployment transaction: [`0xb3cfec04a693ad09fb9630a664052541e70fc524fe1b66a8813c9ac9c318037b`](https://explorer-studio.genlayer.com/tx/0xb3cfec04a693ad09fb9630a664052541e70fc524fe1b66a8813c9ac9c318037b), finalized, `MAJORITY_AGREE`, 5/5 validator votes, `SUCCESS`.
 - Deployed `contracts/ascende.py` SHA-256: `A7545AF5FD87DDDECD5E68766CB95D82A0BF4C9C487ECC1651316D6327733853`. A fresh `gen_getContractCode` readback produced the same digest.
 - Frontend config for local builds and Vercel production: `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0xC2F0F3E18B69F398385652A55F423a1e339b4290`; RPC `https://studio.genlayer.com/api`. Vercel deployment [`dpl_ARNbm29K9qfRMfCxXjTi4B6caT6N`](https://vercel.com/ifem1s-projects/ascende/ARNbm29K9qfRMfCxXjTi4B6caT6N) is READY and aliased to [ascende-sand.vercel.app](https://ascende-sand.vercel.app/). Its production Programs page loaded on the public alias and read programs 1–3 from this contract. Deployment upload excludes local Playwright browsers and generated build/dependency directories through the repository `.vercelignore`.
-- Contract counter is 3. Programs 1–3 below are the funded records; failed payable calls did not create additional records.
+- Contract counter was 3 during the original source-matched release check. Programs 4–6 below were added during the final challenge and bounded-recovery verification; failed payable calls did not create records.
 - Live evidence fixtures are immutable files at commit `edfe1da` and were fetched and digest-checked by the contract on this deployment.
 
 ### Positive qualified lifecycle — Program 1
@@ -37,6 +37,28 @@ Funder `0xD6423aE82a975d55C6CeaC222827A727325e0459`; recipient `0x39680bd423437C
 - Refund authorization `0x265e6475e753e3574d2134e8dfe03997ee50349aef117b8332391e0027999d40`; submit parent `0xf87ccf529737bd374ecf0786b487927beafdd1d5e21cfa59e22aafb1eb273ed3`; child [`0x25761d78554f11f37bac60c4adb13793fc11ee24ddc6f084dea3bd9ceaaa553f`](https://explorer-studio.genlayer.com/tx/0x25761d78554f11f37bac60c4adb13793fc11ee24ddc6f084dea3bd9ceaaa553f), finalized, 2 wei to the funder, `value_credited=true`.
 - Accounting remains `funder_pending_wei=2`, `funder_refunded_wei=0`; no resend was attempted.
 
+### Challenge provenance and bond outcome — Program 4
+
+Funder `0xD6423aE82a975d55C6CeaC222827A727325e0459`; recipient `0x39680bd423437C0Eaa18493629652821Ec672C61`; principal 2 wei and challenge bond 1 wei. Test-only policy used a 15-minute challenge window.
+
+- Create `0x791f9a02f93fc37131bd7685573982e487c1b75325a947e345b942163462352b`; evidence submission `0x6c204322e18f491b3ef184e70fa2e3bf478fab75e62e01ffeb47b288f5f238f7`; initial evaluation `0x5535ffb393ac67c226e9d4d161777ec552ac58856d2684fdadb6ac3d87293850` => `PROVISIONAL_QUALIFIED`.
+- Challenge `0xe28cfff0766a9d3756686fd21aa89ddf3adbeefb252cef521816fab1d343fcd6` committed a second immutable manifest/root and 1-wei bond. Resolution `0x277455da25591a87baa5e82b5093aba295b58b3e83f76656330f2526a7c224ff` independently evaluated the challenge evidence, returned `QUALIFIED`, and did not flip the result. Stored lineage includes decision IDs 1–3, previous and challenged roots, and resolution time.
+- Bond withdrawal authorization `0xdf71a4d50b0eb8be43ea226f33cf33ba01f7a9a78890d7be3c775272638eb380`; submission parent `0x2d8eb61595d9112b65d32300c84f748ae4612fbfabcd0e3ca798c38279d86667`; child `0xc01087ae491bf610088840e878c87739d48d1316ec0786ea2fea7cd869d27f93`, finalized, 1 wei to the recipient, `value_credited=true`. Contract accounting correctly remains bond pending and delivered=0 because there is no authenticated child callback. This verifies challenge and bond handling, not final milestone vesting or payment settlement.
+
+### Abandoned evidence evaluation and principal recovery — Program 5
+
+- Create `0x858a247c0cfa562a67e2cdde0be0b77b5bd7a72ad46ee11b40240f7741583f0f` with 2 wei principal; evidence seal `0x768c02fa3311a9c0ddaa7191baf99678896e16a10cd7f4eb95edce1b7a475362`. No evaluation was submitted.
+- After the frozen review deadline, permissionless `finalize_unresolved` `0x7df67720a912849f8eb4682d050116d83cb0fa69bbc7a6f99f55afefb9d2c885` recorded `FINAL_UNRESOLVED`, reason `NO_EVALUATION_BEFORE_REVIEW_EXPIRY`; it did not infer a business failure or vest recipient funds.
+- Closure `0x88f356d5f3970673aedff614e2c02d9f86c789f91d21c7d7d9ac687ab4b9f366` => `CLOSED_STOPPED`. Refund authorization `0x18d4b711edb5942db71f7c1377a54ff4c776751e9b516200794168cb0a5f88d2`; parent `0xfc87774cf2f4a189a14b7bd45ac6277b35c530bdcd6afb0af95b4f1066d553bc`; child `0x77a5b227d474a15254b084efb2bf9f0da13bd3de38ad521a3bb6594198002e2c`, finalized, 2 wei to the funder, `value_credited=true`. Accounting records 2 wei funder-pending, 0 locked, 0 earned.
+
+### Abandoned challenge and bond return — Program 6
+
+- Create `0xb8316b9ad8f6e78f105ef805aa2194ce815409b3141bd3dfa3291f576819abd2` with 2 wei principal; evidence `0x0a03090dd64fedf444273472dd52d1f5121cfd177b0d232da80d57bc835da184`; evaluation `0xd95215a5a70af807c8801ee683e840356f61cd93f2682991b0aa739ad2510453`; challenge `0x7f9d915553064027bf591e03dfc81ca031a5f35579aada608bf43c20ce19bd8f` with 1 wei bond. No challenge resolution was submitted.
+- After the frozen review grace, permissionless `finalize_unresolved` `0xaad489e83c213051a02fdfcc3165c00101034d7e1c0a989fb0dec540e5d7bad7` recorded `FINAL_UNRESOLVED`, reason `CHALLENGE_REVIEW_ABANDONED_BOND_RETURNED`. The locked bond became claimable by its recorded owner (the funder/challenger); it was not forfeited for review absence.
+- Closure `0xc4b7eb36bed26a4b9ffc20c54a3abccb62f1ff3b7d0ad2035bed38fd12c8bca2` => `CLOSED_STOPPED`. Refund parent `0x659d4cc9e43e4e8c75570d1f125fb684bac3aaa4130983baa5f75ae88e28e001`; child `0x51c55a2a603985990e3c7266e3f26b5d1e469a7b339c3b5b14c49e1e58a4efeb`, finalized, 2 wei to the funder. Bond parent `0x4ad4443cc0fa27e7bfa9b1d31eff2c53685f3ef025a97a36909fccdf51f930fe`; child `0x59c5b19170d17d98060be240d8a33fe3741f7565da1a7b89a4a06e0b57aaa2e3`, finalized, 1 wei to the recorded bond owner. Both child receipts report `value_credited=true`; contract accounting retains 2 wei principal pending and 1 wei bond pending, with 0 locked.
+
+The tests used 2 wei principal and a 1 wei bond per relevant program. Those transactions expand the observed pending ledger but do not create new failed-payable surplus. Program 4 remains provisional until its challenge/finality timing permits finalization; the live proof here is specifically challenge resolution, provenance, bond authorization and child receipt.
+
 ### Failed live calls and challenge boundary
 
 - Create `0xbb8bc3a315fd8f68e1d1ecaf2033309e77d43f1b8f451044108e0fdbe2341696` finalized with consensus `MAJORITY_AGREE` but execution `ERROR`: the test harness used the funder as recipient. Receipt reports `value=2 wei` and `value_credited=true`; program counter remained 0 and protocol accounting remained zero. The value has no matching state record and is stranded.
@@ -45,7 +67,7 @@ Funder `0xD6423aE82a975d55C6CeaC222827A727325e0459`; recipient `0x39680bd423437C
 - A second test-harness create call `0xc6adf827d0424322ee538efacde7c4771dd0f3de4cc13988776d7192c46b3f49` also used the funder as recipient; execution `ERROR`, value 2 wei, `value_credited=true`, no program state. These failures were not converted into fictitious programs or bonds.
 - The current deployment therefore has 5 wei (0.000000000000000005 GEN) in observed failed payable value with no state record: two failed program creations (2 wei each) and one failed challenge (1 wei). No recovery path exists and no rescue call was attempted.
 
-No successful live challenge-resolution cycle has been recorded for this source. The historical challenge receipts below belong to another deployment/source and are not evidence for this contract. The live test also shows that a 60-second challenge window can be missed under actual signing/execution timing; the contract tests separately cover boundary behavior.
+The successful challenge-resolution and abandoned-review receipts above belong to the current source-matched deployment. The live test also shows that a 60-second challenge window can be missed under actual signing/execution timing; the contract tests separately cover boundary behavior.
 
 ## Historical deployment — superseded source
 
