@@ -1,0 +1,10 @@
+.git
+**/node_modules/**
+**/.next/**
+frontend/.playwright-browsers/**
+**/playwright-report/**
+**/test-results/**
+**/.pytest_cache/**
+**/__pycache__/**
+**/.venv/**
+**/.vitest/**

@@ -2,6 +2,51 @@
 
 Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production approval.
 
+## Current release — source-matched live test
+
+- Repository source commit: `86436b4824cc18699a35dc09779c2aa38a46e4d6` (later documentation-only release commit may contain this record).
+- Contract: `0xC2F0F3E18B69F398385652A55F423a1e339b4290`.
+- Deployment transaction: [`0xb3cfec04a693ad09fb9630a664052541e70fc524fe1b66a8813c9ac9c318037b`](https://explorer-studio.genlayer.com/tx/0xb3cfec04a693ad09fb9630a664052541e70fc524fe1b66a8813c9ac9c318037b), finalized, `MAJORITY_AGREE`, 5/5 validator votes, `SUCCESS`.
+- Deployed `contracts/ascende.py` SHA-256: `A7545AF5FD87DDDECD5E68766CB95D82A0BF4C9C487ECC1651316D6327733853`. A fresh `gen_getContractCode` readback produced the same digest.
+- Frontend config for local builds and Vercel production: `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0xC2F0F3E18B69F398385652A55F423a1e339b4290`; RPC `https://studio.genlayer.com/api`. Vercel deployment [`dpl_ARNbm29K9qfRMfCxXjTi4B6caT6N`](https://vercel.com/ifem1s-projects/ascende/ARNbm29K9qfRMfCxXjTi4B6caT6N) is READY and aliased to [ascende-sand.vercel.app](https://ascende-sand.vercel.app/). Its production Programs page loaded on the public alias and read programs 1–3 from this contract. Deployment upload excludes local Playwright browsers and generated build/dependency directories through the repository `.vercelignore`.
+- Contract counter is 3. Programs 1–3 below are the funded records; failed payable calls did not create additional records.
+- Live evidence fixtures are immutable files at commit `edfe1da` and were fetched and digest-checked by the contract on this deployment.
+
+### Positive qualified lifecycle — Program 1
+
+Funder `0xD6423aE82a975d55C6CeaC222827A727325e0459`; recipient `0x39680bd423437C0Eaa18493629652821Ec672C61`; principal 2 wei (1 wei per milestone). This live test used short, explicitly test-only policy windows; it is not a recommended production policy.
+
+- Create `0x9108e1e3a40e6b6574f0957d9eb0b1b9704e460bd98a5cd851b1b4ee2645dbbf`; first evidence seal `0x851650866fb4cacc51f737cc945e5f5c6ced7e942af8e8564172bb2c1fa2c9d9`; first evaluation `0xe7a0bc8abd1f7f9a9faa2e119addbb57960790c4c02273b85acac6c1af025503` => `PROVISIONAL_QUALIFIED` / `QUALIFIED`.
+- First milestone finalization `0xaf67488ac0aae78dce535a7a8026297c7580849f16efb26e95bc5af2de08a9cc` => `FINAL_QUALIFIED`, opening milestone 2.
+- Second evidence seal `0x2c9e0ee5c65fb97065bb298476c7e144c6b66959eab9111f2a54385b703aa468`; first evaluation `0x6a03548332faf258449431a807646b61de73d3eb56d87952a7e0c6293a28b300` => `MODEL_OUTPUT_INVALID` / `RETRYABLE`; the one policy-allowed retry `0x57606f2d262cae62a55206f61b35b9eeca08ed99d82a26e445e8d10dd1d0a385` => `PROVISIONAL_QUALIFIED` / `QUALIFIED`.
+- Second milestone finalization `0xcd07363c8b66230684950a87efbb18d2c4c6dd03ef29bb414f9f08bedaa5912e` => `CLOSED_SUCCESS`, 2 wei earned and 0 locked.
+- Withdrawal authorization `0x24e66cfc9d7efbf3e2cd3117faacaefd5343a332d2969f0852e9782d3ae58596`; single submit parent `0xb438356d9df08bb6a08287b5ec79f0ec45597dd4f7c113b42f9f5a0c5569b15a`; child [`0x23a41dbb04a44e8a5f7c28589f8bd32faff8aa63042839741cd0fcd96c4fc387`](https://explorer-studio.genlayer.com/tx/0x23a41dbb04a44e8a5f7c28589f8bd32faff8aa63042839741cd0fcd96c4fc387), finalized, 2 wei, recipient matches, `value_credited=true`.
+- Contract accounting remains `recipient_pending_wei=2`, `recipient_delivered_wei=0`, operation `TRANSFER_SUBMITTED`. The child credit is observed externally but not reconciled on-chain.
+
+### Negative result and refund — Program 2
+
+- Create `0x9e9e38dee2bbec6928e3021f32ee6336ca2dd84f8fc85f1f17435361a83fe857`; evidence seal `0x34bb8d49e088fbdd4da406348110b78ff8afe85b862595cb83bafd9fb1b74b69`; evaluation `0xaac4810f38a23edf0216b0628951b4d10dbe78db89ace924acadeb0542105e2c` => `PROVISIONAL_NOT_QUALIFIED` / `NOT_QUALIFIED`.
+- Finalization `0xed48707231287041649548eaf5e3f698b0fc15075d4b0873701d2c38efc73bc6`; close `0x1e9392ee75741bbcb8d58be46128c7f65fdbf4f3a4e74b5bddcbf30359441cd5` => `CLOSED_STOPPED`, with all 2 wei refundable.
+- Refund authorization `0xfb76f3ee2263459281fb7e311231bddc2be38982041028cdb1b92cb3c776d5f9`; submit parent `0x1adf79bdc4d9dcbd87a4e4e0f676919eeacdea02d7e824fc433e844d3f521ff7`; child [`0x29f70b5962e048aede7caa432c81b30dda2ec54bc1b6b2a9550327582c5b1e20`](https://explorer-studio.genlayer.com/tx/0x29f70b5962e048aede7caa432c81b30dda2ec54bc1b6b2a9550327582c5b1e20), finalized, 2 wei to the funder, `value_credited=true`.
+- Accounting intentionally remains `funder_pending_wei=2`, `funder_refunded_wei=0` because there is no authenticated child callback.
+
+### Missing evidence, expiry and refund — Program 3
+
+- Create `0x3480abeeed7400a4b61d146b93e0bf073fb1158a99d2c70ee8aeed8ad69c9853` with a 180-second test deadline and no evidence submitted.
+- Permissionless expiry `0xe52561e7ba8e2977321b4643e687b456b68bd1b66fc6d82d00f147e3adaac3e3` => `FINAL_EXPIRED`, reason `EVIDENCE_NOT_SUBMITTED`; closure `0x79e404e4a4833e204b4068bb0dbb582c3b7b35601f196f276dd573ccc65c9c49` => `CLOSED_STOPPED`, no recipient entitlement, 2 wei refundable.
+- Refund authorization `0x265e6475e753e3574d2134e8dfe03997ee50349aef117b8332391e0027999d40`; submit parent `0xf87ccf529737bd374ecf0786b487927beafdd1d5e21cfa59e22aafb1eb273ed3`; child [`0x25761d78554f11f37bac60c4adb13793fc11ee24ddc6f084dea3bd9ceaaa553f`](https://explorer-studio.genlayer.com/tx/0x25761d78554f11f37bac60c4adb13793fc11ee24ddc6f084dea3bd9ceaaa553f), finalized, 2 wei to the funder, `value_credited=true`.
+- Accounting remains `funder_pending_wei=2`, `funder_refunded_wei=0`; no resend was attempted.
+
+### Failed live calls and challenge boundary
+
+- Create `0xbb8bc3a315fd8f68e1d1ecaf2033309e77d43f1b8f451044108e0fdbe2341696` finalized with consensus `MAJORITY_AGREE` but execution `ERROR`: the test harness used the funder as recipient. Receipt reports `value=2 wei` and `value_credited=true`; program counter remained 0 and protocol accounting remained zero. The value has no matching state record and is stranded.
+- Nonpayable evidence/evaluation calls against the absent program finalized with execution `ERROR`: `0x01829a790b3b00c066c076238669cae869a6490f501985955f569471e119d3c5` and `0x68a7756275366548d6fd7c7c458b74dd25728d88d6467379d06bfadeb794f2fa`.
+- Challenge attempt `0x23bedbe4be655af81a2eff52f4bea5fa8ccbc0d325b4d6c0eb56ee654b4da550` finalized with execution `ERROR`, value 1 wei and `value_credited=true`; chain transaction timestamp was 1791965361, while the provisional challenge deadline was 1791965355. The window had elapsed; no challenge state/bond record was created and no retry was made.
+- A second test-harness create call `0xc6adf827d0424322ee538efacde7c4771dd0f3de4cc13988776d7192c46b3f49` also used the funder as recipient; execution `ERROR`, value 2 wei, `value_credited=true`, no program state. These failures were not converted into fictitious programs or bonds.
+- The current deployment therefore has 5 wei (0.000000000000000005 GEN) in observed failed payable value with no state record: two failed program creations (2 wei each) and one failed challenge (1 wei). No recovery path exists and no rescue call was attempted.
+
+No successful live challenge-resolution cycle has been recorded for this source. The historical challenge receipts below belong to another deployment/source and are not evidence for this contract. The live test also shows that a 60-second challenge window can be missed under actual signing/execution timing; the contract tests separately cover boundary behavior.
+
 ## Historical deployment — superseded source
 
 The following records belong to the earlier contract source at commit `edfe1da1634abeb92ec091e562838b64093df3a9`. They are preserved for audit context only and do not verify the corrected source in this release candidate. The fresh deployment and evidence for the corrected source will be recorded above these historical records after verification.
