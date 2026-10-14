@@ -34,6 +34,32 @@ test("wallet connection, network switch, copy, and disconnect stay in wallet con
   await expect(page.getByRole("button", { name: /connect wallet/i })).toBeVisible();
 });
 
+test("wallet chooser uses discovered injected providers instead of a bundled account", async ({ page }) => {
+  const address = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd";
+  await page.addInitScript((account) => {
+    let connected = false;
+    const listeners = new Map<string, Array<(...args: unknown[]) => void>>();
+    const provider = {
+      request: async ({ method }: { method: string }) => {
+        if (method === "eth_accounts") return connected ? [account] : [];
+        if (method === "eth_requestAccounts") { connected = true; return [account]; }
+        if (method === "eth_chainId") return "0xf22f";
+        throw new Error(`Unexpected wallet method ${method}`);
+      },
+      on: (event: string, listener: (...args: unknown[]) => void) => listeners.set(event, [...(listeners.get(event) ?? []), listener]),
+      removeListener: (event: string, listener: (...args: unknown[]) => void) => listeners.set(event, (listeners.get(event) ?? []).filter((current) => current !== listener)),
+    };
+    window.addEventListener("eip6963:requestProvider", () => {
+      window.dispatchEvent(new CustomEvent("eip6963:announceProvider", { detail: { info: { uuid: "test-injected-provider", name: "Test Injected Wallet", icon: "", rdns: "test.wallet" }, provider } }));
+    });
+  }, address);
+  await page.goto("/");
+  await page.getByRole("button", { name: /connect wallet/i }).click();
+  await expect(page.getByRole("dialog", { name: /connect an injected wallet/i })).toContainText("Test Injected Wallet");
+  await page.getByRole("button", { name: /test injected wallet/i }).click();
+  await expect(page.getByRole("button", { name: /0xabcd.*abcd/i })).toBeVisible();
+});
+
 test("home shows canonical on-chain data or an explicit unavailable state", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /progress is earned/i })).toBeVisible();

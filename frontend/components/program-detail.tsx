@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowUpRight, CheckCircle2, CircleDot, Clock3, RefreshCw } from "lucide-react";
-import { Eip1193Provider, formatGen, parseGen, prepareWrite, ProgramRecord, readProgram, readProgramAccounting, readProgramCapabilities, readProgramHistory, readTransaction, PreparedWrite, submitPreparedWrite } from "@/lib/genlayer";
+import { Eip1193Provider, formatGen, prepareWrite, ProgramRecord, readProgram, readProgramAccounting, readProgramCapabilities, readProgramHistory, readTransaction, PreparedWrite, submitPreparedWrite } from "@/lib/genlayer";
 import { getActiveProvider } from "@/lib/wallet-store";
 import { recoveryActions } from "@/lib/capabilities";
+import { parsePositiveGen, validateEvidenceEntry } from "@/lib/preflight";
 
 type EvidenceItem = { url: string; sha256: string; byte_length: number };
 type DecisionLineage = { id: number; kind: string; evidence_root?: string; previous_evidence_root?: string; result?: string; prior_result?: string; attempt?: number; challenger?: string; time: number };
@@ -34,6 +35,7 @@ export function ProgramDetail({ id }: { id: number }) {
   const [hash, setHash] = useState("");
   const [lastTransactions, setLastTransactions] = useState<string[]>([]);
   const [transactionSnapshots, setTransactionSnapshots] = useState<Array<{ hash: string; snapshot?: TransactionSnapshot; error?: string }>>([]);
+  const invalidatePrepared = useCallback(() => setPrepared(null), []);
 
   const refresh = useCallback(async () => {
     setError("");
@@ -51,24 +53,28 @@ export function ProgramDetail({ id }: { id: number }) {
     if (saved) void Promise.resolve().then(() => setLastTransactions(saved.split(",").filter(Boolean)));
     const updateAccount = () => {
       const ethereum = getActiveProvider();
-      if (!ethereum) { setAccount(""); return; }
+      if (!ethereum) { invalidatePrepared(); setAccount(""); return; }
       void ethereum.request({ method: "eth_accounts" }).then((accounts) => {
-        setAccount(Array.isArray(accounts) && typeof accounts[0] === "string" ? accounts[0].toLowerCase() : "");
+        invalidatePrepared(); setAccount(Array.isArray(accounts) && typeof accounts[0] === "string" ? accounts[0].toLowerCase() : "");
       }).catch(() => setAccount(""));
     };
     let ethereum = getActiveProvider();
-    const changed = (accounts: unknown) => setAccount(Array.isArray(accounts) && typeof accounts[0] === "string" ? accounts[0].toLowerCase() : "");
+    const changed = (accounts: unknown) => { invalidatePrepared(); setAccount(Array.isArray(accounts) && typeof accounts[0] === "string" ? accounts[0].toLowerCase() : ""); };
+    const changedChain = () => invalidatePrepared();
     const providerChanged = () => {
       ethereum?.removeListener?.("accountsChanged", changed);
+      ethereum?.removeListener?.("chainChanged", changedChain);
       ethereum = getActiveProvider();
       ethereum?.on?.("accountsChanged", changed);
+      ethereum?.on?.("chainChanged", changedChain);
       updateAccount();
     };
     ethereum?.on?.("accountsChanged", changed);
+    ethereum?.on?.("chainChanged", changedChain);
     window.addEventListener("ascende:wallet-provider-changed", providerChanged);
     updateAccount();
-    return () => { ethereum?.removeListener?.("accountsChanged", changed); window.removeEventListener("ascende:wallet-provider-changed", providerChanged); };
-  }, [id, refresh]);
+    return () => { ethereum?.removeListener?.("accountsChanged", changed); ethereum?.removeListener?.("chainChanged", changedChain); window.removeEventListener("ascende:wallet-provider-changed", providerChanged); };
+  }, [id, refresh, invalidatePrepared]);
 
   useEffect(() => {
     let live = true;
@@ -86,25 +92,33 @@ export function ProgramDetail({ id }: { id: number }) {
   function requestFor(next: Action, operationId = "") {
     if (!program) throw new Error("Program data is not loaded.");
     if (next === "submit_evidence" || next === "challenge_milestone") {
-      const entry = [{ url, sha256: digest, byte_length: Number(byteLength) }];
+      if (!current) throw new Error("Milestone data is not loaded.");
+      const entry = [validateEvidenceEntry(url, digest, byteLength, current.authorities)];
       return { functionName: next, args: [BigInt(id), BigInt(stage), JSON.stringify(entry)], ...(next === "challenge_milestone" ? { value: BigInt(program.policy.challenge_bond_wei) } : {}) };
     }
     if (next === "evaluate_milestone" || next === "resolve_challenge" || next === "finalize_milestone" || next === "finalize_unresolved" || next === "expire_milestone") return { functionName: next, args: [BigInt(id), BigInt(stage)] };
     if (next === "close_program") return { functionName: next, args: [BigInt(id)] };
     if (next === "submit_payment") return { functionName: next, args: [BigInt(id), operationId] };
-    if (next === "request_withdrawal" || next === "request_refund" || next === "request_bond_withdrawal") return { functionName: next, args: [BigInt(id), parseGen(amount).toString()] };
+    if (next === "request_withdrawal" || next === "request_refund" || next === "request_bond_withdrawal") return { functionName: next, args: [BigInt(id), parsePositiveGen(amount).toString()] };
     throw new Error("Unsupported action");
   }
 
   async function prepare(next: Action, operationId?: string) {
     try {
-      setBusy(true); setError(""); setAction(next);
+      setBusy(true); setError(""); setPrepared(null);
       const provider = getActiveProvider() as Eip1193Provider | undefined;
       if (!provider) throw new Error("Connect an injected wallet before submitting a transaction.");
       const accounts = await provider.request({ method: "eth_accounts" });
       if (!Array.isArray(accounts) || typeof accounts[0] !== "string") throw new Error("Connect a wallet account first.");
       const request = requestFor(next, operationId);
-      setPrepared(await prepareWrite(accounts[0], provider, request));
+      if (next === "request_withdrawal" || next === "request_refund" || next === "request_bond_withdrawal") {
+        const key = next === "request_withdrawal" ? "earned_claimable_wei" : next === "request_refund" ? "refund_claimable_wei" : role === "FUNDER" ? "bond_funder_claimable_wei" : "bond_recipient_claimable_wei";
+        if (parsePositiveGen(amount) > BigInt(String(accounting?.[key] ?? 0))) throw new Error("Amount exceeds the claimable balance recorded by the contract.");
+      }
+      const result = await prepareWrite(accounts[0], provider, request);
+      const [freshChain, freshAccounts] = await Promise.all([provider.request({ method: "eth_chainId" }), provider.request({ method: "eth_accounts" })]);
+      if (getActiveProvider() !== provider || typeof freshChain !== "string" || BigInt(freshChain) !== 61999n || !Array.isArray(freshAccounts) || String(freshAccounts[0]).toLowerCase() !== String(accounts[0]).toLowerCase()) throw new Error("Wallet account or network changed during preparation; prepare again.");
+      setPrepared(result);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Could not prepare this transaction."); }
     finally { setBusy(false); }
   }
@@ -114,6 +128,7 @@ export function ProgramDetail({ id }: { id: number }) {
     try {
       setBusy(true); setError("");
       const result = await submitPreparedWrite(prepared, (tx) => {
+        invalidatePrepared();
         setHash(tx); setLastTransactions((current) => { const next = [...current, tx]; localStorage.setItem(`ascende:program:${id}:tx`, next.join(",")); return next; });
       });
       if (!result.successful) throw new Error(`Transaction ${result.hash} finalized but its execution failed.`);
@@ -148,15 +163,15 @@ export function ProgramDetail({ id }: { id: number }) {
     {current?.terminal_reason && <p className="form-alert" role="status">Terminal state: {current.status.replaceAll("_", " ")} · {current.terminal_reason.replaceAll("_", " ")} · {current.terminal_time ? new Date(current.terminal_time * 1000).toLocaleString() : ""}</p>}
     <Link className="text-link" href="/programs">← All programs</Link><div className="detail-title"><div><span className="eyebrow">PROGRAM #{program.id} · {program.status.replaceAll("_", " ")}</span><h1>{program.title}</h1><p className="sub-lead">{program.purpose}</p><div className="detail-workflow-links"><Link className="text-link" href={`/programs/${program.id}/evidence`}>Milestone evidence</Link><Link className="text-link" href={`/programs/${program.id}/challenges`}>Challenges</Link></div></div><button className="action secondary" type="button" onClick={() => void refresh()}><RefreshCw size={15}/>Refresh chain state</button></div>
     <div className="detail-overview glass-card"><div><span className="overline">COMMITTED BUDGET</span><strong>{formatGen(program.funded_wei)} GEN</strong></div><div><span className="overline">FUNDER</span><code>{address}</code></div><div><span className="overline">YOUR ROLE</span><strong>{role || "PUBLIC"}</strong></div><div><span className="overline">RECIPIENT</span><code>{program.recipient.slice(0, 8)}…{program.recipient.slice(-6)}</code></div></div>
-    <div className="detail-layout"><section className="milestone-list"><span className="eyebrow">SEQUENTIAL PROGRESSION</span>{program.milestones.map((milestone, index) => <button type="button" key={index} className="milestone-detail glass-card" data-active={stage === index} onClick={() => {setStage(index);setPrepared(null);setAction("");}}><div className="milestone-marker">{milestone.status.startsWith("FINAL_QUALIFIED") ? <CheckCircle2 size={18}/> : <CircleDot size={18}/>}</div><div><span className="overline">STAGE {String(index + 1).padStart(2, "0")} · {milestone.status.replaceAll("_", " ")}</span><h2>{formatGen(milestone.tranche_wei)} GEN</h2><p>{milestone.criteria.join(" · ")}</p><small>Deadline {new Date(milestone.deadline * 1000).toLocaleString()}</small><div className="authority-list">{milestone.authorities.map((authority) => <code key={authority.prefix}>{authority.role}{authority.required ? " · REQUIRED" : ""} · {authority.prefix}</code>)}</div>{milestone.manifest_root && <small>Evidence root <code>{milestone.manifest_root}</code></small>}{milestone.result && <small>Validator classification <strong>{milestone.result}</strong></small>}{(milestone.challenge || (milestone.decision_history?.length ?? 0) > 0) && <div className="evidence-lineage"><small>Decision and challenge lineage · {milestone.decision_history?.length ?? 0} records</small>{milestone.challenge && <div><strong>Challenge evidence · {milestone.challenge.root}</strong><small>Prior decision: {milestone.challenge.prior_result} · prior evidence root: {milestone.challenge.prior_manifest_root}</small><small>Challenger: <code>{milestone.challenge.challenger}</code> · bond {formatGen(milestone.challenge.bond_wei ?? program.policy.challenge_bond_wei)} GEN</small>{milestone.challenge.resolution && <small>Resolution: {milestone.challenge.resolution.result} · flipped: {String(milestone.challenge.resolution.flipped)} · bond owner: <code>{milestone.challenge.resolution.bond_owner}</code></small>}<div className="authority-list">{[...milestone.challenge.prior_manifest.map((item) => ({ version: "SUBMISSION", item })), ...milestone.challenge.manifest.map((item) => ({ version: "CHALLENGE", item }))].map(({ version, item }) => <code key={`${version}-${item.url}`}>{version} · {item.url} · SHA-256 {item.sha256} · {item.byte_length} bytes</code>)}</div></div>}{milestone.decision_history?.map((decision) => <small key={decision.id}>#{decision.id} {decision.kind.replaceAll("_", " ")} · {decision.result ?? decision.prior_result ?? "—"} · evidence {decision.evidence_root ?? decision.previous_evidence_root ?? "—"} · {new Date(decision.time * 1000).toLocaleString()}</small>)}</div>}</div></button>)}</section>
+    <div className="detail-layout"><section className="milestone-list"><span className="eyebrow">SEQUENTIAL PROGRESSION</span>{program.milestones.map((milestone, index) => <button type="button" key={index} disabled={busy} className="milestone-detail glass-card" data-active={stage === index} onClick={() => {setStage(index);invalidatePrepared();setAction("");setUrl("");setDigest("");setByteLength("");}}><div className="milestone-marker">{milestone.status.startsWith("FINAL_QUALIFIED") ? <CheckCircle2 size={18}/> : <CircleDot size={18}/>}</div><div><span className="overline">STAGE {String(index + 1).padStart(2, "0")} · {milestone.status.replaceAll("_", " ")}</span><h2>{formatGen(milestone.tranche_wei)} GEN</h2><p>{milestone.criteria.join(" · ")}</p><small>Deadline {new Date(milestone.deadline * 1000).toLocaleString()}</small><div className="authority-list">{milestone.authorities.map((authority) => <code key={authority.prefix}>{authority.role}{authority.required ? " · REQUIRED" : ""} · {authority.prefix}</code>)}</div>{milestone.manifest_root && <small>Evidence root <code>{milestone.manifest_root}</code></small>}{milestone.result && <small>Validator classification <strong>{milestone.result}</strong></small>}{(milestone.challenge || (milestone.decision_history?.length ?? 0) > 0) && <div className="evidence-lineage"><small>Decision and challenge lineage · {milestone.decision_history?.length ?? 0} records</small>{milestone.challenge && <div><strong>Challenge evidence · {milestone.challenge.root}</strong><small>Prior decision: {milestone.challenge.prior_result} · prior evidence root: {milestone.challenge.prior_manifest_root}</small><small>Challenger: <code>{milestone.challenge.challenger}</code> · bond {formatGen(milestone.challenge.bond_wei ?? program.policy.challenge_bond_wei)} GEN</small>{milestone.challenge.resolution && <small>Resolution: {milestone.challenge.resolution.result} · flipped: {String(milestone.challenge.resolution.flipped)} · bond owner: <code>{milestone.challenge.resolution.bond_owner}</code></small>}<div className="authority-list">{[...milestone.challenge.prior_manifest.map((item) => ({ version: "SUBMISSION", item })), ...milestone.challenge.manifest.map((item) => ({ version: "CHALLENGE", item }))].map(({ version, item }) => <code key={`${version}-${item.url}`}>{version} · {item.url} · SHA-256 {item.sha256} · {item.byte_length} bytes</code>)}</div></div>}{milestone.decision_history?.map((decision) => <small key={decision.id}>#{decision.id} {decision.kind.replaceAll("_", " ")} · {decision.result ?? decision.prior_result ?? "—"} · evidence {decision.evidence_root ?? decision.previous_evidence_root ?? "—"} · {new Date(decision.time * 1000).toLocaleString()}</small>)}</div>}</div></button>)}</section>
       <aside className="detail-side"><section className="glass-card action-card"><span className="eyebrow">AVAILABLE ACTIONS · {role}</span>{current && <>
-        {(["submit_evidence", "challenge_milestone"] as const).includes(action as "submit_evidence" | "challenge_milestone") && <div className="form-grid compact-form"><label className="wide-field">Authorized evidence URL<input value={url} onChange={(event) => setUrl(event.target.value)} /></label><label>SHA-256<input value={digest} onChange={(event) => setDigest(event.target.value)} maxLength={64} /></label><label>Exact byte length<input inputMode="numeric" value={byteLength} onChange={(event) => setByteLength(event.target.value)} /></label></div>}
-        {(["request_withdrawal", "request_refund", "request_bond_withdrawal"] as const).includes(action as "request_withdrawal" | "request_refund" | "request_bond_withdrawal") && <label>Amount (GEN)<input inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} /></label>}
-        {eligibleActions().map((item) => <button className="action primary full-action" key={item.action} disabled={busy || !account} type="button" onClick={() => void prepare(item.action)}>{item.label} <ArrowUpRight size={16}/></button>)}
-        {program.operations.filter((operation) => operation.status === "AUTHORIZED").map((operation) => <button className="action secondary full-action" key={operation.id} disabled={busy || !account} type="button" onClick={() => void prepare("submit_payment", operation.id)}>Submit authorized transfer #{operation.id} · {formatGen(operation.amount_wei)} GEN <ArrowUpRight size={16}/></button>)}
-        {!eligibleActions().length && <p>No action is available for this wallet and finalized state.</p>}
-        {action === "challenge_milestone" && <small>Frozen challenge bond: {formatGen(program.policy.challenge_bond_wei)} GEN.</small>}
-        {prepared && <div className="fee-panel"><strong>{prepared.simulated ? "Simulation passed · confirm transaction" : "Confirm payable transaction"}</strong><span>Payable value: {formatGen(prepared.call.value ?? 0n)} GEN</span><span>Your wallet shows the network fee before you approve.</span><button type="button" className="action primary full-action" disabled={busy} onClick={() => void submit()}>{busy ? "Waiting for finality…" : "Sign and submit"}</button></div>}
+        {(["submit_evidence", "challenge_milestone"] as const).includes(action as "submit_evidence" | "challenge_milestone") && <><div className="form-grid compact-form"><label className="wide-field">Authorized evidence URL<input value={url} disabled={busy} onChange={(event) => {setUrl(event.target.value);invalidatePrepared();}} /></label><label>SHA-256<input value={digest} disabled={busy} onChange={(event) => {setDigest(event.target.value);invalidatePrepared();}} maxLength={64} /></label><label>Exact byte length<input inputMode="numeric" value={byteLength} disabled={busy} onChange={(event) => {setByteLength(event.target.value);invalidatePrepared();}} /></label></div><button className="action secondary full-action" type="button" disabled={busy || !account} onClick={() => void prepare(action as Action)}>{busy ? "Validating…" : "Prepare Transaction"} <ArrowUpRight size={16}/></button></>}
+        {(["request_withdrawal", "request_refund", "request_bond_withdrawal"] as const).includes(action as "request_withdrawal" | "request_refund" | "request_bond_withdrawal") && <><label>Amount (GEN)<input inputMode="decimal" value={amount} disabled={busy} onChange={(event) => {setAmount(event.target.value);invalidatePrepared();}} /></label><button className="action secondary full-action" type="button" disabled={busy || !account} onClick={() => void prepare(action as Action)}>{busy ? "Validating…" : "Prepare Transaction"} <ArrowUpRight size={16}/></button></>}
+        {!(["submit_evidence", "challenge_milestone", "request_withdrawal", "request_refund", "request_bond_withdrawal"] as const).includes(action as "submit_evidence" | "challenge_milestone" | "request_withdrawal" | "request_refund" | "request_bond_withdrawal") && eligibleActions().map((item) => <button className="action primary full-action" key={item.action} disabled={busy || !account} type="button" onClick={() => {setPrepared(null);setError("");setNotice("");setHash("");setAction(item.action);if(item.action === "submit_evidence" || item.action === "challenge_milestone"){setUrl("");setDigest("");setByteLength("");}else if(item.action === "request_withdrawal" || item.action === "request_refund" || item.action === "request_bond_withdrawal"){setAmount("");}else{void prepare(item.action);}}}>{item.label} <ArrowUpRight size={16}/></button>)}
+        {program.operations.filter((operation) => operation.status === "AUTHORIZED").map((operation) => <button className="action secondary full-action" key={operation.id} disabled={busy || !account} type="button" onClick={() => {setPrepared(null);setError("");setNotice("");setHash("");setAction("submit_payment");void prepare("submit_payment", operation.id);}}>Submit authorized transfer #{operation.id} · {formatGen(operation.amount_wei)} GEN <ArrowUpRight size={16}/></button>)}
+        {!eligibleActions().length && !action && <p>No action is available for this wallet and finalized state.</p>}
+        {action === "challenge_milestone" && <small>Frozen challenge bond: {formatGen(program.policy.challenge_bond_wei)} GEN. Payable calls cannot be value-simulated by the pinned SDK; a failed call may strand the attached GEN and is not automatically retried.</small>}
+        {prepared && <div className="fee-panel"><strong>{prepared.simulated ? "Simulation passed · confirm transaction" : "Payable call not simulated · review carefully"}</strong><span>Contract call: {prepared.call.functionName}({prepared.call.args.map((argument) => String(argument)).join(", ")})</span><span>Payable value: {formatGen(prepared.call.value ?? 0n)} GEN</span><span>SDK preflight cannot simulate value or guarantee execution. Do not retry if the wallet result is ambiguous; reconcile the original hash.</span><button type="button" className="action primary full-action" disabled={busy} onClick={() => void submit()}>{busy ? "Waiting for finality…" : "Sign and submit"}</button></div>}
       </>}</section>
       <section className="glass-card treasury-card"><span className="eyebrow">TREASURY OBLIGATIONS</span>{accounting && Object.entries(accounting).filter(([key]) => key.endsWith("_wei")).map(([key, value]) => <div key={key}><span>{key.replaceAll("_wei", "").replaceAll("_", " ")}</span><strong>{formatGen(String(value))} GEN</strong></div>)}<p>Transfer submitted and delivery verified are separate states. A submitted child transfer remains pending until a contract-authenticated delivery status exists.</p></section>
       </aside></div>

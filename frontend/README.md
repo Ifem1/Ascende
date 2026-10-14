@@ -16,4 +16,6 @@ npm run e2e
 
 Build before browser E2E: Playwright starts the production server against the generated `.next` output.
 
-The wallet chooser discovers injected EIP-1193 providers, and all writes check the connected chain is 61999 before signing. The app separates durable payment authorization from transfer submission and displays submitted/unresolved states without claiming delivery. It never stores private keys.
+The wallet chooser discovers available EIP-6963 providers and falls back to the browser's injected `window.ethereum`; it does not bundle or select an account. All writes check the connected chain is 61999 before signing. Evidence and challenge calls require a complete, locally validated manifest and an explicit preparation step, and the prepared request is discarded when its evidence, milestone, wallet account, or network changes.
+
+The pinned SDK cannot simulate calls carrying GEN value. Creation and challenge preflight checks catch deterministic input errors, but they do not guarantee payable execution; a failed payable call may strand its value. The UI never retries an ambiguous transaction. It separates durable payment authorization from transfer submission and displays submitted/unresolved states without claiming delivery. It never stores private keys.
