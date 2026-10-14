@@ -1,14 +1,31 @@
 # Live Studionet verification
 
-Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production approval. The existing address below is historical for the payable-credit correction: it does not run the current checkout and must not be cited as evidence for the new payable rejection ledger. A source-matched deployment and fresh rejected-payment lifecycle are still required.
+Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production approval.
 
-## Current release — source-matched live test
+## Current source — rejected payable and bounded refund
+
+- Repository source commit: `d80148c4fadd23c01fb4bff39d46bd1508951bbe` (local commit; GitHub push and Actions are pending authentication).
+- Contract: `0x884676bCDE191A9D9c79B3111812425E15824836`.
+- Deployment transaction: [`0xe502d1640c1612979018be4aafde8eaea83afc29cc1ed49a341c775d5559b2a7`](https://explorer-studio.genlayer.com/tx/0xe502d1640c1612979018be4aafde8eaea83afc29cc1ed49a341c775d5559b2a7), accepted on stable Studionet 61999 with `MAJORITY_AGREE` and 5/5 validator votes.
+- Deployed `contracts/ascende.py` SHA-256: `7CA854631AFFF1861006BD8BC9F32A1425DF40C1BA402D88177FE74E853E7D6A`. `genlayer code` readback exactly matched the local source bytes after newline normalization.
+- Wallet: supplied Landlord 1 test account `0xD6423aE82a975d55C6CeaC222827A727325e0459`. No private key is recorded here.
+- Deliberately invalid `create_program` with 2 wei: parent [`0x2225c04fff0a04b2d804da39ae4202883fe92cdaa3fbc2ed7f3afc6040e1331e`](https://explorer-studio.genlayer.com/tx/0x2225c04fff0a04b2d804da39ae4202883fe92cdaa3fbc2ed7f3afc6040e1331e) finalized. Program counter stayed 0; independent contract readback showed exactly 2 wei credited and available to the original sender. No program was created.
+- Refund reservation: parent [`0xe75442f0ed39bf13962cdd0ba26e1ca9fb9e9a8cadb9979c7506aef527eeceeb`](https://explorer-studio.genlayer.com/tx/0xe75442f0ed39bf13962cdd0ba26e1ca9fb9e9a8cadb9979c7506aef527eeceeb) finalized. Ledger operation 1 reserved 2 wei: available 0, authorized 2.
+- Once-only refund submission: parent [`0xe08fc9df399ec722e9a7037c559a3cbae1855f2ba9dbaa532d9a34574b64e040`](https://explorer-studio.genlayer.com/tx/0xe08fc9df399ec722e9a7037c559a3cbae1855f2ba9dbaa532d9a34574b64e040) finalized. Contract readback shows operation 1 `TRANSFER_SUBMITTED`, pending 2 wei, delivered 0, delivery status `UNVERIFIABLE`.
+- Triggered child [`0x8221e192dbe93929c0d2ce8b3b1ae88ae60fa6ae8d46d5c55a2217bbea7d02b9`](https://explorer-studio.genlayer.com/tx/0x8221e192dbe93929c0d2ce8b3b1ae88ae60fa6ae8d46d5c55a2217bbea7d02b9) finalized with `value_credited=true`, value 2 wei, and recipient equal to the original sender. This is external receipt evidence only; contract storage correctly remains pending.
+- This demonstrates the expected rejection and once-only refund path on the new source. It does not demonstrate every rejection code, any production guarantee, or recovery of the 5 wei stranded at the historical deployment below.
+
+## Previous source — historical full lifecycle evidence
+
+The following release evidence is source-matched only to its historical deployment and does not verify the current source.
+
+## Previous source — full lifecycle live test
 
 - Deployed contract source commit: [`86436b4824cc18699a35dc09779c2aa38a46e4d6`](https://github.com/Ifem1/Ascende/commit/86436b4824cc18699a35dc09779c2aa38a46e4d6). The final repository release also records adversarial tests and fresh live verification; it does not change `contracts/ascende.py`.
 - Contract: `0xC2F0F3E18B69F398385652A55F423a1e339b4290`.
 - Deployment transaction: [`0xb3cfec04a693ad09fb9630a664052541e70fc524fe1b66a8813c9ac9c318037b`](https://explorer-studio.genlayer.com/tx/0xb3cfec04a693ad09fb9630a664052541e70fc524fe1b66a8813c9ac9c318037b), finalized, `MAJORITY_AGREE`, 5/5 validator votes, `SUCCESS`.
 - Deployed `contracts/ascende.py` SHA-256: `A7545AF5FD87DDDECD5E68766CB95D82A0BF4C9C487ECC1651316D6327733853`. A fresh `gen_getContractCode` readback produced the same digest.
-- Frontend config for local builds and Vercel production: `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0xC2F0F3E18B69F398385652A55F423a1e339b4290`; RPC `https://studio.genlayer.com/api`. Vercel deployment [`dpl_ARNbm29K9qfRMfCxXjTi4B6caT6N`](https://vercel.com/ifem1s-projects/ascende/ARNbm29K9qfRMfCxXjTi4B6caT6N) is READY and aliased to [ascende-sand.vercel.app](https://ascende-sand.vercel.app/). Fresh browser verification on the public Programs page read programs 1–6 from this contract, with programs 4–6 showing the newly recorded challenge and recovery states. Deployment upload excludes local Playwright browsers and generated build/dependency directories through the repository `.vercelignore`.
+- Historical frontend config was `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0xC2F0F3E18B69F398385652A55F423a1e339b4290`; RPC `https://studio.genlayer.com/api`. Vercel deployment [`dpl_ARNbm29K9qfRMfCxXjTi4B6caT6N`](https://vercel.com/ifem1s-projects/ascende/ARNbm29K9qfRMfCxXjTi4B6caT6N) is READY and aliased to [ascende-sand.vercel.app](https://ascende-sand.vercel.app/). That public build read programs 1–6 from the old contract; it does not verify the newly deployed address. Deployment upload excludes local Playwright browsers and generated build/dependency directories through the repository `.vercelignore`.
 - Contract counter is 6. Programs 1–3 were present during the original source-matched release check; programs 4–6 below were added during final challenge and bounded-recovery verification. Failed payable calls did not create records.
 - Live evidence fixtures are immutable files at commit `edfe1da` and were fetched and digest-checked by the contract on this deployment.
 
@@ -68,13 +85,13 @@ The tests used 2 wei principal and 1 wei challenge bonds for programs 4 and 6. T
 - Nonpayable evidence/evaluation calls against the absent program finalized with execution `ERROR`: `0x01829a790b3b00c066c076238669cae869a6490f501985955f569471e119d3c5` and `0x68a7756275366548d6fd7c7c458b74dd25728d88d6467379d06bfadeb794f2fa`.
 - Challenge attempt `0x23bedbe4be655af81a2eff52f4bea5fa8ccbc0d325b4d6c0eb56ee654b4da550` finalized with execution `ERROR`, value 1 wei and `value_credited=true`; chain transaction timestamp was 1791965361, while the provisional challenge deadline was 1791965355. The window had elapsed; no challenge state/bond record was created and no retry was made.
 - A second test-harness create call `0xc6adf827d0424322ee538efacde7c4771dd0f3de4cc13988776d7192c46b3f49` also used the funder as recipient; execution `ERROR`, value 2 wei, `value_credited=true`, no program state. These failures were not converted into fictitious programs or bonds.
-- The current deployment therefore has 5 wei (0.000000000000000005 GEN) in observed failed payable value with no state record: two failed program creations (2 wei each) and one failed challenge (1 wei). No recovery path exists and no rescue call was attempted.
+- This historical deployment therefore has 5 wei (0.000000000000000005 GEN) in observed failed payable value with no state record: two failed program creations (2 wei each) and one failed challenge (1 wei). No recovery path exists on that address; the new source's recovery path is demonstrated above on a separate deployment.
 
-The successful challenge-resolution and abandoned-review receipts above belong to the current source-matched deployment. The live test also shows that a 60-second challenge window can be missed under actual signing/execution timing; the contract tests separately cover boundary behavior.
+The successful challenge-resolution and abandoned-review receipts above belong to this historical source-matched deployment. The live test also shows that a 60-second challenge window can be missed under actual signing/execution timing; the contract tests separately cover boundary behavior.
 
 ## Historical deployment — superseded source
 
-The following records belong to the earlier contract source at commit `edfe1da1634abeb92ec091e562838b64093df3a9`. They are preserved for audit context only and do not verify the corrected source in this release. The current source-matched deployment and its verification are documented above.
+The following records belong to an even earlier contract source at commit `edfe1da1634abeb92ec091e562838b64093df3a9`. They are preserved for audit context only and do not verify either deployment above.
 
 ## Historical release candidate
 
