@@ -395,7 +395,7 @@ def test_validator_disagreement_rejects_consensus(direct_vm, direct_deploy, dire
     assert direct_vm.run_validator() is False
 
 
-def test_validator_must_agree_on_source_references_not_only_final_classification(direct_vm, direct_deploy, direct_bob):
+def test_validator_may_cite_different_valid_sources_when_findings_agree(direct_vm, direct_deploy, direct_bob):
     contract = direct_deploy("contracts/ascende.py")
     args = list(_program())
     milestones = json.loads(args[3])
@@ -421,7 +421,7 @@ def test_validator_must_agree_on_source_references_not_only_final_classification
     direct_vm.mock_web(other_prefix + "independent.json", {"status": 200, "body": BODY_B})
     packet_value["findings"][0]["source_indices"] = [1]
     direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(packet_value))
-    assert direct_vm.run_validator() is False
+    assert direct_vm.run_validator() is True
 
 
 def test_prompt_injection_text_is_untrusted_and_insufficient_findings_do_not_vest(direct_vm, direct_deploy, direct_bob):

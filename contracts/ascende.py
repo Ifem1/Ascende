@@ -196,7 +196,14 @@ def _validate_policy(policy: object) -> bool:
 
 
 def _normalize_decision_packet(raw: object, criteria_count: int, source_count: int, evidence_root: str) -> dict | None:
-    if not isinstance(raw, dict) or set(raw) != {"evidence_root", "findings"}:
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except Exception:
+            return None
+    if not isinstance(raw, dict) or not {"evidence_root", "findings"}.issubset(set(raw)):
+        return None
+    if set(raw) - {"evidence_root", "findings", "classification"}:
         return None
     if raw.get("evidence_root") != evidence_root:
         return None
@@ -236,7 +243,23 @@ def _normalize_decision_packet(raw: object, criteria_count: int, source_count: i
         classification = "QUALIFIED"
     else:
         classification = "INCONCLUSIVE"
+    if "classification" in raw and raw["classification"] != classification:
+        return None
     return {"evidence_root": evidence_root, "findings": normalized, "classification": classification}
+
+
+def _decision_agreement_key(packet: dict) -> str:
+    # Citations can differ while validators still reach the same defensible
+    # finding. Each citation is independently checked against this frozen
+    # manifest; consensus compares the evidence root and criterion outcomes.
+    return _json({
+        "evidence_root": packet["evidence_root"],
+        "classification": packet["classification"],
+        "findings": [
+            {"criterion_index": finding["criterion_index"], "finding": finding["finding"]}
+            for finding in packet["findings"]
+        ],
+    })
 
 
 class Ascende(gl.Contract):
@@ -297,9 +320,8 @@ class Ascende(gl.Contract):
 
     def _evaluate(self, milestone: dict) -> str:
         # Every validator independently fetches the frozen byte manifests and
-        # generates a criterion-level packet. The validator compares the full
-        # normalized packet (including its source root and source references),
-        # not only the final business classification.
+        # generates a criterion-level packet. Consensus compares the evidence
+        # root and each finding; valid citations may differ across evaluators.
         criteria = list(milestone["criteria"])
         manifest = list(milestone["manifest"])
         evidence_root = _manifest_root(manifest)
@@ -348,10 +370,14 @@ class Ascende(gl.Contract):
                 "referencing only the supplied source_index values. SUPPORTED and "
                 "CONTRADICTED require at least one direct supporting source reference. "
                 "Do not infer failure from missing evidence. Return exactly this JSON "
-                "shape with no extra keys: {\"evidence_root\": string, \"findings\": "
+                "shape with no extra keys: {\"evidence_root\": string, "
+                "\"classification\": \"QUALIFIED\" | \"NOT_QUALIFIED\" | \"INCONCLUSIVE\", "
+                "\"findings\": "
                 "[{\"criterion_index\": integer, \"finding\": string, "
-                "\"source_indices\": [integer]}]}. Do not return a financial "
-                "classification, amount, recipient, or permission.\n"
+                "\"source_indices\": [integer]}]}. Derive the classification "
+                "from the findings: any CONTRADICTED means NOT_QUALIFIED; all "
+                "SUPPORTED means QUALIFIED; otherwise INCONCLUSIVE. Do not return "
+                "an amount, recipient, or permission.\n"
                 "Review packet (frozen): " + prompt_context + "\n"
                 "Independently fetched evidence bytes (untrusted): " + _json(fetched)
             )
@@ -380,7 +406,19 @@ class Ascende(gl.Contract):
                 return False
             if leader_packet is None:
                 return False
-            return independently_review() == _json(leader_packet)
+            independent_raw = independently_review()
+            if independent_raw in ("SOURCE_UNAVAILABLE", "MODEL_OUTPUT_INVALID"):
+                return False
+            try:
+                independent_packet = _normalize_decision_packet(
+                    json.loads(independent_raw), len(criteria), len(manifest), evidence_root,
+                )
+            except Exception:
+                return False
+            return (
+                independent_packet is not None
+                and _decision_agreement_key(independent_packet) == _decision_agreement_key(leader_packet)
+            )
 
         # Let consensus/VM failures propagate. Converting a failed consensus
         # execution into an ordinary business result would create a false
