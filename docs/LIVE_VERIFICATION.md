@@ -4,7 +4,7 @@ Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production
 
 ## Current release — source-matched live test
 
-- Repository source commit: `86436b4824cc18699a35dc09779c2aa38a46e4d6` (later documentation-only release commit may contain this record).
+- Deployed contract source commit: [`86436b4824cc18699a35dc09779c2aa38a46e4d6`](https://github.com/Ifem1/Ascende/commit/86436b4824cc18699a35dc09779c2aa38a46e4d6). The final repository release also records adversarial tests and fresh live verification; it does not change `contracts/ascende.py`.
 - Contract: `0xC2F0F3E18B69F398385652A55F423a1e339b4290`.
 - Deployment transaction: [`0xb3cfec04a693ad09fb9630a664052541e70fc524fe1b66a8813c9ac9c318037b`](https://explorer-studio.genlayer.com/tx/0xb3cfec04a693ad09fb9630a664052541e70fc524fe1b66a8813c9ac9c318037b), finalized, `MAJORITY_AGREE`, 5/5 validator votes, `SUCCESS`.
 - Deployed `contracts/ascende.py` SHA-256: `A7545AF5FD87DDDECD5E68766CB95D82A0BF4C9C487ECC1651316D6327733853`. A fresh `gen_getContractCode` readback produced the same digest.
