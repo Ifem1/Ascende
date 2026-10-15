@@ -6,8 +6,15 @@ The checked-in workflow is the release gate: [GitHub Actions](https://github.com
 
 - Contract Direct Mode: **57 passed** with Python 3.12.10, `genlayer-test 0.29.2`, `genlayer-py 0.16.3`, and checksum-verified GenVM `v0.2.16`.
 - GenVM lint: **3 checks passed**. Semantic validation: **29 methods** (13 view, 16 write). Generated schema matches `contracts/ascende.schema.json`.
-- Frontend: TypeScript, ESLint, Vitest (**10 tests**), and Next.js production build passed.
-- Playwright covers wallet connection, wrong-network switching, copy/disconnect, on-chain data or explicit unavailable states, creation wizard review, rejected-payment credit panel availability, treasury pending-delivery wording, current deployment evidence copy, and mobile overflow. All seven local Edge scenarios reported `ok`, but the Windows runner did not exit after the final test during teardown; the final GitHub Actions run must provide the clean process-exit result. Wallet-provider behavior is simulated in these E2E cases. The new deployment has a live rejected-payable/refund lifecycle; the broader positive, negative, expiry, challenge and abandoned-review receipts in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md) apply to the older deployment.
+- Frontend: the final CI run passed TypeScript, ESLint, Vitest (**12 tests**), Next.js production build and Playwright. The Windows local E2E runner's teardown issue does not affect the clean CI result.
+- Playwright covers wallet connection, wrong-network handling, copy/disconnect, on-chain data or explicit unavailable states, creation wizard review, rejected-payment credit panel availability, treasury pending-delivery wording, current deployment evidence copy, and mobile overflow. These E2E cases simulate EIP-1193 behavior; the genuine Rabby transaction and contract readback are separately recorded in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). The new deployment has live rejected-payable/refund and browser-originated creation evidence; broader positive, negative, expiry, challenge and abandoned-review receipts from older deployments remain clearly historical.
+
+## Latest release verification — 2026-10-15
+
+- Commit: [`bf0da8059dfc8ca98ebc5e985626880843f28771`](https://github.com/Ifem1/Ascende/commit/bf0da8059dfc8ca98ebc5e985626880843f28771).
+- [GitHub Actions run 38735284900](https://github.com/Ifem1/Ascende/actions/runs/38735284900): contract and frontend jobs passed. The contract job ran GenVM lint, semantic validation, schema generation and Direct Mode tests; the frontend job ran typecheck, ESLint, 12 Vitest tests, Next.js build and Playwright.
+- Vercel Production deployment `7092608908` completed successfully: [production deployment](https://ascende-d9qhdjbnh-ifem1s-projects.vercel.app).
+- The production wallet transaction and Program 1 contract readback are documented in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). The user switched Rabby to the supplied account and Studionet 61999; the successful transaction confirms the actual sender and chain.
 - Windows CI sets `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` and pins `GENVM_VERSION=v0.2.16` to avoid console encoding errors and runtime drift.
 
 Reproduce from the repository root in PowerShell:
