@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatGen, parseGen, requireDeployment } from "./genlayer";
+import { formatGen, matchesCreatedProgram, parseGen, requireDeployment } from "./genlayer";
 import { normalizedChainId, TARGET_CHAIN_NUMBER } from "./network";
 import { recoveryActions } from "./capabilities";
 
@@ -27,6 +27,26 @@ describe("network and deployment guards", () => {
 
   it("refuses reads until a valid contract address is configured", () => {
     expect(() => requireDeployment()).toThrow(/not deployed/i);
+  });
+});
+
+describe("finalized program creation readback", () => {
+  it("recognizes the exact on-chain program even if receipt result metadata disagrees", () => {
+    const program = {
+      funder: "0xD6423aE82a975d55C6CeaC222827A727325e0459",
+      recipient: "0x39680bd423437C0Eaa18493629652821Ec672C61",
+      title: "Ascende frontend live verification",
+      funded_wei: "2",
+    };
+    expect(matchesCreatedProgram(program, {
+      funder: program.funder.toLowerCase(), recipient: program.recipient, title: program.title, fundedWei: 2n,
+    })).toBe(true);
+    expect(matchesCreatedProgram(program, {
+      funder: program.funder, recipient: program.recipient, title: program.title, fundedWei: 3n,
+    })).toBe(false);
+    expect(matchesCreatedProgram(null, {
+      funder: program.funder, recipient: program.recipient, title: program.title, fundedWei: 2n,
+    })).toBe(false);
   });
 });
 

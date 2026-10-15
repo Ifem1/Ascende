@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
-import { formatGen, parseGen, prepareWrite, readProgram, readProgramCounter, readRejectedPayableCredit, submitPreparedWrite, PreparedWrite } from "@/lib/genlayer";
+import { formatGen, matchesCreatedProgram, parseGen, prepareWrite, readProgram, readProgramCounter, readRejectedPayableCredit, submitPreparedWrite, PreparedWrite } from "@/lib/genlayer";
 import { getActiveProvider } from "@/lib/wallet-store";
 import { validateCreationPreflight } from "@/lib/preflight";
 
@@ -126,16 +126,14 @@ export default function Create() {
     try {
       setBusy(true); setError("");
       const result = await submitPreparedWrite(prepared, (tx) => { setHash(tx); invalidatePrepared(); });
-      if (!result.successful) throw new Error(`Transaction ${result.hash} finalized with an unsuccessful execution result.`);
       const after = await readProgramCounter();
       const before = counterBefore ?? after;
       const candidates = await Promise.all(Array.from({ length: Number(after - before) }, (_, index) => readProgram(Number(before) + index + 1)));
-      const created = candidates.find((program) => program
-        && program.funder.toLowerCase() === prepared.account.toLowerCase()
-        && program.recipient.toLowerCase() === recipient.toLowerCase()
-        && program.title === title.trim()
-        && BigInt(program.funded_wei) === total);
+      const created = candidates.find((program) => matchesCreatedProgram(program, {
+        funder: prepared.account, recipient, title: title.trim(), fundedWei: total,
+      }));
       if (!created) {
+        if (!result.successful) throw new Error(`Transaction ${result.hash} finalized with an unsuccessful execution result and no matching program exists.`);
         const credit = await readRejectedPayableCredit(prepared.account);
         const available = formatGen(credit.available_wei);
         setNotice(`The payable transaction finalized, but no matching program exists. Contract-recorded refundable credit: ${available} GEN. Transfer delivery is not confirmed. Transaction: ${result.hash}`);

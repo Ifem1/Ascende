@@ -32,6 +32,17 @@ export type ProgramRecord = {
   milestones: Array<{ status: string; tranche_wei: string; deadline: number; terminal_reason?: string; terminal_time?: number; review_deadline?: number; attempts?: number; criteria: string[]; authorities: Array<{ prefix: string; role: string; required: boolean }>; manifest: Array<{ url: string; sha256: string; byte_length: number }>; manifest_root: string; result: string; provisional_until: number; retry_after: number; challenge_used: boolean; challenge?: { challenger: string; manifest: Array<{ url: string; sha256: string; byte_length: number }>; root: string; prior_manifest: Array<{ url: string; sha256: string; byte_length: number }>; prior_manifest_root: string; prior_result: string; bond_wei: string; resolution?: { result: string; flipped: boolean; bond_owner: string; bond_wei: string; time: number } | null } | null; decision_history?: Array<{ id: number; kind: string; evidence_root?: string; previous_evidence_root?: string; result?: string; prior_result?: string; time: number }> }>;
 };
 
+export function matchesCreatedProgram(
+  program: Pick<ProgramRecord, "funder" | "recipient" | "title" | "funded_wei"> | null,
+  expected: { funder: string; recipient: string; title: string; fundedWei: bigint },
+): boolean {
+  return Boolean(program
+    && program.funder.toLowerCase() === expected.funder.toLowerCase()
+    && program.recipient.toLowerCase() === expected.recipient.toLowerCase()
+    && program.title === expected.title
+    && BigInt(program.funded_wei) === expected.fundedWei);
+}
+
 export function parseGen(value: string): bigint {
   if (!/^(?:0|[1-9]\d*)(?:\.\d{1,18})?$/.test(value)) throw new Error("Enter a valid GEN amount with up to 18 decimals");
   const [whole, fraction = ""] = value.split(".");
