@@ -195,7 +195,10 @@ export async function prepareWrite(account: string, provider: Eip1193Provider, r
   const chain = await provider.request({ method: "eth_chainId" });
   if (typeof chain !== "string" || BigInt(chain) !== 61999n) throw new Error("Switch the connected wallet to Studionet 61999 before signing.");
   const client = writeClient(account, provider);
-  await client.connect("studionet");
+  // The client is already configured with the Studionet chain and the selected
+  // EIP-1193 provider. genlayer-js `connect()` reads `window.ethereum` directly
+  // and requests a MetaMask Snap, which breaks wallets selected via EIP-6963
+  // when the global provider is absent or belongs to a different extension.
   const call = { address: requireDeployment(), functionName: request.functionName, args: request.args as never[], ...(request.value !== undefined ? { value: request.value } : {}) };
   // This stable SDK version's simulation API cannot carry payable `value`.
   // Simulate zero-value actions only; payable calls are checked by the actual
