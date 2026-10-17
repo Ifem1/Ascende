@@ -6,9 +6,9 @@ The checked-in workflow is the release gate: [GitHub Actions](https://github.com
 
 The Direct Mode suite covers acceptance and funding separation, permissionless expiry of unaccepted/unfunded drafts, sequential milestone progression and late activation, evidence deadline boundaries, unresolved review and challenge grace, retry exhaustion, bond ownership, immutable payment reservation, rejected payable credits, authority and URL policy, byte-level source citations, validator agreement, malformed/malicious packets, and conservation of principal and bonds. Current local run: **62 passed**.
 
-Frontend tests cover creation preflight for required/optional authorities, manifest validation, draft readback, wallet preparation and status rendering. Current local runs: TypeScript, ESLint, production build passed; Vitest **15 passed**; all **7 Playwright cases passed** against a fresh local server. The simulated EIP-1193 provider is not evidence of a genuine signed transaction. Exact-commit GitHub Actions remains the release gate.
+Frontend tests cover creation preflight for required/optional authorities, manifest validation, draft readback, wallet preparation, extended finality polling and pending-status behavior. Current local runs: TypeScript, ESLint, production build passed; Vitest **16 passed**; all **7 Playwright cases passed** against a fresh local server. Separately, genuine Rabby creation of program 2 via the production frontend is documented in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). Exact-commit GitHub Actions remains the release gate.
 
-The current contract source is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`. A fresh missing-evidence timeout/refund path and duplicate transfer replay check are recorded in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md); positive qualification, challenge-flip, and frontend-originated wallet evidence remain incomplete. Historical receipts and the production site belong to earlier releases.
+The current contract source is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`. A fresh missing-evidence timeout/refund path, duplicate transfer replay check, and browser-originated draft creation are recorded in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md); positive qualification and challenge-flip evidence remain incomplete.
 
 ## Reproduce locally (PowerShell)
 
