@@ -4,10 +4,12 @@ The checked-in workflow is the release gate: [GitHub Actions](https://github.com
 
 ## Local release checks
 
-- Contract Direct Mode: **57 passed** with Python 3.12.10, `genlayer-test 0.29.2`, `genlayer-py 0.16.3`, and checksum-verified GenVM `v0.2.16`.
+- Contract Direct Mode after the multi-authority policy change: **59 passed** with Python 3.12.10, `genlayer-test 0.29.2`, `genlayer-py 0.16.3`, and GenVM linter `0.11.0` pinned to stable runtime `v0.2.16`.
 - GenVM lint: **3 checks passed**. Semantic validation: **29 methods** (13 view, 16 write). Generated schema matches `contracts/ascende.schema.json`.
-- Frontend: the final CI run passed TypeScript, ESLint, Vitest (**12 tests**), Next.js production build and Playwright. The Windows local E2E runner's teardown issue does not affect the clean CI result.
-- Playwright covers wallet connection, wrong-network handling, copy/disconnect, on-chain data or explicit unavailable states, creation wizard review, rejected-payment credit panel availability, treasury pending-delivery wording, current deployment evidence copy, and mobile overflow. These E2E cases simulate EIP-1193 behavior; the genuine Rabby transaction and contract readback are separately recorded in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). The new deployment has live rejected-payable/refund and browser-originated creation evidence; broader positive, negative, expiry, challenge and abandoned-review receipts from older deployments remain clearly historical.
+- Frontend: TypeScript, ESLint, Vitest (**13 tests**), Next.js production build and Playwright were rerun after adding the multi-authority form and settlement operation list. Local Playwright executed all seven cases successfully; the Windows runner took additional time to exit after tests.
+- Contract regressions cover one-host policy rejection, exact evidence manifests across required authorities, source-level contradictions becoming INCONCLUSIVE, exact leader/validator provenance agreement, and challenge outcomes that change after reevaluation. Playwright creation checks require two distinct hostnames per milestone. These E2E cases simulate EIP-1193 behavior; the genuine Rabby transaction and contract readback are separately recorded in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md).
+
+The checked-in source has changed since the live deployment. The existing deployment and its receipts do not prove the new multi-authority contract. A fresh stable Studionet deployment and source-matched live scenarios are still required; do not claim release verification until that is complete.
 
 ## Latest release verification — 2026-10-15
 

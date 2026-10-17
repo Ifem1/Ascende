@@ -2,7 +2,11 @@
 
 Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production approval.
 
-## Current source — rejected payable and bounded refund
+## Release source status
+
+The multi-authority policy and source-level validator consensus changes currently in the repository have **not yet been deployed**. All addresses, hashes and transactions below describe prior source versions and are historical evidence for those versions only. Do not use them to claim that a deployment implements the new evidence policy. The next release record must start with the new source commit, source SHA-256, new contract address, deployment transaction and fresh scenario receipts.
+
+## Historical deployment — rejected payable and bounded refund
 
 - Contract source commit: [`d80148c4fadd23c01fb4bff39d46bd1508951bbe`](https://github.com/Ifem1/Ascende/commit/d80148c4fadd23c01fb4bff39d46bd1508951bbe). The current frontend and documentation release is tracked on `main`; see the [CI workflow runs](https://github.com/Ifem1/Ascende/actions/workflows/ci.yml) for commit-specific results.
 - Contract: `0x884676bCDE191A9D9c79B3111812425E15824836`.

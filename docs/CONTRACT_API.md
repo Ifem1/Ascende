@@ -8,10 +8,10 @@ All addresses are normalized to lowercase. GEN values are integer wei strings un
 
 | Method | Signature | Value / authorization |
 |---|---|---|
-| `create_program` | `(recipient: str, title: str, purpose: str, milestones_json: str, policy_json: str) -> u256` | Payable; exact sum of tranche wei. Caller becomes funder. Freezes 2–5 milestones and policy. |
-| `submit_evidence` | `(program_id: u256, milestone_index: u256, manifest_json: str) -> str` | Recipient only; one authorized manifest while stage is open and before deadline. |
+| `create_program` | `(recipient: str, title: str, purpose: str, milestones_json: str, policy_json: str) -> u256` | Payable; exact sum of tranche wei. Caller becomes funder. Freezes 2–5 milestones, 2–4 required source authorities on distinct hostnames per milestone, criteria and policy. |
+| `submit_evidence` | `(program_id: u256, milestone_index: u256, manifest_json: str) -> str` | Recipient only; one item with exact URL, byte length and SHA-256 for every required authority while stage is open and before deadline. |
 | `evaluate_milestone` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless; independently fetches and validates evidence, then semantic evaluation under custom consensus. |
-| `challenge_milestone` | `(program_id: u256, milestone_index: u256, manifest_json: str) -> u256` | Payable; funder or recipient; exact frozen bond, new authorized source manifest, one challenge in the window. |
+| `challenge_milestone` | `(program_id: u256, milestone_index: u256, manifest_json: str) -> u256` | Payable; funder or recipient; exact frozen bond, new complete multi-authority manifest, one challenge in the window. |
 | `resolve_challenge` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless independent reevaluation and deterministic bond allocation. |
 | `finalize_milestone` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless after challenge window; only final qualification earns its tranche and opens the next stage. A newly eligible later stage is terminal-expired if its frozen deadline has passed. |
 | `expire_milestone` | `(program_id: u256, milestone_index: u256) -> str` | Permissionless after an `OPEN` stage's evidence deadline; records `FINAL_EXPIRED` without vesting its tranche. |
@@ -43,4 +43,4 @@ All addresses are normalized to lowercase. GEN values are integer wei strings un
 
 Payment authorization, submission and recipient delivery are separate. `submit_payment` is one-shot and only moves reserved amounts into pending buckets. An EOA transfer uses the documented EVM external-message interface. The contract has no authenticated child-result callback or reconciliation view in this implementation; neither `mark_transfer_unresolved` nor an explorer observation can safely release the reservation for a second transfer.
 
-The frontend uses the signatures above for its writes and treasury/history reads. Challenge state preserves both manifests, their roots, prior result, challenge resolution, and append-only decision records. This does not establish final redirect authority or authenticated child-transfer delivery; see [SECURITY.md](SECURITY.md).
+Every criterion decision packet records one finding per required source. A positive or negative criterion finding requires at least two required, distinct-host source findings in agreement; any source conflict makes that criterion insufficient. Leader and validator must agree on exact source findings as well as the evidence root and criterion outcome. The frontend collects the complete authority manifest for submissions and challenges and displays per-criterion source findings. Different hostnames do not prove different owners. Challenge state preserves both manifests, their roots, prior result, challenge resolution, and append-only decision records. This does not establish final redirect authority or authenticated child-transfer delivery; see [SECURITY.md](SECURITY.md).

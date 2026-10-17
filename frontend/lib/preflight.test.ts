@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { isValidAuthorityPrefix, parsePositiveGen, validateCreationPreflight, validateEvidenceEntry } from "./preflight";
+import { isValidAuthorityPrefix, parsePositiveGen, validateCreationPreflight, validateEvidenceEntry, validateEvidenceManifest } from "./preflight";
 
 const authority = "https://evidence.example/project/";
+const authorityTwo = "https://records.example.net/project/";
 
 describe("evidence preflight", () => {
   it("accepts an exact committed source and normalizes its digest", () => {
@@ -18,17 +19,26 @@ describe("evidence preflight", () => {
     expect(() => validateEvidenceEntry(valid, "abc", "1", [{ prefix: authority, required: true }])).toThrow(/SHA-256/);
     expect(() => validateEvidenceEntry(valid, "a".repeat(64), "0", [{ prefix: authority, required: true }])).toThrow(/byte length/);
     expect(() => validateEvidenceEntry(valid, "a".repeat(64), "65537", [{ prefix: authority, required: true }])).toThrow(/64 KiB/);
-    expect(() => validateEvidenceEntry(valid, "a".repeat(64), "1", [{ prefix: authority, required: true }, { prefix: "https://other.example/", required: true }])).toThrow(/every required/);
+    expect(() => validateEvidenceManifest([{ url: valid, sha256: "a".repeat(64), byteLength: "1" }], [{ prefix: authority, required: true }, { prefix: "https://other.example/", required: true }])).toThrow(/every required/);
   });
 
   it("rejects deceptive frozen source prefixes", () => {
     for (const value of ["http://example.com/", "https://user@example.com/", "https://example.com/%2e/", "https://example.com/a/../", "https://example.com/path?x=/"]) expect(isValidAuthorityPrefix(value)).toBe(false);
     expect(isValidAuthorityPrefix(authority)).toBe(true);
   });
+
+  it("requires exactly one digest-checked item for every required source", () => {
+    const authorities = [{ prefix: authority, required: true }, { prefix: authorityTwo, required: true }];
+    expect(validateEvidenceManifest([
+      { url: `${authority}a.json`, sha256: "a".repeat(64), byteLength: "1" },
+      { url: `${authorityTwo}b.json`, sha256: "b".repeat(64), byteLength: "2" },
+    ], authorities)).toHaveLength(2);
+    expect(() => validateEvidenceManifest([{ url: `${authority}a.json`, sha256: "a".repeat(64), byteLength: "1" }], authorities)).toThrow(/every required authority/);
+  });
 });
 
 describe("payable creation preflight", () => {
-  const base = { recipient: "0x1111111111111111111111111111111111111111", funder: "0x2222222222222222222222222222222222222222", tranches: [1n, 2n], authorities: [authority, authority] };
+  const base = { recipient: "0x1111111111111111111111111111111111111111", funder: "0x2222222222222222222222222222222222222222", tranches: [1n, 2n], authorities: [[authority, authorityTwo], [authority, authorityTwo]] };
 
   it("uses exact integer totals and rejects equality, zero and overflow", () => {
     expect(validateCreationPreflight(base)).toBe(3n);

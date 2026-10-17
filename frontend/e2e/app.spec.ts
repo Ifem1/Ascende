@@ -85,9 +85,12 @@ test("program creation wizard validates and reviews frozen tranches", async ({ p
   await criteria.nth(0).fill("Published release record confirms acceptance criteria one.");
   await criteria.nth(1).fill("Published release record confirms acceptance criteria two.");
   await page.getByRole("button", { name: /continue/i }).click();
-  const source = page.getByLabel(/authorized https path prefix/i);
+  const source = page.getByLabel(/hostname and https path/i);
+  await expect(source).toHaveCount(4);
   await source.nth(0).fill("https://example.org/project/");
-  await source.nth(1).fill("https://example.org/project/");
+  await source.nth(1).fill("https://records.example.net/project/");
+  await source.nth(2).fill("https://another.example.org/project/");
+  await source.nth(3).fill("https://evidence.example.net/project/");
   await page.getByRole("button", { name: /continue/i }).click();
   await expect(page.getByText("4 GEN", { exact: true })).toBeVisible();
   await expect(page.getByText(/wallet shows the network fee before approval/i)).toHaveCount(0);
