@@ -455,12 +455,15 @@
       "sha256": "e2d674b2c02e3600e6537a28ed95f602f4ab6e9eee659943a069fabd0e33c966"
     }
   ],
-  "release_note": "Deployed to stable Studionet 61999 at 0x5715eACA23d495b71E800Dd9eD6e13875855bd9c with normalized source-byte parity. Fresh 2-wei missing-evidence expiry, closure, refund and no-duplicate replay evidence is recorded. Positive qualification, challenge flip, browser-wallet proof, and reconciled delivery remain outstanding. Production Vercel unchanged.",
+  "release_note": "Deployed to stable Studionet 61999 at 0x5715eACA23d495b71E800Dd9eD6e13875855bd9c with normalized source-byte parity. Fresh 2-wei missing-evidence expiry, closure, refund and no-duplicate replay evidence is recorded. Production Vercel now points to this contract. Positive qualification, challenge flip, current-branch browser-wallet proof, and reconciled delivery remain outstanding.",
   "deployment": {
     "contract_address": "0x5715eACA23d495b71E800Dd9eD6e13875855bd9c",
     "transaction": "0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e",
     "source_body_sha256": "0E5FA7A4018A45F64A6CD5D44F3F67F5BF16831109A63C834396228AF3CE8014",
     "source_file_sha256": "DE88D012F894F982E384182AEAF6E58FFF01D5CCD172362EA39498BF900595C",
-    "production_frontend_updated": false
+    "production_frontend_updated": true,
+    "production_frontend_url": "https://ascende-sand.vercel.app/",
+    "production_vercel_deployment_id": "dpl_AbJYH1Q7VYDh156KPqpdXtxEWwHZ",
+    "production_frontend_route_checks": ["/", "/programs", "/programs/1", "/programs/1/evidence", "/programs/1/challenges", "/create", "/my-work", "/treasury", "/activity", "/docs"]
   }
 }

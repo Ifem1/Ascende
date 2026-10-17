@@ -4,19 +4,21 @@
 
 ## Current branch release status
 
-This branch is deployed to stable Studionet 61999. Deployment proves that the new source was accepted by the network; it does not establish a complete lifecycle or production-safe settlement. The production Vercel alias remains on its prior release by explicit instruction and is not changed by this work.
+This branch is deployed to stable Studionet 61999. Deployment proves that the new source was accepted by the network; it does not establish a complete lifecycle or production-safe settlement. The production Vercel alias now serves the current frontend and is configured for this contract. This remains a testnet reviewer demonstration, not production-safe settlement.
 
 ## Current branch deployment
 
-- Branch commit: [`e84858e4df4bd2da16ff2dd87776af82df903b32`](https://github.com/Ifem1/Ascende/commit/e84858e4df4bd2da16ff2dd87776af82df903b32); CI [run 39036494073](https://github.com/Ifem1/Ascende/actions/runs/39036494073) passed both jobs.
+- Branch commit before Vercel closeout: [`e4bd7fc6b7d9cbd076dc3b7441afe972911ea2e2`](https://github.com/Ifem1/Ascende/commit/e4bd7fc6b7d9cbd076dc3b7441afe972911ea2e2); CI [run 39057025554](https://github.com/Ifem1/Ascende/actions/runs/39057025554) passed both jobs. This deployment uses that source revision; the release records are updated in this follow-up commit.
 - Contract: `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`.
+- Contract explorer: [view current contract and transaction history](https://explorer-studio.genlayer.com/address/0x5715eACA23d495b71E800Dd9eD6e13875855bd9c).
 - Deployment transaction: [`0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e`](https://explorer-studio.genlayer.com/tx/0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e), finalized `SUCCESS`, consensus `MAJORITY_AGREE` (five validators revealed; three agreed and two were idle).
 - Network: stable Studionet, chain ID `61999` (`0xF22F`), RPC `https://studio.genlayer.com/api`.
 - Deployer: supplied test wallet `0xD6423aE82a975d55C6CeaC222827A727325e0459`.
 - `contracts/ascende.py` SHA-256 as checked in (including terminal LF): `DE88D012F894F982E384182AEAF6E58FFF01D5CCD172362EA39498BF900595C`. The CLI source readback contained the same 71,723-byte source body without the final LF; that normalized body SHA-256 is `0E5FA7A4018A45F64A6CD5D44F3F67F5BF16831109A63C834396228AF3CE8014`. All 33 public methods were present in the deployed schema readback. This is byte parity after explicitly accounting for the final-newline formatting difference, not equality of the two raw-file hashes.
 - Initial `get_program_counter()` readback was `0`. A later fresh create attempt (`0x44e9682ddd0e76283dd2348d1437843708e53a1c5772c4dad106af9d3f7b626a`) finalized with `MAJORITY_AGREE` but did not create a program: authoritative counter remained `0`, `get_program(1)` returned empty, and receipt `value_credited` was false. It is not a successful lifecycle demonstration. No value was intentionally attached to that draft request.
 - A corrected fresh SDK call created program 1, followed by recipient acceptance, exactly 2-wei funding, permissionless missing-evidence expiry, stopped closure, and exact refund authorization. Receipts and direct state readbacks are recorded in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). The child was submitted once; its receipt reports `value_credited=true` and `result_name=NO_MAJORITY`, while contract storage remains pending. No positive qualification, challenge flip, or current-branch browser-wallet transaction is claimed.
-- Production Vercel alias [ascende-sand.vercel.app](https://ascende-sand.vercel.app/) remains on the previous release and is not configured to this new contract.
+- Production frontend: [https://ascende-sand.vercel.app/](https://ascende-sand.vercel.app/). Vercel deployment [`dpl_AbJYH1Q7VYDh156KPqpdXtxEWwHZ`](https://vercel.com/ifem1s-projects/ascende/AbJYH1Q7VYDh156KPqpdXtxEWwHZ) reached `READY` on 2026-10-17 and is aliased to the production URL. Its production build uses `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0x5715eACA23d495b71E800Dd9eD6e13875855bd9c` and `NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api`. Read-only route checks returned HTTP 200 for `/`, `/programs`, `/programs/1`, `/programs/1/evidence`, `/programs/1/challenges`, `/create`, `/my-work`, `/treasury`, `/activity`, and `/docs`. The public Docs HTML includes the current contract explorer link and no longer claims that the release is undeployed.
+- No current-branch browser-wallet transaction is claimed. The live SDK-created program evidence above does not count as frontend signing.
 
 ## Previous deployed source (historical; not this branch)
 
@@ -28,7 +30,7 @@ This branch is deployed to stable Studionet 61999. Deployment proves that the ne
 - The deployment used supplied test wallet `0xD6423aE82a975d55C6CeaC222827A727325e0459`. No key material is stored in the repository.
 - The multi-authority positive, challenge-flip and failure lifecycle scenarios have not yet been run against this address. Do not treat historical receipts or Direct Mode simulations as fresh live proof.
 
-At that historical release, the production alias [ascende-sand.vercel.app](https://ascende-sand.vercel.app/) used the previous address. Vercel deployment `dpl_7LJoRtnqCG7DW5SgyzqKVDGNmw2F` was `READY` at [its deployment URL](https://ascende-8spcbezud-ifem1s-projects.vercel.app). Its Docs page and the Programs, Create, My Work, Treasury, and Activity routes returned HTTP 200. This does not describe the current branch or authorize changing the production alias. `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS` and `NEXT_PUBLIC_GENLAYER_RPC` are build inputs; changing them in Vercel requires a new production deployment.
+At that historical release, the production alias [ascende-sand.vercel.app](https://ascende-sand.vercel.app/) used that release's contract address. Vercel deployment `dpl_7LJoRtnqCG7DW5SgyzqKVDGNmw2F` was `READY` at [its deployment URL](https://ascende-8spcbezud-ifem1s-projects.vercel.app). Its route checks are historical only. `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS` and `NEXT_PUBLIC_GENLAYER_RPC` are build inputs; changing them in Vercel requires a new production deployment.
 
 ## Historical deployments
 

@@ -119,10 +119,11 @@ test("treasury separates submitted transfers from recorded delivery", async ({ p
 
 test("docs page links to current deployment evidence and states settlement limits", async ({ page }) => {
   await page.goto("/docs");
-  await expect(page.getByText(/this branch adds recipient acceptance and exact post-acceptance funding/i)).toBeVisible();
-  await expect(page.getByText(/it has not yet been deployed/i)).toBeVisible();
+  await expect(page.getByText(/this release is deployed on stable studionet 61999/i)).toBeVisible();
+  await expect(page.getByRole("link", { name: /0x5715eaca23d495b71e800dd9ed6e13875855bd9c/i }))
+    .toHaveAttribute("href", "https://explorer-studio.genlayer.com/address/0x5715eACA23d495b71E800Dd9eD6e13875855bd9c");
   await expect(page.getByRole("link", { name: /read the live verification record/i }))
-    .toHaveAttribute("href", "https://github.com/Ifem1/Ascende/blob/main/docs/LIVE_VERIFICATION.md");
+    .toHaveAttribute("href", "https://github.com/Ifem1/Ascende/blob/codex/more-info-implementation/docs/LIVE_VERIFICATION.md");
   await expect(page.getByText(/no deployment or live transfer proof is published yet/i)).toHaveCount(0);
 });
 
