@@ -101,6 +101,13 @@ test("program creation wizard validates and reviews frozen tranches", async ({ p
   await page.getByLabel("Authority role").first().selectOption("OFFICIAL");
   await page.getByRole("button", { name: /continue/i }).click();
   await expect(page.getByText("4 GEN", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: /frozen milestone criteria and authorities/i })).toBeVisible();
+  await expect(page.getByText("Published release record confirms acceptance criteria one.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Second milestone record confirms the final artifact is available.", { exact: true })).toBeVisible();
+  await expect(page.getByText("https://example.org/project/", { exact: true })).toBeVisible();
+  await expect(page.getByText("https://official.example/status/", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Evidence deadline \(UTC\):/)).toHaveCount(2);
+  await expect(page.getByText(/Challenge bond: 0\.01 GEN/)).toBeVisible();
   await expect(page.getByText(/recipient accepts before any GEN is funded/i)).toBeVisible();
   await expect(page.getByText(/wallet shows the network fee before approval/i)).toHaveCount(0);
   await expect(page.getByRole("button", { name: /prepare transaction/i })).toBeVisible();
