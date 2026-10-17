@@ -4,9 +4,11 @@ Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production
 
 ## Release source status
 
-The current multi-authority source is deployed at `0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD`. Its positive, disputed and failure lifecycle evidence is still outstanding. Older addresses and receipts below apply only to their listed historical source versions.
+The current working branch is **not deployed**. The address `0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD` and all receipts below this heading belong to an earlier source version, before draft acceptance, exact post-acceptance funding, and byte-citation changes. Treat every listed transaction and browser observation as historical. A fresh deployment and source-matched evidence are required for this branch. The production alias is intentionally unchanged.
 
-## Current source deployment — 2026-10-17
+## Historical source deployment — 2026-10-17 (superseded)
+
+All details in this subsection, including the Vercel deployment reference, describe that previous release only. They are not current branch deployment evidence.
 
 - Repository commit: [`fccac05730c95d68f5759c89f9e689c0d76165b5`](https://github.com/Ifem1/Ascende/commit/fccac05730c95d68f5759c89f9e689c0d76165b5).
 - Stable Studionet chain ID `61999` (`0xF22F`), RPC `https://studio.genlayer.com/api`.

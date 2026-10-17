@@ -25,11 +25,11 @@ After write, wait for required finality **and** GenVM executed success. Then rer
 ## Frontend environment contract
 
 ```
-NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD
+NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=<address deployed from this exact source>
 NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api
 ```
 
-The application pins the chain to Studionet 61999 in code; it does not read public network or chain-ID environment variables. A build without a valid contract address displays a clear unavailable state and disables real writes. Do not fall back to a guessed or historical address. Never store provider credentials in public env.
+The application pins the chain to Studionet 61999 in code; it does not read public network or chain-ID environment variables. The current branch does not yet have a matching deployment, so do not configure it with the previous contract address. A build without a valid contract address displays a clear unavailable state and disables real writes. Do not fall back to a guessed or historical address. Never store provider credentials in public env.
 
 ## Wallet UX acceptance
 

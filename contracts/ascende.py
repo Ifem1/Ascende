@@ -15,6 +15,7 @@ import hashlib
 import json
 import re
 from datetime import datetime, timezone
+from typing import NoReturn
 
 
 MAX_U256 = 2**256
@@ -48,6 +49,11 @@ PAYABLE_REJECTION_CODES = {
     "INVALID_CHALLENGE_MANIFEST_JSON",
     "INVALID_OR_UNAUTHORIZED_MANIFEST",
     "CHALLENGE_REQUIRES_NEW_EVIDENCE",
+    "PROGRAM_NOT_ACCEPTED",
+    "FUNDING_DEADLINE_PASSED",
+    "PROGRAM_NOT_FOUND",
+    "INVALID_FUNDING_AMOUNT",
+    "DRAFT_CREATION_MUST_NOT_BE_FUNDED",
 }
 
 
@@ -60,7 +66,7 @@ class _Recipient:
         pass
 
 
-def _fail(message: str) -> None:
+def _fail(message: str) -> NoReturn:
     raise gl.vm.UserError(message)
 
 
@@ -215,6 +221,7 @@ def _validate_policy(policy: object) -> bool:
     if not isinstance(policy, dict):
         return False
     for key, low, high in (
+        ("acceptance_window", 60, 30 * 24 * 60 * 60),
         ("challenge_window", 60, 30 * 24 * 60 * 60),
         ("retry_spacing", 60, 7 * 24 * 60 * 60),
         ("retry_grace", 60, 30 * 24 * 60 * 60),
@@ -223,7 +230,7 @@ def _validate_policy(policy: object) -> bool:
         value = policy.get(key)
         if not isinstance(value, int) or isinstance(value, bool) or not low <= value <= high:
             return False
-    if set(policy) != {"challenge_window", "retry_spacing", "retry_grace", "max_retries", "challenge_bond_wei"}:
+    if set(policy) != {"acceptance_window", "challenge_window", "retry_spacing", "retry_grace", "max_retries", "challenge_bond_wei"}:
         return False
     if policy["retry_grace"] < policy["retry_spacing"] * policy["max_retries"]:
         return False
@@ -234,7 +241,7 @@ def _validate_policy(policy: object) -> bool:
     return 0 < bond < MAX_U256
 
 
-def _normalize_decision_packet(raw: object, criteria_count: int, manifest: list, authorities: list, evidence_root: str) -> dict | None:
+def _normalize_decision_packet(raw: object, criteria_count: int, manifest: list, authorities: list, evidence_root: str, evidence_bytes: list[bytes]) -> dict | None:
     if isinstance(raw, str):
         try:
             raw = json.loads(raw)
@@ -244,7 +251,7 @@ def _normalize_decision_packet(raw: object, criteria_count: int, manifest: list,
         return None
     if set(raw) - {"evidence_root", "findings", "classification"}:
         return None
-    if raw.get("evidence_root") != evidence_root:
+    if raw.get("evidence_root") != evidence_root or len(evidence_bytes) != len(manifest):
         return None
     findings = raw.get("findings")
     if not isinstance(findings, list) or len(findings) != criteria_count:
@@ -267,10 +274,26 @@ def _normalize_decision_packet(raw: object, criteria_count: int, manifest: list,
             return None
         if classification not in ("SUPPORTED", "CONTRADICTED", "INSUFFICIENT"):
             return None
-        if not isinstance(source_findings, list) or any(not isinstance(source, dict) or set(source) != {"source_index", "finding"} for source in source_findings):
+        if not isinstance(source_findings, list) or any(not isinstance(source, dict) or set(source) != {"source_index", "finding", "byte_start", "byte_end", "quote"} for source in source_findings):
             return None
-        if any(not isinstance(source["source_index"], int) or isinstance(source["source_index"], bool) or not 0 <= source["source_index"] < len(manifest) or source["finding"] not in ("SUPPORTED", "CONTRADICTED", "INSUFFICIENT") for source in source_findings):
-            return None
+        for source in source_findings:
+            source_index = source.get("source_index")
+            byte_start = source.get("byte_start")
+            byte_end = source.get("byte_end")
+            quote = source.get("quote")
+            if (not isinstance(source_index, int) or isinstance(source_index, bool) or not 0 <= source_index < len(manifest)
+                    or source.get("finding") not in ("SUPPORTED", "CONTRADICTED", "INSUFFICIENT")
+                    or not isinstance(byte_start, int) or isinstance(byte_start, bool)
+                    or not isinstance(byte_end, int) or isinstance(byte_end, bool)
+                    or not isinstance(quote, str) or not 1 <= len(quote) <= 500
+                    or not 0 <= byte_start < byte_end <= len(evidence_bytes[source_index])
+                    or byte_end - byte_start > 2048):
+                return None
+            try:
+                if evidence_bytes[source_index][byte_start:byte_end].decode("utf-8") != quote:
+                    return None
+            except Exception:
+                return None
         sources = [source["source_index"] for source in source_findings]
         if len(set(sources)) != len(sources):
             return None
@@ -476,9 +499,11 @@ class Ascende(gl.Contract):
                 **entry,
             } for i, entry in enumerate(manifest)],
         })
+        evidence_bytes: list[bytes] = []
 
         def independently_review() -> str:
             fetched = []
+            evidence_bytes.clear()
             total_bytes = 0
             for source_index, entry in enumerate(manifest):
                 try:
@@ -495,6 +520,7 @@ class Ascende(gl.Contract):
                         return "SOURCE_UNAVAILABLE"
                     if hashlib.sha256(body).hexdigest().lower() != entry["sha256"].lower():
                         return "SOURCE_UNAVAILABLE"
+                    evidence_bytes.append(body)
                     fetched.append({
                         "source_index": source_index,
                         "url": entry["url"],
@@ -514,13 +540,17 @@ class Ascende(gl.Contract):
                 "return exactly one finding with criterion_index, finding "
                 "(SUPPORTED, CONTRADICTED, or INSUFFICIENT), and source_findings "
                 "listing every required source_index exactly once and its own finding "
-                "(SUPPORTED, CONTRADICTED, or INSUFFICIENT). "
+                "(SUPPORTED, CONTRADICTED, or INSUFFICIENT), plus byte_start, byte_end "
+                "and quote copied exactly from that source's UTF-8 bytes. Use a short "
+                "verbatim span that directly supports or contradicts the criterion; "
+                "byte offsets are zero-based, end-exclusive UTF-8 byte offsets. "
                 "A supported or contradicted finding requires direct evidence from at least two distinct required authority hostnames. If required authorities conflict materially, classify that criterion as INSUFFICIENT unless two independent authorities corroborate one conclusion. Do not infer failure from missing evidence. Return exactly this JSON "
                 "shape with no extra keys: {\"evidence_root\": string, "
                 "\"classification\": \"QUALIFIED\" | \"NOT_QUALIFIED\" | \"INCONCLUSIVE\", "
                 "\"findings\": "
                 "[{\"criterion_index\": integer, \"finding\": string, "
-                "\"source_findings\": [{\"source_index\": integer, \"finding\": string}]}]}. Derive each criterion finding "
+                "\"source_findings\": [{\"source_index\": integer, \"finding\": string, "
+                "\"byte_start\": integer, \"byte_end\": integer, \"quote\": string}]}]}. Derive each criterion finding "
                 "from its source_findings: at least two required distinct hostnames "
                 "must support it, or two must contradict it; mixed support and "
                 "contradiction is INSUFFICIENT. Derive the overall classification "
@@ -532,7 +562,7 @@ class Ascende(gl.Contract):
             )
             try:
                 result = gl.nondet.exec_prompt(prompt, response_format="json")
-                normalized = _normalize_decision_packet(result, len(criteria), manifest, milestone["authorities"], evidence_root)
+                normalized = _normalize_decision_packet(result, len(criteria), manifest, milestone["authorities"], evidence_root, evidence_bytes)
                 if normalized is None:
                     return "MODEL_OUTPUT_INVALID"
                 return _json(normalized)
@@ -547,24 +577,21 @@ class Ascende(gl.Contract):
                 return independently_review() == leader
             if not isinstance(leader, str):
                 return False
-            try:
-                leader_packet = _normalize_decision_packet(
-                json.loads(leader), len(criteria), manifest, milestone["authorities"], evidence_root,
-                )
-            except Exception:
-                return False
-            if leader_packet is None:
-                return False
             independent_raw = independently_review()
             if independent_raw in ("SOURCE_UNAVAILABLE", "MODEL_OUTPUT_INVALID"):
                 return False
             try:
+                leader_packet = _normalize_decision_packet(
+                    json.loads(leader), len(criteria), manifest, milestone["authorities"], evidence_root, evidence_bytes,
+                )
                 independent_packet = _normalize_decision_packet(
-                    json.loads(independent_raw), len(criteria), manifest, milestone["authorities"], evidence_root,
+                    json.loads(independent_raw), len(criteria), manifest, milestone["authorities"], evidence_root, evidence_bytes,
                 )
             except Exception:
                 return False
             return (
+                leader_packet is not None
+                and
                 independent_packet is not None
                 and _decision_agreement_key(independent_packet) == _decision_agreement_key(leader_packet)
             )
@@ -583,15 +610,23 @@ class Ascende(gl.Contract):
         milestones_json: str,
         policy_json: str,
     ) -> u256:
+        # Creation only freezes a draft. No programme entitlement exists and
+        # no principal is locked until the named recipient accepts and the
+        # funder separately activates with the exact budget.
         funder = _address(gl.message.sender_address)
+        attached_value = int(gl.message.value)
         try:
             data = self._prepare_program_data(
                 funder, recipient, title, purpose, milestones_json, policy_json,
-                int(gl.message.value),
+                0,
             )
         except gl.vm.UserError as error:
-            reason = self._rejection_reason(error)
-            self._record_rejected_payable(funder, "CREATE_PROGRAM", reason, int(gl.message.value))
+            if attached_value:
+                reason = self._rejection_reason(error)
+                self._record_rejected_payable(funder, "CREATE_PROGRAM", reason, attached_value)
+            return u256(0)
+        if attached_value:
+            self._record_rejected_payable(funder, "CREATE_PROGRAM", "DRAFT_CREATION_MUST_NOT_BE_FUNDED", attached_value)
             return u256(0)
 
         program_id = u256(len(self.programs) + 1)
@@ -602,11 +637,14 @@ class Ascende(gl.Contract):
             "title": data["title"],
             "purpose": data["purpose"],
             "created_at": data["created_at"],
-            "status": "ACTIVE",
+            "status": "DRAFT",
             "policy": data["policy"],
             "milestones": data["milestones"],
-            "funded_wei": str(data["total"]),
-            "locked_wei": str(data["total"]),
+            "budget_wei": str(data["total"]),
+            "accept_deadline": data["created_at"] + data["policy"]["acceptance_window"],
+            "accepted_at": 0,
+            "funded_wei": "0",
+            "locked_wei": "0",
             "earned_wei": "0",
             "earned_claimable_wei": "0",
             "recipient_authorized_wei": "0",
@@ -628,6 +666,80 @@ class Ascende(gl.Contract):
         }
         self.programs.append(_json(program))
         return program_id
+
+    @gl.public.write
+    def accept_program(self, program_id: u256) -> str:
+        program = self._load(program_id)
+        if _address(gl.message.sender_address) != program["recipient"]:
+            _fail("RECIPIENT_ONLY")
+        if program["status"] != "DRAFT":
+            _fail("PROGRAM_NOT_AWAITING_ACCEPTANCE")
+        now = _now()
+        if now > int(program["accept_deadline"]):
+            _fail("ACCEPTANCE_DEADLINE_PASSED")
+        program["status"] = "ACCEPTED_UNFUNDED"
+        program["accepted_at"] = now
+        program["history"].append({"kind": "RECIPIENT_ACCEPTED", "time": now, "actor": program["recipient"]})
+        self._save(program)
+        return "ACCEPTED_UNFUNDED"
+
+    @gl.public.write.payable
+    def fund_program(self, program_id: u256) -> str:
+        funder = _address(gl.message.sender_address)
+        attached = int(gl.message.value)
+        try:
+            program = self._load(program_id)
+            if funder != program["funder"]:
+                _fail("NOT_PROGRAM_FUNDER")
+            if program["status"] != "ACCEPTED_UNFUNDED":
+                _fail("PROGRAM_NOT_ACCEPTED")
+            now = _now()
+            if now > int(program["accept_deadline"]):
+                _fail("FUNDING_DEADLINE_PASSED")
+            if attached != int(program["budget_wei"]):
+                _fail("INVALID_FUNDING_AMOUNT")
+        except gl.vm.UserError as error:
+            reason = self._rejection_reason(error)
+            self._record_rejected_payable(funder, "FUND_PROGRAM", reason, attached)
+            return "REJECTED_REFUND_CREDIT_RECORDED"
+
+        program["status"] = "ACTIVE"
+        program["funded_wei"] = str(attached)
+        program["locked_wei"] = str(attached)
+        program["milestones"][0]["status"] = "OPEN"
+        program["history"].append({"kind": "PROGRAM_FUNDED_AND_ACTIVATED", "time": now, "actor": funder, "amount_wei": str(attached)})
+        self._save(program)
+        return "ACTIVE"
+
+    @gl.public.write
+    def expire_unaccepted_program(self, program_id: u256) -> str:
+        program = self._load(program_id)
+        if program["status"] != "DRAFT":
+            _fail("PROGRAM_NOT_UNACCEPTED_DRAFT")
+        now = _now()
+        if now <= int(program["accept_deadline"]):
+            _fail("ACCEPTANCE_DEADLINE_STILL_OPEN")
+        program["status"] = "CANCELED_UNACCEPTED"
+        program["terminal_reason"] = "RECIPIENT_DID_NOT_ACCEPT_BEFORE_DEADLINE"
+        program["terminal_time"] = now
+        program["history"].append({"kind": "PROGRAM_CANCELED_UNACCEPTED", "time": now, "reason": program["terminal_reason"]})
+        self._save(program)
+        return "CANCELED_UNACCEPTED"
+
+    @gl.public.write
+    def expire_unfunded_program(self, program_id: u256) -> str:
+        program = self._load(program_id)
+        if program["status"] != "ACCEPTED_UNFUNDED":
+            _fail("PROGRAM_NOT_ACCEPTED_UNFUNDED")
+        now = _now()
+        if now <= int(program["accept_deadline"]):
+            _fail("FUNDING_DEADLINE_STILL_OPEN")
+        program["status"] = "EXPIRED_UNFUNDED"
+        program["terminal_reason"] = "FUNDER_DID_NOT_ACTIVATE_BEFORE_DEADLINE"
+        program["terminal_time"] = now
+        program["history"].append({"kind": "PROGRAM_EXPIRED_UNFUNDED", "time": now, "reason": program["terminal_reason"]})
+        self._save(program)
+        return "EXPIRED_UNFUNDED"
 
     def _prepare_program_data(
         self, funder: str, recipient: str, title: str, purpose: str,
@@ -691,9 +803,8 @@ class Ascende(gl.Contract):
                 "challenge": None,
                 "decision_history": [],
             })
-        if attached_value != total:
-            _fail("EXACT_FUNDING_REQUIRED")
-        frozen[0]["status"] = "OPEN"
+        if attached_value != 0:
+            _fail("DRAFT_CREATION_MUST_NOT_BE_FUNDED")
         return {
             "funder": funder,
             "recipient": recipient_normalized,
@@ -1395,6 +1506,10 @@ class Ascende(gl.Contract):
         return _json({
             "is_funder": normalized == program["funder"],
             "is_recipient": normalized == program["recipient"],
+            "can_accept_program": normalized == program["recipient"] and program["status"] == "DRAFT" and now <= int(program["accept_deadline"]),
+            "can_fund_program": normalized == program["funder"] and program["status"] == "ACCEPTED_UNFUNDED" and now <= int(program["accept_deadline"]),
+            "can_expire_unaccepted": program["status"] == "DRAFT" and now > int(program["accept_deadline"]),
+            "can_expire_unfunded": program["status"] == "ACCEPTED_UNFUNDED" and now > int(program["accept_deadline"]),
             "can_withdraw": normalized == program["recipient"] and int(program["earned_claimable_wei"]) > 0,
             "can_refund": normalized == program["funder"] and int(program["refund_claimable_wei"]) > 0,
             "can_expire": can_expire,

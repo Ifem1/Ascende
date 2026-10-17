@@ -30,22 +30,26 @@ describe("network and deployment guards", () => {
   });
 });
 
-describe("finalized program creation readback", () => {
-  it("recognizes the exact on-chain program even if receipt result metadata disagrees", () => {
+describe("finalized program draft readback", () => {
+  it("recognizes the exact unfunded draft by its frozen budget", () => {
     const program = {
       funder: "0xD6423aE82a975d55C6CeaC222827A727325e0459",
       recipient: "0x39680bd423437C0Eaa18493629652821Ec672C61",
       title: "Ascende frontend live verification",
-      funded_wei: "2",
+      budget_wei: "2",
+      status: "DRAFT",
     };
     expect(matchesCreatedProgram(program, {
-      funder: program.funder.toLowerCase(), recipient: program.recipient, title: program.title, fundedWei: 2n,
+      funder: program.funder.toLowerCase(), recipient: program.recipient, title: program.title, budgetWei: 2n,
     })).toBe(true);
     expect(matchesCreatedProgram(program, {
-      funder: program.funder, recipient: program.recipient, title: program.title, fundedWei: 3n,
+      funder: program.funder, recipient: program.recipient, title: program.title, budgetWei: 3n,
+    })).toBe(false);
+    expect(matchesCreatedProgram({ ...program, status: "ACTIVE" }, {
+      funder: program.funder, recipient: program.recipient, title: program.title, budgetWei: 2n,
     })).toBe(false);
     expect(matchesCreatedProgram(null, {
-      funder: program.funder, recipient: program.recipient, title: program.title, fundedWei: 2n,
+      funder: program.funder, recipient: program.recipient, title: program.title, budgetWei: 2n,
     })).toBe(false);
   });
 });

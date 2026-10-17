@@ -2,7 +2,11 @@
 
 **Canonical test deployment:** stable GenLayer Studionet, chain ID `61999` (`0xF22F`), RPC `https://studio.genlayer.com/api`.
 
-## Current source-matched deployment
+## Current branch release status
+
+The code on the current working branch has not been deployed. It changes the contract ABI and funding lifecycle, so **none** of the deployment receipts, program reads, frontend configuration, or child-transfer observations below verify this source. The production Vercel alias remains on its existing release by explicit instruction and is not changed by this work. A fresh deployment and source-matched live evidence are required before this branch can be called release-verified.
+
+## Previous deployed source (historical; not this branch)
 
 - Repository commit: [`fccac05730c95d68f5759c89f9e689c0d76165b5`](https://github.com/Ifem1/Ascende/commit/fccac05730c95d68f5759c89f9e689c0d76165b5).
 - Contract: `0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD`.
@@ -12,7 +16,7 @@
 - The deployment used supplied test wallet `0xD6423aE82a975d55C6CeaC222827A727325e0459`. No key material is stored in the repository.
 - The multi-authority positive, challenge-flip and failure lifecycle scenarios have not yet been run against this address. Do not treat historical receipts or Direct Mode simulations as fresh live proof.
 
-The production alias [ascende-sand.vercel.app](https://ascende-sand.vercel.app/) now uses this address. Vercel deployment `dpl_7LJoRtnqCG7DW5SgyzqKVDGNmw2F` is `READY` at [its deployment URL](https://ascende-8spcbezud-ifem1s-projects.vercel.app). Its Docs page and the Programs, Create, My Work, Treasury, and Activity routes returned HTTP 200; the Docs page embeds this contract address and source hash. `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS` and `NEXT_PUBLIC_GENLAYER_RPC` are build inputs; changing them in Vercel requires a new production deployment.
+At that historical release, the production alias [ascende-sand.vercel.app](https://ascende-sand.vercel.app/) used this address. Vercel deployment `dpl_7LJoRtnqCG7DW5SgyzqKVDGNmw2F` was `READY` at [its deployment URL](https://ascende-8spcbezud-ifem1s-projects.vercel.app). Its Docs page and the Programs, Create, My Work, Treasury, and Activity routes returned HTTP 200; the Docs page embedded this contract address and source hash. This does not describe the current branch or authorize changing the production alias. `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS` and `NEXT_PUBLIC_GENLAYER_RPC` are build inputs; changing them in Vercel requires a new production deployment.
 
 ## Historical deployments
 

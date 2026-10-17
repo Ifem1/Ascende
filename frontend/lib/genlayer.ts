@@ -25,22 +25,26 @@ export type ProgramRecord = {
   title: string;
   purpose: string;
   status: string;
+  budget_wei: string;
+  accept_deadline: number;
+  accepted_at: number;
   funded_wei: string;
   locked_wei: string;
   earned_claimable_wei: string;
   refund_claimable_wei: string;
-  milestones: Array<{ status: string; tranche_wei: string; deadline: number; terminal_reason?: string; terminal_time?: number; review_deadline?: number; attempts?: number; criteria: string[]; authorities: Array<{ prefix: string; role: string; required: boolean }>; manifest: Array<{ url: string; sha256: string; byte_length: number }>; manifest_root: string; result: string; provisional_until: number; retry_after: number; challenge_used: boolean; challenge?: { challenger: string; manifest: Array<{ url: string; sha256: string; byte_length: number }>; root: string; prior_manifest: Array<{ url: string; sha256: string; byte_length: number }>; prior_manifest_root: string; prior_result: string; bond_wei: string; resolution?: { result: string; flipped: boolean; bond_owner: string; bond_wei: string; time: number } | null } | null; decision_history?: Array<{ id: number; kind: string; evidence_root?: string; previous_evidence_root?: string; result?: string; prior_result?: string; time: number; packet?: { findings: Array<{ criterion_index: number; finding: string; source_findings: Array<{ source_index: number; finding: string }> }> } | null }> }>;
+  milestones: Array<{ status: string; tranche_wei: string; deadline: number; terminal_reason?: string; terminal_time?: number; review_deadline?: number; attempts?: number; criteria: string[]; authorities: Array<{ prefix: string; role: string; required: boolean }>; manifest: Array<{ url: string; sha256: string; byte_length: number }>; manifest_root: string; result: string; provisional_until: number; retry_after: number; challenge_used: boolean; challenge?: { challenger: string; manifest: Array<{ url: string; sha256: string; byte_length: number }>; root: string; prior_manifest: Array<{ url: string; sha256: string; byte_length: number }>; prior_manifest_root: string; prior_result: string; bond_wei: string; resolution?: { result: string; flipped: boolean; bond_owner: string; bond_wei: string; time: number } | null } | null; decision_history?: Array<{ id: number; kind: string; evidence_root?: string; previous_evidence_root?: string; result?: string; prior_result?: string; time: number; packet?: { findings: Array<{ criterion_index: number; finding: string; source_findings: Array<{ source_index: number; finding: string; byte_start: number; byte_end: number; quote: string }> }> } | null }> }>;
 };
 
 export function matchesCreatedProgram(
-  program: Pick<ProgramRecord, "funder" | "recipient" | "title" | "funded_wei"> | null,
-  expected: { funder: string; recipient: string; title: string; fundedWei: bigint },
+  program: Pick<ProgramRecord, "funder" | "recipient" | "title" | "budget_wei" | "status"> | null,
+  expected: { funder: string; recipient: string; title: string; budgetWei: bigint },
 ): boolean {
   return Boolean(program
     && program.funder.toLowerCase() === expected.funder.toLowerCase()
     && program.recipient.toLowerCase() === expected.recipient.toLowerCase()
     && program.title === expected.title
-    && BigInt(program.funded_wei) === expected.fundedWei);
+    && program.status === "DRAFT"
+    && BigInt(program.budget_wei) === expected.budgetWei);
 }
 
 export function parseGen(value: string): bigint {
@@ -104,6 +108,7 @@ export async function readProgramCapabilities(id: number, account: string) {
   if (typeof raw !== "string") throw new Error("Unexpected capabilities response from contract");
   return JSON.parse(raw) as {
     is_funder: boolean; is_recipient: boolean; can_withdraw: boolean; can_refund: boolean;
+    can_accept_program: boolean; can_fund_program: boolean; can_expire_unaccepted: boolean; can_expire_unfunded: boolean;
     can_expire: boolean; can_finalize_unresolved: boolean; can_evaluate: boolean;
     can_resolve_challenge: boolean; can_finalize: boolean; can_challenge: boolean; can_close: boolean; can_submit_evidence: boolean;
     delivery_recovery_supported: false;

@@ -17,15 +17,31 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Verify repository-pinned GenLayer CLI and stable target
+        shell: pwsh
+        run: |
+          $version = (& npx --no-install genlayer --version).Trim()
+          if ($version -ne "0.39.1") { throw "Expected local GenLayer CLI 0.39.1, got $version" }
+          npx --no-install genlayer network set studionet
+          $network = (& npx --no-install genlayer network info | Out-String)
+          if ($network -notmatch "61999") { throw "CLI did not select stable Studionet chain 61999" }
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: python -m pip install -r requirements.txt
       - run: ./scripts/install-genvm-runner.ps1
         shell: pwsh
+      - run: genvm-lint check contracts/ascende.py
+      - run: genvm-lint typecheck contracts/ascende.py
       - run: genvm-lint lint contracts/ascende.py
       - run: genvm-lint validate contracts/ascende.py
       - run: genvm-lint schema --json -o contracts/ascende.schema.json contracts/ascende.py
+      - run: git diff --exit-code -- contracts/ascende.schema.json
       - run: pytest -p no:cacheprovider --tb=short -q tests/test_contract.py
       - uses: actions/upload-artifact@v4
         with:
