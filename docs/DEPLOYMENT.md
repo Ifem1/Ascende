@@ -8,7 +8,7 @@ This branch is deployed to stable Studionet 61999. Deployment proves that the ne
 
 ## Current branch deployment
 
-- Branch commit before Vercel closeout: [`e4bd7fc6b7d9cbd076dc3b7441afe972911ea2e2`](https://github.com/Ifem1/Ascende/commit/e4bd7fc6b7d9cbd076dc3b7441afe972911ea2e2); CI [run 39057025554](https://github.com/Ifem1/Ascende/actions/runs/39057025554) passed both jobs. This deployment uses that source revision; the release records are updated in this follow-up commit.
+- Release closeout commit: [`a9ac99ea247dce3dfd4365eeef825e48453b6798`](https://github.com/Ifem1/Ascende/commit/a9ac99ea247dce3dfd4365eeef825e48453b6798); exact-commit CI [run 39062621416](https://github.com/Ifem1/Ascende/actions/runs/39062621416) passed both frontend and contract jobs. The production deployment was built from the same frontend source snapshot immediately before that commit was created.
 - Contract: `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`.
 - Contract explorer: [view current contract and transaction history](https://explorer-studio.genlayer.com/address/0x5715eACA23d495b71E800Dd9eD6e13875855bd9c).
 - Deployment transaction: [`0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e`](https://explorer-studio.genlayer.com/tx/0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e), finalized `SUCCESS`, consensus `MAJORITY_AGREE` (five validators revealed; three agreed and two were idle).
