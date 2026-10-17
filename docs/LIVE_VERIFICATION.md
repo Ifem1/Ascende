@@ -4,9 +4,22 @@ Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production
 
 ## Release source status
 
-The multi-authority policy and source-level validator consensus changes currently in the repository have **not yet been deployed**. All addresses, hashes and transactions below describe prior source versions and are historical evidence for those versions only. Do not use them to claim that a deployment implements the new evidence policy. The next release record must start with the new source commit, source SHA-256, new contract address, deployment transaction and fresh scenario receipts.
+The current multi-authority source is deployed at `0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD`. Its positive, disputed and failure lifecycle evidence is still outstanding. Older addresses and receipts below apply only to their listed historical source versions.
 
-## Historical deployment — rejected payable and bounded refund
+## Current source deployment — 2026-10-17
+
+- Repository commit: [`fccac05730c95d68f5759c89f9e689c0d76165b5`](https://github.com/Ifem1/Ascende/commit/fccac05730c95d68f5759c89f9e689c0d76165b5).
+- Stable Studionet chain ID `61999` (`0xF22F`), RPC `https://studio.genlayer.com/api`.
+- Contract: `0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD`.
+- Deployment transaction: [`0x03bc674baea5c6915ce840a20c6d17072171805d410b9e7bf968bbad0177be01`](https://explorer-studio.genlayer.com/tx/0x03bc674baea5c6915ce840a20c6d17072171805d410b9e7bf968bbad0177be01), finalized, execution `SUCCESS`, result `MAJORITY_AGREE`; five validators revealed and three agreed.
+- Source SHA-256: `A811544EB159A7745545DCC87D5F1258FEACB6352CEC6B10A8DDCBBFD9375D09`. The public `genlayer code` readback matches the committed source bytes after line-ending normalization; the CLI adds two trailing display newlines. Deployed API schema matches the generated checked-in schema.
+- Deployer: supplied test wallet `0xD6423aE82a975d55C6CeaC222827A727325e0459`. Initial authoritative `get_program_counter()` readback was `0`.
+- No new program, evidence evaluation, challenge or settlement lifecycle has yet been executed against this deployment. The existing multi-authority Direct Mode tests are simulation evidence only, not live validator evidence.
+- Deployment transaction explorer: [view receipt](https://explorer-studio.genlayer.com/tx/0x03bc674baea5c6915ce840a20c6d17072171805d410b9e7bf968bbad0177be01).
+
+The production alias [ascende-sand.vercel.app](https://ascende-sand.vercel.app/) now uses this address. Vercel production deployment [`dpl_7LJoRtnqCG7DW5SgyzqKVDGNmw2F`](https://vercel.com/ifem1s-projects/ascende/7LJoRtnqCG7DW5SgyzqKVDGNmw2F) is `READY`; the deployed Docs page embeds the new contract address and source hash. Routes `/`, `/programs`, `/create`, `/my-work`, `/treasury`, `/activity`, and `/docs` returned HTTP 200. These are deployment smoke checks, not a real wallet-signed transaction or proof of positive/disputed/failure lifecycle outcomes. Do not reuse historical browser-created program or payout receipts below as proof for the current source.
+
+## Historical deployment — rejected payable and bounded refund (source `d80148c4…`)
 
 - Contract source commit: [`d80148c4fadd23c01fb4bff39d46bd1508951bbe`](https://github.com/Ifem1/Ascende/commit/d80148c4fadd23c01fb4bff39d46bd1508951bbe). The current frontend and documentation release is tracked on `main`; see the [CI workflow runs](https://github.com/Ifem1/Ascende/actions/workflows/ci.yml) for commit-specific results.
 - Contract: `0x884676bCDE191A9D9c79B3111812425E15824836`.

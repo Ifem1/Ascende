@@ -110,8 +110,8 @@ test("treasury separates submitted transfers from recorded delivery", async ({ p
 
 test("docs page links to current deployment evidence and states settlement limits", async ({ page }) => {
   await page.goto("/docs");
-  await expect(page.getByText("0x884676bCDE191A9D9c79B3111812425E15824836")).toBeVisible();
-  await expect(page.getByText(/child receipt reports a 2-wei credit/i)).toBeVisible();
+  await expect(page.getByText(/0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD|not configured/)).toBeVisible();
+  await expect(page.getByText(/fresh multi-authority lifecycle evidence is still being collected/i)).toBeVisible();
   await expect(page.getByRole("link", { name: /read the live verification record/i }))
     .toHaveAttribute("href", "https://github.com/Ifem1/Ascende/blob/main/docs/LIVE_VERIFICATION.md");
   await expect(page.getByText(/no deployment or live transfer proof is published yet/i)).toHaveCount(0);

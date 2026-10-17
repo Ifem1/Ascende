@@ -25,7 +25,7 @@ After write, wait for required finality **and** GenVM executed success. Then rer
 ## Frontend environment contract
 
 ```
-NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0x884676bCDE191A9D9c79B3111812425E15824836
+NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD
 NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api
 ```
 

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 describe("selected injected wallet transaction preparation", () => {
   it("uses the selected provider without depending on window.ethereum", async () => {
-    const contract = "0x884676bCDE191A9D9c79B3111812425E15824836";
+    const contract = "0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD";
     vi.stubEnv("NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS", contract);
     vi.resetModules();
 
