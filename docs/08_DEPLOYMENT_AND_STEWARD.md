@@ -2,7 +2,7 @@
 
 ## Current working branch
 
-This branch changes the contract ABI and is not deployed. Its future deployment address, transaction, exact source hash, schema readback, and live evaluation receipts must be recorded in [DEPLOYMENT.md](DEPLOYMENT.md) and [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md) only after verification. The production Vercel alias intentionally remains on its existing release. Do not set the alias to an old contract address and describe it as this source.
+This branch's contract is deployed to stable Studionet at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`; deployment transaction, source-byte comparison, and the unsuccessful fresh create attempt are recorded in [DEPLOYMENT.md](DEPLOYMENT.md) and [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). No successful current-deployment lifecycle is claimed. The production Vercel alias intentionally remains on its existing release. Do not set the alias to an old contract address and describe it as this source.
 
 ## Stable target
 

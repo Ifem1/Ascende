@@ -29,7 +29,7 @@ NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=<address deployed from this exact source>
 NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api
 ```
 
-The application pins the chain to Studionet 61999 in code; it does not read public network or chain-ID environment variables. The current branch does not yet have a matching deployment, so do not configure it with the previous contract address. A build without a valid contract address displays a clear unavailable state and disables real writes. Do not fall back to a guessed or historical address. Never store provider credentials in public env.
+The application pins the chain to Studionet 61999 in code; it does not read public network or chain-ID environment variables. This branch's contract is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`, but the production Vercel site remains on its prior release. Do not configure a build with a guessed or historical address. A build without a valid contract address displays a clear unavailable state and disables real writes. Never store provider credentials in public env.
 
 ## Wallet UX acceptance
 

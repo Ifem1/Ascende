@@ -4,7 +4,14 @@ Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production
 
 ## Release source status
 
-The current working branch is **not deployed**. The address `0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD` and all receipts below this heading belong to an earlier source version, before draft acceptance, exact post-acceptance funding, and byte-citation changes. Treat every listed transaction and browser observation as historical. A fresh deployment and source-matched evidence are required for this branch. The production alias is intentionally unchanged.
+The current working branch is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`; deployment and normalized source-byte parity are recorded in [DEPLOYMENT.md](DEPLOYMENT.md). A fresh create attempt finalized but did not create a program (`get_program_counter() == 0`, `get_program(1) == ""`, `value_credited == false`); therefore no positive, challenge, funding, expiry, or settlement lifecycle is proven on this deployment. The production alias remains intentionally unchanged and points to the previous release. All receipts in the historical sections below remain historical.
+
+## Current branch deployment — 2026-10-17
+
+- Deployment transaction: [`0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e`](https://explorer-studio.genlayer.com/tx/0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e), finalized `SUCCESS`, `MAJORITY_AGREE`.
+- Contract: `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`, stable Studionet 61999.
+- Fresh unsuccessful create attempt: [`0x44e9682ddd0e76283dd2348d1437843708e53a1c5772c4dad106af9d3f7b626a`](https://explorer-studio.genlayer.com/tx/0x44e9682ddd0e76283dd2348d1437843708e53a1c5772c4dad106af9d3f7b626a). It finalized with `MAJORITY_AGREE`, but the contract counter stayed at `0`; `get_program(1)` was empty. The receipt states `value_credited=false`. It is recorded as a failed attempt, not a successful creation or lifecycle receipt.
+- No real-wallet frontend transaction was performed against the current branch. Production Vercel was not changed.
 
 ## Historical source deployment — 2026-10-17 (superseded)
 

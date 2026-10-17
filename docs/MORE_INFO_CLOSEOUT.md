@@ -10,7 +10,7 @@
 
 ## Verification state
 
-The most recent recorded Direct Mode result before the final verification pass was 62 passing tests. CI and frontend suites must be rerun and tied to the exact pushed commit. This branch has not been deployed; there is no fresh transaction hash, live decision, program readback, or source hash for a current deployment. Existing receipts apply to earlier contract source and remain historical. The production Vercel alias has not been modified.
+The pinned release verification recorded 62 passing Direct Mode tests, 15 Vitest tests, and 7 Playwright tests; GitHub Actions run [39036494073](https://github.com/Ifem1/Ascende/actions/runs/39036494073) passed for commit [`e84858e4df4bd2da16ff2dd87776af82df903b32`](https://github.com/Ifem1/Ascende/commit/e84858e4df4bd2da16ff2dd87776af82df903b32). The branch is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`; normalized source readback details and deployment transaction are recorded in [DEPLOYMENT.md](DEPLOYMENT.md). One fresh create attempt finalized without creating a program, so there is still no successful live program or lifecycle evidence for this deployment. Existing successful lifecycle receipts belong to earlier contract sources. The production Vercel alias has not been modified.
 
 ## Unresolved capabilities
 
@@ -19,4 +19,4 @@ The most recent recorded Direct Mode result before the final verification pass w
 - Unexpected failed payable calls may strand attached GEN without matching state.
 - The available Web Access interface does not enforce final redirect-origin policy.
 
-**Verdict: implementation hardening is present locally, but source-matched live reviewer submission is not ready until exact-HEAD CI, a fresh stable deployment, and fresh lifecycle evidence are verified. This is not production-safe escrow.**
+**Verdict: implementation hardening is pushed, exact-commit CI is green, and a fresh stable deployment is source-matched with a documented terminal-newline normalization. Reviewer demonstration evidence is incomplete because no current-deployment program lifecycle succeeded and production Vercel still points to its prior release. This is not production-safe escrow.**

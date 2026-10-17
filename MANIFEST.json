@@ -1,13 +1,12 @@
 {
   "project": "ASCENDE",
-  "generated_at": "2026-10-17T13:22:52Z",
-  "status": "implementation_branch_not_deployed",
+  "generated_at": "2026-10-17T13:43:24Z",
+  "status": "branch_deployed_live_lifecycle_incomplete",
   "network": {
     "name": "stable Studionet",
     "chain_id": 61999,
     "rpc": "https://studio.genlayer.com/api"
   },
-  "release_note": "Current branch changes the contract ABI. Existing deployment receipts and production alias are historical and do not verify this source.",
   "source": {
     "contract": "contracts/ascende.py",
     "sha256": "de88d012f894f982e384182aeaf6e58fff01d5ccd172362ea39498bf900595c4",
@@ -15,26 +14,6 @@
     "schema_sha256": "8ec06d83e289c5996003b848c87ab13907535dacb5fad8e962b625178e3cce9d"
   },
   "items": [
-    {
-      "path": "docs/MORE_INFO_CLOSEOUT.md",
-      "bytes": 2468,
-      "sha256": "2c223bc22cc2ee7dff1d250d171df92c09881fc95b63173653cdec25247e6261"
-    },
-    {
-      "path": "docs/SETTLEMENT_MODEL.md",
-      "bytes": 2648,
-      "sha256": "47399eccc85acc461db2951a9f7725be4ddeab7e4f79b9ccf4816563d361e69b"
-    },
-    {
-      "path": "package-lock.json",
-      "bytes": 247855,
-      "sha256": "afc114d481b2436b479fb6679872eaaa54441ed6bb261b7caed7c3c2b8ec9630"
-    },
-    {
-      "path": "package.json",
-      "bytes": 201,
-      "sha256": "f4428d77e79537e6f1232742a11d66d59af4248f82850c72e317681da568323f"
-    },
     {
       "path": ".github/workflows/README.md",
       "bytes": 348,
@@ -62,8 +41,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 4585,
-      "sha256": "529d747e365fc445b1f6ae1ebe418dcbdac43dc6e6222bb1f00c99eedb953029"
+      "bytes": 4758,
+      "sha256": "002a94d7e799a9c7137550bf2144029fe8c273f64ec7ff0c21054aa249bb3e59"
     },
     {
       "path": "contracts/README.md",
@@ -112,8 +91,8 @@
     },
     {
       "path": "docs/06_WALLET_AND_SDK.md",
-      "bytes": 4023,
-      "sha256": "9fe5f319d4ca9a47bc3f19f62bba135865d723d617a87345aa734b0adcc3f589"
+      "bytes": 4059,
+      "sha256": "b8d1988e8a8cea15f2eb374e1497241d2eb8b9bd73306ebe1198175d78a2b97a"
     },
     {
       "path": "docs/07_TEST_AND_ADVERSARIAL_MATRIX.md",
@@ -122,8 +101,8 @@
     },
     {
       "path": "docs/08_DEPLOYMENT_AND_STEWARD.md",
-      "bytes": 2194,
-      "sha256": "0bab93ddc40ad344cb268f736fc2f4741fa407c467f03c253859aa00eba384d7"
+      "bytes": 2248,
+      "sha256": "e83309f87e98b1f53fe54608737f5417b7ea86ddb8703040af1a0820b84fddca"
     },
     {
       "path": "docs/09_LIVE_RUNBOOK.md",
@@ -137,8 +116,8 @@
     },
     {
       "path": "docs/11_SOURCE_API_REFERENCES.md",
-      "bytes": 4335,
-      "sha256": "82df2bf583e78d950ccf5b91eb359f8f63144e773155e024a0242da37fb2328f"
+      "bytes": 4404,
+      "sha256": "fc95d56d6e056fc7fdd11082de277ff1e1143c671f7cbd10328028b571fe6f97"
     },
     {
       "path": "docs/CONTRACT_API.md",
@@ -147,13 +126,18 @@
     },
     {
       "path": "docs/DEPLOYMENT.md",
-      "bytes": 3939,
-      "sha256": "5ed5558bc5137ab099e333ab6cc7327d8c3069af498f3304b8730fd2e2a11d12"
+      "bytes": 5653,
+      "sha256": "7f9f74f678ec2385bbca130d0b67ebbcea714571a7ba45ba7520a2ca2547cb9f"
     },
     {
       "path": "docs/LIVE_VERIFICATION.md",
-      "bytes": 35770,
-      "sha256": "fcece3072e0ed74483fa1e40b1a2a24c754538abe5a0ca745240a6964014d613"
+      "bytes": 36841,
+      "sha256": "dd1f1a08ede6ba3912ee4838a5aed77c26f0f828bd60fee965ddcb8722a7944b"
+    },
+    {
+      "path": "docs/MORE_INFO_CLOSEOUT.md",
+      "bytes": 2960,
+      "sha256": "dbd9360af00cdc6774cc3de88f5e2e80ff9b733216e2f871da67c37fd370e8f3"
     },
     {
       "path": "docs/REVIEWER_MATRIX.md",
@@ -162,8 +146,13 @@
     },
     {
       "path": "docs/SECURITY.md",
-      "bytes": 8226,
-      "sha256": "4e84e3002d64bb9b0c480a701e7c686ac952cf4e4198119004c63007f2927f14"
+      "bytes": 8302,
+      "sha256": "d09213994603d74701c5d57e2299d3ca02826b840f6bbf73060300d5f3fe896a"
+    },
+    {
+      "path": "docs/SETTLEMENT_MODEL.md",
+      "bytes": 2648,
+      "sha256": "47399eccc85acc461db2951a9f7725be4ddeab7e4f79b9ccf4816563d361e69b"
     },
     {
       "path": "docs/STATE_MATRIX.md",
@@ -172,8 +161,8 @@
     },
     {
       "path": "docs/TESTING.md",
-      "bytes": 2503,
-      "sha256": "185ee1cf962b2bc5cdf43db5a92a9e376768ac21be4ec41102536442a4351c01"
+      "bytes": 2585,
+      "sha256": "6b946d349042e58a229402993e7eb8b79c2078d0a34d505684a5945556401f6b"
     },
     {
       "path": "docs/USER_GUIDE.md",
@@ -411,6 +400,16 @@
       "sha256": "2619ce6fc91fd5ed6daa2e76efdaa9d03fd46a2bbfd38671e2213d42300cb3e6"
     },
     {
+      "path": "package-lock.json",
+      "bytes": 247855,
+      "sha256": "afc114d481b2436b479fb6679872eaaa54441ed6bb261b7caed7c3c2b8ec9630"
+    },
+    {
+      "path": "package.json",
+      "bytes": 201,
+      "sha256": "f4428d77e79537e6f1232742a11d66d59af4248f82850c72e317681da568323f"
+    },
+    {
       "path": "requirements.txt",
       "bytes": 77,
       "sha256": "72f3980e4b70f7288f45bcd885c476520ae569290977fbb219d9b0b6caf057fd"
@@ -455,5 +454,13 @@
       "bytes": 61568,
       "sha256": "e2d674b2c02e3600e6537a28ed95f602f4ab6e9eee659943a069fabd0e33c966"
     }
-  ]
+  ],
+  "release_note": "Deployed to stable Studionet 61999 at 0x5715eACA23d495b71E800Dd9eD6e13875855bd9c; source body matches after stripping one final newline. Fresh create attempt failed to create state. Production Vercel remains on prior release; live lifecycle proof incomplete.",
+  "deployment": {
+    "contract_address": "0x5715eACA23d495b71E800Dd9eD6e13875855bd9c",
+    "transaction": "0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e",
+    "source_body_sha256": "0E5FA7A4018A45F64A6CD5D44F3F67F5BF16831109A63C834396228AF3CE8014",
+    "source_file_sha256": "DE88D012F894F982E384182AEAF6E58FFF01D5CCD172362EA39498BF900595C",
+    "production_frontend_updated": false
+  }
 }

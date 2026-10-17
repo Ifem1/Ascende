@@ -10,7 +10,7 @@ Ascende is an original GenLayer milestone programme prototype for stable Studion
 - The frontend uses the visitor’s injected EIP-1193 wallet. It presents all criteria and authority roles, supports optional source manifests, recipient acceptance and funder activation, and distinguishes parent execution from external child-transfer delivery.
 - Contract withdrawals remain one-shot asynchronous native transfers. The contract has no authenticated child-result callback; it does not mark an EOA paid or retry an ambiguous transfer. Generic HTTPS redirects are not enforceably pinned by the currently available Web Access response.
 
-**Release status: NOT READY for production-safe escrow.** The contract and frontend changes in this working branch need source-matched stable deployment and live lifecycle evidence. The existing deployment `0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD` predates this source change and must not be used as proof for the new ABI. The production Vercel site is intentionally left on its present release until replacement contract and frontend behavior are verified.
+**Release status: reviewer demonstration only; not production-safe escrow.** This branch is deployed to stable Studionet 61999 at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c` (deployment transaction `0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e`). The deployed source body matches `contracts/ascende.py` after removing its one terminal newline; see [deployment evidence](docs/DEPLOYMENT.md) for both byte hashes. Fresh positive, challenge, and settlement lifecycle evidence is still incomplete. The production Vercel site remains on its prior release by explicit instruction and does not point to this contract.
 
 ## Contract interface
 
