@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Plus, Trash2 } from "lucide-react";
-import { formatGen, matchesCreatedProgram, parseGen, prepareWrite, readProgram, readProgramCounter, submitPreparedWrite, PreparedWrite } from "@/lib/genlayer";
+import { formatGen, matchesCreatedProgram, parseGen, prepareWrite, readProgram, readProgramCounter, submissionErrorMessage, submitPreparedWrite, PreparedWrite } from "@/lib/genlayer";
 import { getActiveProvider } from "@/lib/wallet-store";
 import { validateCreationPreflight } from "@/lib/preflight";
 
@@ -111,6 +111,7 @@ export default function Create() {
 
   async function estimate() {
     try {
+      if (hash) return;
       setBusy(true); setError(""); setNotice("");
       const provider = getActiveProvider();
       if (!provider) throw new Error("Connect an injected wallet before funding a program.");
@@ -137,7 +138,7 @@ export default function Create() {
   }
 
   async function submit() {
-    if (!prepared) return;
+    if (!prepared || hash) return;
     try {
       setBusy(true); setError("");
       const result = await submitPreparedWrite(prepared, (tx) => { setHash(tx); invalidatePrepared(); });
@@ -153,7 +154,7 @@ export default function Create() {
       }
       setNotice(`Draft #${created.id} was read back from finalized contract state. The recipient must accept the frozen terms before the funder can activate it · ${result.hash}`);
       router.push(`/programs/${created.id}`);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : "Transaction failed. Check its original hash before taking another action."); }
+    } catch (cause) { setError(submissionErrorMessage(cause)); }
     finally { setBusy(false); }
   }
 
@@ -173,7 +174,7 @@ export default function Create() {
         {prepared && <div className="fee-panel wide-field"><strong>Draft creation · zero GEN value</strong><span>Review the recipient and complete frozen schedule before signing.</span></div>}
       </div>}
       {error && <div className="form-alert" role="alert">{error}</div>}{hash && <p className="tx-truth">Submitted transaction: <a href={`${"https://explorer-studio.genlayer.com"}/tx/${hash}`} target="_blank" rel="noreferrer">{hash}</a></p>}{notice && <div className="form-success" role="status">{notice}</div>}
-      <div className="wizard-actions">{step > 0 && <button className="action secondary" type="button" onClick={() => {setStep((current) => current - 1);setReviewMilestones(null);invalidatePrepared();}} disabled={busy}><ArrowLeft size={16}/>Back</button>}{step < 3 ? <button className="action primary" type="button" onClick={next}>Continue <ArrowRight size={16}/></button> : !prepared ? <button className="action primary" type="button" onClick={() => void estimate()} disabled={busy}>{busy ? "Preparing…" : "Prepare transaction"}</button> : <button className="action primary" type="button" onClick={() => void submit()} disabled={busy}>{busy ? "Waiting for finality…" : "Create frozen draft"}</button>}</div>
+      <div className="wizard-actions">{step > 0 && <button className="action secondary" type="button" onClick={() => {setStep((current) => current - 1);setReviewMilestones(null);invalidatePrepared();}} disabled={busy}><ArrowLeft size={16}/>Back</button>}{step < 3 ? <button className="action primary" type="button" onClick={next}>Continue <ArrowRight size={16}/></button> : hash ? <button className="action primary" type="button" disabled>{busy ? "Waiting for finality…" : "Transaction submitted — check status"}</button> : !prepared ? <button className="action primary" type="button" onClick={() => void estimate()} disabled={busy}>{busy ? "Preparing…" : "Prepare transaction"}</button> : <button className="action primary" type="button" onClick={() => void submit()} disabled={busy}>{busy ? (hash ? "Waiting for finality…" : "Waiting for wallet confirmation…") : "Create frozen draft"}</button>}</div>
     </section>
   </main>;
 }

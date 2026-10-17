@@ -6,6 +6,17 @@ import { GENLAYER_RPC } from "./network";
 export const CHAIN_ID = "0xf22f";
 export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS ?? "";
 export const EXPLORER_URL = "https://explorer-studio.genlayer.com";
+export const FINALITY_POLL_INTERVAL_MS = 3_000;
+// Stable Studionet transactions can take longer than the SDK's default 10 polls
+// (about 30 seconds), especially while validators finish consensus.
+export const FINALITY_POLL_RETRIES = 80;
+
+export function submissionErrorMessage(cause: unknown): string {
+  const message = cause instanceof Error ? cause.message : "Transaction failed. Check its original hash before taking another action.";
+  const timedOut = message.match(/Timed out waiting for transaction (0x[0-9a-fA-F]{64})/);
+  if (timedOut) return `Transaction ${timedOut[1]} has not reached finality yet. It may still finalize. Do not submit another create; check this transaction in the explorer and refresh the registry.`;
+  return message;
+}
 
 export type Eip1193Provider = {
   request(args: { method: string; params?: unknown[] | object }): Promise<unknown>;
@@ -233,7 +244,10 @@ export async function submitPreparedWrite(prepared: PreparedWrite, onHash: (hash
     ...prepared.call,
   } as never) as `0x${string}`;
   onHash(hash);
-  const receipt = await prepared.client.waitForTransactionReceipt({ hash: sdkHash(hash), status: TransactionStatus.FINALIZED });
+  const receipt = await prepared.client.waitForTransactionReceipt({
+    hash: sdkHash(hash), status: TransactionStatus.FINALIZED,
+    interval: FINALITY_POLL_INTERVAL_MS, retries: FINALITY_POLL_RETRIES,
+  });
   return { hash, successful: receipt.txExecutionResultName === ExecutionResult.FINISHED_WITH_RETURN, receipt };
 }
 
