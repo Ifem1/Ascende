@@ -8,7 +8,7 @@ The Direct Mode suite covers acceptance and funding separation, permissionless e
 
 Frontend tests cover creation preflight for required/optional authorities, manifest validation, draft readback, wallet preparation and status rendering. Current local runs: TypeScript, ESLint, production build passed; Vitest **15 passed**; all **7 Playwright cases passed** against a fresh local server. The simulated EIP-1193 provider is not evidence of a genuine signed transaction. Exact-commit GitHub Actions remains the release gate.
 
-The current contract source is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`, but fresh successful lifecycle evidence is incomplete. Existing historical receipts and the production site belong to earlier releases. See [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md).
+The current contract source is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`. A fresh missing-evidence timeout/refund path and duplicate transfer replay check are recorded in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md); positive qualification, challenge-flip, and frontend-originated wallet evidence remain incomplete. Historical receipts and the production site belong to earlier releases.
 
 ## Reproduce locally (PowerShell)
 

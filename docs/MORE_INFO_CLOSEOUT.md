@@ -10,7 +10,7 @@
 
 ## Verification state
 
-The pinned release verification recorded 62 passing Direct Mode tests, 15 Vitest tests, and 7 Playwright tests; GitHub Actions run [39036494073](https://github.com/Ifem1/Ascende/actions/runs/39036494073) passed for commit [`e84858e4df4bd2da16ff2dd87776af82df903b32`](https://github.com/Ifem1/Ascende/commit/e84858e4df4bd2da16ff2dd87776af82df903b32). The branch is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`; normalized source readback details and deployment transaction are recorded in [DEPLOYMENT.md](DEPLOYMENT.md). One fresh create attempt finalized without creating a program, so there is still no successful live program or lifecycle evidence for this deployment. Existing successful lifecycle receipts belong to earlier contract sources. The production Vercel alias has not been modified.
+The pinned release verification recorded 62 passing Direct Mode tests, 15 Vitest tests, and 7 Playwright tests. GitHub Actions runs on each pushed commit; see the [CI workflow](https://github.com/Ifem1/Ascende/actions/workflows/ci.yml) for the exact final-HEAD result. The branch is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`. Fresh program creation, recipient acceptance, exact 2-wei funding, permissionless missing-evidence expiry, stopped closure, refund reservation, once-only child submission, and duplicate replay check are documented in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). The child receipt reports `value_credited=true` with `result_name=NO_MAJORITY`; contract pending remains 2 wei, so delivery is not treated as reconciled. Positive qualification and challenge-flip live evidence and a current-branch browser-wallet transaction remain outstanding. The production Vercel alias has not been modified.
 
 ## Unresolved capabilities
 
@@ -19,4 +19,4 @@ The pinned release verification recorded 62 passing Direct Mode tests, 15 Vitest
 - Unexpected failed payable calls may strand attached GEN without matching state.
 - The available Web Access interface does not enforce final redirect-origin policy.
 
-**Verdict: implementation hardening is pushed, exact-commit CI is green, and a fresh stable deployment is source-matched with a documented terminal-newline normalization. Reviewer demonstration evidence is incomplete because no current-deployment program lifecycle succeeded and production Vercel still points to its prior release. This is not production-safe escrow.**
+**Verdict: implementation hardening is pushed, exact-commit CI is green, the source-matched Studionet deployment is documented, and a missing-evidence recovery/refund lifecycle is verified. Reviewer demonstration evidence remains incomplete because no positive qualification, challenge-flip, or current-branch browser-wallet transaction has been demonstrated; production Vercel still points to its prior release. This is not production-safe escrow.**

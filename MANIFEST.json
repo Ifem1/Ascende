@@ -1,7 +1,7 @@
 {
   "project": "ASCENDE",
-  "generated_at": "2026-10-17T13:43:24Z",
-  "status": "branch_deployed_live_lifecycle_incomplete",
+  "generated_at": "2026-10-17T18:11:17Z",
+  "status": "branch_deployed_expiry_refund_live_positive_challenge_pending",
   "network": {
     "name": "stable Studionet",
     "chain_id": 61999,
@@ -41,8 +41,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 4758,
-      "sha256": "002a94d7e799a9c7137550bf2144029fe8c273f64ec7ff0c21054aa249bb3e59"
+      "bytes": 4941,
+      "sha256": "fb4316e3e2545daf2ce6d4eba904a77cea4c06c616ca8fb14d9996f0ac7e1aa5"
     },
     {
       "path": "contracts/README.md",
@@ -126,28 +126,28 @@
     },
     {
       "path": "docs/DEPLOYMENT.md",
-      "bytes": 5653,
-      "sha256": "7f9f74f678ec2385bbca130d0b67ebbcea714571a7ba45ba7520a2ca2547cb9f"
+      "bytes": 6188,
+      "sha256": "ffdc209fd4bd01de8e8841d5c70d6b997a055b3359e58e1c431a595b2d05a4f4"
     },
     {
       "path": "docs/LIVE_VERIFICATION.md",
-      "bytes": 36841,
-      "sha256": "dd1f1a08ede6ba3912ee4838a5aed77c26f0f828bd60fee965ddcb8722a7944b"
+      "bytes": 40866,
+      "sha256": "45e0dd0d5f1b08872a736488abc1ceef411531afbb00cd0d62a8cb41903162b6"
     },
     {
       "path": "docs/MORE_INFO_CLOSEOUT.md",
-      "bytes": 2960,
-      "sha256": "dbd9360af00cdc6774cc3de88f5e2e80ff9b733216e2f871da67c37fd370e8f3"
+      "bytes": 3165,
+      "sha256": "b09902713cbd23b95504a2bb9339e46a9e48ae88e481e6f27bbe7e34333cde8d"
     },
     {
       "path": "docs/REVIEWER_MATRIX.md",
-      "bytes": 2488,
-      "sha256": "18b4100a5e2d1d454806563e4b35d48351f72e18aa26e745292a3698dc5c15bb"
+      "bytes": 2871,
+      "sha256": "b8aad0c0fbe4f011889d5f93c9481ad84c25cfe7e4521aca3e62c588d56ce4ba"
     },
     {
       "path": "docs/SECURITY.md",
-      "bytes": 8302,
-      "sha256": "d09213994603d74701c5d57e2299d3ca02826b840f6bbf73060300d5f3fe896a"
+      "bytes": 8572,
+      "sha256": "68edf876861e28935a37a00978ff45ba24f35bec7ea922f749d8496db87a5f1e"
     },
     {
       "path": "docs/SETTLEMENT_MODEL.md",
@@ -161,8 +161,8 @@
     },
     {
       "path": "docs/TESTING.md",
-      "bytes": 2585,
-      "sha256": "6b946d349042e58a229402993e7eb8b79c2078d0a34d505684a5945556401f6b"
+      "bytes": 2713,
+      "sha256": "29b09464ff43d0f4169ad39ed0198482f202c455ed9b792fedffee85925212cc"
     },
     {
       "path": "docs/USER_GUIDE.md",
@@ -455,7 +455,7 @@
       "sha256": "e2d674b2c02e3600e6537a28ed95f602f4ab6e9eee659943a069fabd0e33c966"
     }
   ],
-  "release_note": "Deployed to stable Studionet 61999 at 0x5715eACA23d495b71E800Dd9eD6e13875855bd9c; source body matches after stripping one final newline. Fresh create attempt failed to create state. Production Vercel remains on prior release; live lifecycle proof incomplete.",
+  "release_note": "Deployed to stable Studionet 61999 at 0x5715eACA23d495b71E800Dd9eD6e13875855bd9c with normalized source-byte parity. Fresh 2-wei missing-evidence expiry, closure, refund and no-duplicate replay evidence is recorded. Positive qualification, challenge flip, browser-wallet proof, and reconciled delivery remain outstanding. Production Vercel unchanged.",
   "deployment": {
     "contract_address": "0x5715eACA23d495b71E800Dd9eD6e13875855bd9c",
     "transaction": "0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e",
