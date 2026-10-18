@@ -4,9 +4,9 @@ Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production
 
 ## Release source status
 
-The current working branch is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`; deployment and normalized source-byte parity are recorded in [DEPLOYMENT.md](DEPLOYMENT.md). Fresh live evidence includes a funded 2-wei program, missing-evidence expiry by a third-party wallet, stopped closure, exact funder refund reservation, one child transfer submission, and a no-child duplicate replay. The child receipt reports `value_credited=true`, but also `result_name=NO_MAJORITY`; contract accounting correctly remains pending, so this does not establish reconciled settlement. Separately, a genuine injected-Rabby browser transaction through the production frontend created program 2 with 0 GEN attached. It finalized successfully, and the independent contract readback shows the exact frozen 2-wei proposed budget and an unfunded `DRAFT`. This is creation proof only, not a qualification, challenge, or payout demonstration. A prior malformed create attempt and its zero-value receipt are separately retained below. All older receipts in the historical sections below remain historical.
+The current source (`7ed29355d9e308f0c236e3a3df4aff8eb8c20649`, contract source SHA-256 `8345bbdd755fe5e35eb02ae02ab0ddeb00deb7af51f0581bff552cf68d060217`) is deployed at `0x1544852461c4F61F266F5c2930c315C85069f1a6` on stable Studionet 61999. The deployment is finalized and successful; source and schema readbacks match. Program counter and protocol accounting were zero immediately after deployment. No live milestone, challenge, recovery, or production-wallet scenario has yet been run against this source. All evidence below for other contract addresses is historical and cannot prove these outcomes.
 
-## Production frontend wallet creation — program 2
+## Historical production wallet creation — previous deployment
 
 - Site: [Ascende production](https://ascende-sand.vercel.app/), connected with injected Rabby as Landlord 1 `0xD6423aE82a975d55C6CeaC222827A727325e0459`, Studionet 61999.
 - Parent transaction: [`0x1307b888c9f6158557c6ee74a14fcbc7036412de0f430eedd74f1e478d62027a`](https://explorer-studio.genlayer.com/tx/0x1307b888c9f6158557c6ee74a14fcbc7036412de0f430eedd74f1e478d62027a). Explorer shows `FINALIZED`, execution `SUCCESS`, `MAJORITY_AGREE` (three validators agreed; two idle), sender Landlord 1, destination the canonical contract, attached value 0 GEN, and return value program ID 2.
@@ -14,7 +14,7 @@ The current working branch is deployed at `0x5715eACA23d495b71E800Dd9eD6e1387585
 - Authoritative readback: program counter is 2; `get_program(2)` contains the matching funder, recipient, criteria, authorities, deadlines and 2-wei proposed budget, with state `DRAFT` and no funded principal. The public page [program 2](https://ascende-sand.vercel.app/programs/2) displays that same unfunded state.
 - This verifies wallet connection, browser-originated creation, finality, contract execution and readback. It does not prove program acceptance, funding, milestone decision, challenge, or child transfer delivery. No screenshot artifact was captured for this transaction.
 
-## Current branch deployment — 2026-10-17
+## Previous source deployment — 2026-10-17 (superseded)
 
 - Deployment transaction: [`0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e`](https://explorer-studio.genlayer.com/tx/0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e), finalized `SUCCESS`, `MAJORITY_AGREE`.
 - Contract: `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`, stable Studionet 61999.
@@ -143,6 +143,23 @@ The tests used 2 wei principal and 1 wei challenge bonds for programs 4 and 6. T
 - This historical deployment therefore has 5 wei (0.000000000000000005 GEN) in observed failed payable value with no state record: two failed program creations (2 wei each) and one failed challenge (1 wei). No recovery path exists on that address; the new source's recovery path is demonstrated above on a separate deployment.
 
 The successful challenge-resolution and abandoned-review receipts above belong to this historical source-matched deployment. The live test also shows that a 60-second challenge window can be missed under actual signing/execution timing; the contract tests separately cover boundary behavior.
+
+## Current source deployment
+
+- Deployment: [`0x46b46a4faa4101f010dffb338d7b4c9c401de1cc6a5891e7113a6baf06cee03c`](https://explorer-studio.genlayer.com/tx/0x46b46a4faa4101f010dffb338d7b4c9c401de1cc6a5891e7113a6baf06cee03c), finalized `SUCCESS`, `MAJORITY_AGREE` (three agree, two idle).
+- Contract: [`0x1544852461c4F61F266F5c2930c315C85069f1a6`](https://explorer-studio.genlayer.com/address/0x1544852461c4F61F266F5c2930c315C85069f1a6); chain ID 61999; source SHA-256 `8345bbdd755fe5e35eb02ae02ab0ddeb00deb7af51f0581bff552cf68d060217`.
+- Initial authoritative reads: program counter `0`; every protocol accounting bucket `0`; live schema includes all 33 expected methods.
+- Public fictional fixtures, pinned to Git commit `7ed29355d9e308f0c236e3a3df4aff8eb8c20649` and Gist revision `852e81c070b3e25bf5ad451d0d7997f327a538a6`. Both hosts are GitHub-controlled and share owner `Ifem1`; distinct hostnames do not prove organizational independence. The bodies are explicitly fictional test data. Both URLs were fetched with HTTP 200 and exact byte-length/SHA-256 matches:
+
+| Case | Authority A (`raw.githubusercontent.com`) | Authority B (`gist.githubusercontent.com`) |
+| --- | --- | --- |
+| Stage A PASS | 116 bytes, `b51f70d401323e7800acfc6044379dca2f24c0aa2d68b72f94fe786edc9a8fa0` | 115 bytes, `6935f92384406693385cb636c4590ee068b59198f123cbb25e764da6a9fb86fc` |
+| Stage B initial FAIL | 124 bytes, `a9d4e6fc6285e4432b82b7d4cf2e6696bade8f2a8e66edd0fbf78aab675f15f8` | 123 bytes, `773520d0d4ee1f8604de584a25e84e9da334eaccfca7a1e442e4adc93f2479d5` |
+| Stage B challenge PASS | 126 bytes, `56efbe7c96361194b1d898966e17b186a63b89cd2a3930564b88a95f3f739e71` | 125 bytes, `1d534160e4436bce62bdc6488e20257a69b38eff1eaf5c61f2e1cb21edabb076` |
+| Stage C conflict | 116 bytes, `fd3ac45e105034023129a80399c8748933301bf6b0f45c6205a508bb0b0b3664` | 115 bytes, `de84ee7f1a1f71086c4df96397452c3264d6278375e23e2123686258e881035b` |
+
+Authority A URL pattern: `https://raw.githubusercontent.com/Ifem1/Ascende/7ed29355d9e308f0c236e3a3df4aff8eb8c20649/test-fixtures/authority-a/`. Authority B URL pattern: `https://gist.githubusercontent.com/Ifem1/678692378c37e26f0375d070a6964ba5/raw/852e81c070b3e25bf5ad451d0d7997f327a538a6/`. These fixtures are not live adjudication results.
+
 
 ## Historical deployment — superseded source
 

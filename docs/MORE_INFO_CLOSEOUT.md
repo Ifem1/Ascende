@@ -10,7 +10,7 @@
 
 ## Verification state
 
-The release verification recorded 63 passing Direct Mode tests, 16 Vitest tests, and 7 Playwright tests. The exact final-HEAD GitHub Actions result is linked from the repository's [CI workflow](https://github.com/Ifem1/Ascende/actions/workflows/ci.yml). The branch is deployed at `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`. Fresh SDK recovery/refund evidence and a genuine injected-Rabby production frontend creation of unfunded draft program 2 are documented in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). Program 1's child receipt reports `value_credited=true` with `result_name=NO_MAJORITY`; contract pending remains 2 wei, so delivery is not treated as reconciled. Positive qualification and challenge-flip live evidence remain outstanding. The production Vercel alias points to the current contract configuration; deployment and route checks are recorded in [DEPLOYMENT.md](DEPLOYMENT.md).
+The latest local verification recorded 63 Direct Mode tests; exact-commit GitHub Actions is running at [run 39154715318](https://github.com/Ifem1/Ascende/actions/runs/39154715318). The current branch source is deployed at `0x1544852461c4F61F266F5c2930c315C85069f1a6` with SHA-256 `8345bbdd755fe5e35eb02ae02ab0ddeb00deb7af51f0581bff552cf68d060217`. Current-source live milestone and injected-wallet scenarios are not yet recorded. Older live lifecycle and wallet receipts belong to prior source deployments. The Vercel production contract-address variable has been updated; the production alias alignment remains pending the final `main` deployment.
 
 ## Unresolved capabilities
 
