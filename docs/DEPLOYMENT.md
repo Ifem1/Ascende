@@ -14,8 +14,8 @@ This is a stable Studionet reviewer demonstration, not production-safe escrow. T
 - Deployment transaction: [`0x46b46a4faa4101f010dffb338d7b4c9c401de1cc6a5891e7113a6baf06cee03c`](https://explorer-studio.genlayer.com/tx/0x46b46a4faa4101f010dffb338d7b4c9c401de1cc6a5891e7113a6baf06cee03c), `FINALIZED`, execution `SUCCESS`, `MAJORITY_AGREE`; five validators revealed votes, three agreed and two were idle. Deployer: supplied Landlord 1 `0xD6423aE82a975d55C6CeaC222827A727325e0459`.
 - `contracts/ascende.py` and `gen_getContractCode` readback are both 71,993 bytes with SHA-256 `8345BBDD755FE5E35EB02AE02AB0DDEB00DEB7AF51F0581BFF552CF68D060217`.
 - `gen_getContractSchema` readback contains 33 public methods and matches the generated API surface. Initial `get_program_counter()` is `0`; every protocol accounting bucket read is zero.
-- Exact-commit GitHub Actions: [run 39156835291](https://github.com/Ifem1/Ascende/actions/runs/39156835291), successful for branch commit `437a56359f448b33274ac5cc068d055df4807863`.
-- Vercel production deployment `dpl_5WTPXRbqwM5aLVDTChFrNfiZDLpx` is `READY` and aliased to [ascende-sand.vercel.app](https://ascende-sand.vercel.app/). Its build uses `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0x1544852461c4F61F266F5c2930c315C85069f1a6` and `NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api`.
+- Exact main-commit GitHub Actions: [run 39159926035](https://github.com/Ifem1/Ascende/actions/runs/39159926035), successful on merge commit `f0e7d3cf93ef4bd82f774fb5907d52da8815ec9f`.
+- The post-merge Vercel production deployment `dpl_5eQJ7mPm4pUE5JbPCYV9ysEJGHfJ` reached `READY` and was assigned [ascende-sand.vercel.app](https://ascende-sand.vercel.app/). The deployed Docs page contains the canonical contract and source hash. Its build uses `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0x1544852461c4F61F266F5c2930c315C85069f1a6` and `NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api`; production route checks returned HTTP 200.
 
 ## Previous deployed source (historical; not this branch)
 
