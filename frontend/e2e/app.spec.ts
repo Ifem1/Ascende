@@ -81,18 +81,34 @@ test("program creation wizard validates and reviews frozen tranches", async ({ p
   const tranches = page.getByLabel("Frozen tranche (GEN)");
   await tranches.nth(0).fill("1.25");
   await tranches.nth(1).fill("2.75");
-  const criteria = page.getByLabel("Measurable acceptance clause");
+  await page.getByRole("button", { name: /add criterion/i }).first().click();
+  await page.getByRole("button", { name: /add criterion/i }).first().click();
+  const criteria = page.getByLabel(/Acceptance clause for criterion/);
+  await expect(criteria).toHaveCount(4);
   await criteria.nth(0).fill("Published release record confirms acceptance criteria one.");
   await criteria.nth(1).fill("Published release record confirms acceptance criteria two.");
+  await criteria.nth(2).fill("Independent deployment record confirms the artifact is available.");
+  await criteria.nth(3).fill("Second milestone record confirms the final artifact is available.");
   await page.getByRole("button", { name: /continue/i }).click();
   const source = page.getByLabel(/hostname and https path/i);
-  await expect(source).toHaveCount(4);
+  await page.getByRole("button", { name: /add source/i }).first().click();
+  await expect(source).toHaveCount(5);
   await source.nth(0).fill("https://example.org/project/");
   await source.nth(1).fill("https://records.example.net/project/");
   await source.nth(2).fill("https://another.example.org/project/");
   await source.nth(3).fill("https://evidence.example.net/project/");
+  await source.nth(4).fill("https://official.example/status/");
+  await page.getByLabel("Authority role").first().selectOption("OFFICIAL");
   await page.getByRole("button", { name: /continue/i }).click();
   await expect(page.getByText("4 GEN", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: /frozen milestone criteria and authorities/i })).toBeVisible();
+  await expect(page.getByText("Published release record confirms acceptance criteria one.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Second milestone record confirms the final artifact is available.", { exact: true })).toBeVisible();
+  await expect(page.getByText("https://example.org/project/", { exact: true })).toBeVisible();
+  await expect(page.getByText("https://official.example/status/", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Evidence deadline \(UTC\):/)).toHaveCount(2);
+  await expect(page.getByText(/Challenge bond: 0\.01 GEN/)).toBeVisible();
+  await expect(page.getByText(/recipient accepts before any GEN is funded/i)).toBeVisible();
   await expect(page.getByText(/wallet shows the network fee before approval/i)).toHaveCount(0);
   await expect(page.getByRole("button", { name: /prepare transaction/i })).toBeVisible();
 });
@@ -110,8 +126,9 @@ test("treasury separates submitted transfers from recorded delivery", async ({ p
 
 test("docs page links to current deployment evidence and states settlement limits", async ({ page }) => {
   await page.goto("/docs");
-  await expect(page.getByText(/0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD|not configured/)).toBeVisible();
-  await expect(page.getByText(/fresh multi-authority lifecycle evidence is still being collected/i)).toBeVisible();
+  await expect(page.getByText(/this release is deployed on stable studionet 61999/i)).toBeVisible();
+  await expect(page.getByRole("link", { name: /0x1544852461c4f61f266f5c2930c315c85069f1a6/i }))
+    .toHaveAttribute("href", "https://explorer-studio.genlayer.com/address/0x1544852461c4F61F266F5c2930c315C85069f1a6");
   await expect(page.getByRole("link", { name: /read the live verification record/i }))
     .toHaveAttribute("href", "https://github.com/Ifem1/Ascende/blob/main/docs/LIVE_VERIFICATION.md");
   await expect(page.getByText(/no deployment or live transfer proof is published yet/i)).toHaveCount(0);

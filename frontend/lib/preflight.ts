@@ -5,6 +5,7 @@ const MAX_EVIDENCE_BYTES = 64 * 1024;
 
 export type FrozenAuthority = { prefix: string; required: boolean };
 export type EvidenceInput = { url: string; sha256: string; byteLength: string };
+export type CreationAuthority = string | FrozenAuthority;
 
 export function isValidAuthorityPrefix(prefix: string): boolean {
   if (!prefix.startsWith("https://") || prefix.length > 300 || !prefix.endsWith("/")) return false;
@@ -28,9 +29,20 @@ export function validateEvidenceEntry(url: string, sha256: string, byteLength: s
 }
 
 export function validateEvidenceManifest(entries: EvidenceInput[], authorities: FrozenAuthority[]) {
-  if (entries.length !== authorities.filter(({ required }) => required).length) throw new Error("Submit one evidence item for every required authority.");
-  const manifest = entries.map((entry) => validateEvidenceEntry(entry.url, entry.sha256, entry.byteLength, authorities));
-  const matched = manifest.map(({ url }) => authorities.findIndex(({ prefix }) => url.startsWith(prefix)));
+  if (entries.length > authorities.length) throw new Error("Evidence has more rows than the frozen authority policy.");
+  const manifest: Array<{ url: string; sha256: string; byte_length: number }> = [];
+  const matched: number[] = [];
+  for (let index = 0; index < authorities.length; index += 1) {
+    const entry = entries[index] ?? { url: "", sha256: "", byteLength: "" };
+    const empty = !entry.url.trim() && !entry.sha256.trim() && !entry.byteLength.trim();
+    if (empty && !authorities[index].required) continue;
+    if (!entry.url.trim() || !entry.sha256.trim() || !entry.byteLength.trim()) throw new Error(`Complete all evidence fields for ${authorities[index].required ? "required" : "optional"} authority ${index + 1}, or leave an optional authority blank.`);
+    const validated = validateEvidenceEntry(entry.url, entry.sha256, entry.byteLength, authorities);
+    const authorityIndex = authorities.findIndex(({ prefix }) => validated.url.startsWith(prefix));
+    if (authorityIndex !== index) throw new Error("Each evidence row must match its corresponding frozen authority.");
+    manifest.push(validated);
+    matched.push(authorityIndex);
+  }
   if (matched.some((index) => index < 0) || new Set(matched).size !== matched.length || authorities.some((authority, index) => authority.required && !matched.includes(index))) throw new Error("Submit exactly one item for every required frozen authority.");
   if (manifest.reduce((sum, entry) => sum + entry.byte_length, 0) > 128 * 1024) throw new Error("Combined evidence must be no larger than 128 KiB.");
   return manifest;
@@ -40,12 +52,17 @@ export function validateCreationPreflight(input: {
   recipient: string;
   funder: string;
   tranches: bigint[];
-  authorities: string[][];
+  authorities: CreationAuthority[][];
 }): bigint {
   if (!/^0x[0-9a-fA-F]{40}$/.test(input.recipient) || /^0x0{40}$/i.test(input.recipient)) throw new Error("Enter a valid nonzero recipient address.");
   if (input.funder && input.recipient.toLowerCase() === input.funder.toLowerCase()) throw new Error("Funder and recipient must be different addresses.");
   if (input.tranches.length < 2 || input.tranches.length > 5 || input.tranches.some((amount) => amount <= 0n || amount >= MAX_U256)) throw new Error("Each of 2–5 milestones needs a positive tranche within the contract's u256 limit.");
-  if (input.authorities.length !== input.tranches.length || input.authorities.some((prefixes) => prefixes.length < 2 || prefixes.length > 4 || prefixes.some((prefix) => !isValidAuthorityPrefix(prefix)) || new Set(prefixes.map((prefix) => new URL(prefix).hostname)).size !== prefixes.length)) throw new Error("Every milestone needs 2–4 distinct HTTPS authority hostnames with paths ending in /.");
+  if (input.authorities.length !== input.tranches.length || input.authorities.some((rules) => {
+    const normalized = rules.map((rule) => typeof rule === "string" ? { prefix: rule, required: true } : rule);
+    return normalized.length < 2 || normalized.length > 4 || normalized.some(({ prefix }) => !isValidAuthorityPrefix(prefix))
+      || new Set(normalized.map(({ prefix }) => new URL(prefix).hostname)).size !== normalized.length
+      || normalized.filter(({ required }) => required).length < 2;
+  })) throw new Error("Every milestone needs 2–4 distinct HTTPS authorities and at least two required authorities.");
   const total = input.tranches.reduce((sum, amount) => sum + amount, 0n);
   if (total <= 0n || total >= MAX_U256) throw new Error("Total program funding exceeds the contract's u256 limit.");
   return total;

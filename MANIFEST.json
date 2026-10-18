@@ -1,17 +1,38 @@
 {
   "project": "ASCENDE",
-  "handoff_date": "2026-10-13",
-  "status": "specification_plus_unverified_frontend_starter",
+  "generated_at": "2026-10-17T18:11:17Z",
+  "status": "branch_deployed_expiry_refund_live_positive_challenge_pending",
+  "network": {
+    "name": "stable Studionet",
+    "chain_id": 61999,
+    "rpc": "https://studio.genlayer.com/api"
+  },
+  "source": {
+    "contract": "contracts/ascende.py",
+    "sha256": "de88d012f894f982e384182aeaf6e58fff01d5ccd172362ea39498bf900595c4",
+    "schema": "contracts/ascende.schema.json",
+    "schema_sha256": "8ec06d83e289c5996003b848c87ab13907535dacb5fad8e962b625178e3cce9d"
+  },
   "items": [
     {
       "path": ".github/workflows/README.md",
-      "bytes": 228,
-      "sha256": "14c1806173cba36dbfdedc878998b5695851d99d32d3c8d8b2ef82b3cb6499e2"
+      "bytes": 348,
+      "sha256": "e69dae210fa2ca05fb379cd505b95e6d757cf1c487293e81cc2cd44ac8aaa7b0"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 2243,
+      "sha256": "4e45fda784b0834f097153dfc18522f2d2508640874ec0d74e26cf448aa83f75"
     },
     {
       "path": ".gitignore",
-      "bytes": 108,
-      "sha256": "8caa929a317e1e2c6acf00c029273f85d83464eb8809fea109ec164e1f7a0dff"
+      "bytes": 219,
+      "sha256": "f5728251d4b1d6cf64d4854267c4e5137b8a9f6aa5d4a74cc3acab34165a26a8"
+    },
+    {
+      "path": ".vercelignore",
+      "bytes": 176,
+      "sha256": "903a85ae69a25999b5fc106cdca8c2cc879bccb2b759f76e8954663073b440d5"
     },
     {
       "path": "CODEX_MASTER_HANDOFF.md",
@@ -20,13 +41,23 @@
     },
     {
       "path": "README.md",
-      "bytes": 4299,
-      "sha256": "fdbcc15aa71a0d58be08f95e249e8f7f2ebc0dfea36767c69c372437d007e936"
+      "bytes": 4941,
+      "sha256": "fb4316e3e2545daf2ce6d4eba904a77cea4c06c616ca8fb14d9996f0ac7e1aa5"
     },
     {
       "path": "contracts/README.md",
-      "bytes": 436,
-      "sha256": "5a7ecd71aa1215e8467b2d5087d71be3f8407b06b09321541019de6f16376fdf"
+      "bytes": 936,
+      "sha256": "60c294fbd20388da4887640acc6856c9b004e83908a51a9295b2ce83d5ad107d"
+    },
+    {
+      "path": "contracts/ascende.py",
+      "bytes": 71724,
+      "sha256": "de88d012f894f982e384182aeaf6e58fff01d5ccd172362ea39498bf900595c4"
+    },
+    {
+      "path": "contracts/ascende.schema.json",
+      "bytes": 8805,
+      "sha256": "8ec06d83e289c5996003b848c87ab13907535dacb5fad8e962b625178e3cce9d"
     },
     {
       "path": "design/CONCEPT_ONLY-not-live-product.png",
@@ -40,18 +71,18 @@
     },
     {
       "path": "docs/02_PROTOCOL_STATE_AND_API.md",
-      "bytes": 6456,
-      "sha256": "870006a8787b1154099200cf0d712eb864e89db65f818faec690332cb7d8b708"
+      "bytes": 3240,
+      "sha256": "20d21bc20f5bb9b131ee61a0b6c57368d7ad6e1b38ae4a98ea3726847b38c1ed"
     },
     {
       "path": "docs/03_EVIDENCE_AND_CONSENSUS.md",
-      "bytes": 6565,
-      "sha256": "7de97ee8733dfb2055dd5796cb900fe732226871797ca9b1c30c8457c2d56da3"
+      "bytes": 4081,
+      "sha256": "08193f4446a4f1ebb810b1ff0e91e146c42e23a3674a59eb41b2787cb8ee5f3b"
     },
     {
       "path": "docs/04_TREASURY_AND_PAYMENT_SAFETY.md",
-      "bytes": 5247,
-      "sha256": "604232fa139b256ad70cb354ecc93e9f2c69589520a1392ac2429ab00af137c6"
+      "bytes": 6280,
+      "sha256": "a48630e97c213f3bd0a71fae24559ea9d818592ab8fc8262b293d4bdf0a1d8e0"
     },
     {
       "path": "docs/05_FRONTEND_AND_BRAND.md",
@@ -60,23 +91,23 @@
     },
     {
       "path": "docs/06_WALLET_AND_SDK.md",
-      "bytes": 4003,
-      "sha256": "6b1eb8416fc4a7043f16d6eb4330a37ac649c6f7949c2f7b4345e82568ef56b3"
+      "bytes": 4059,
+      "sha256": "b8d1988e8a8cea15f2eb374e1497241d2eb8b9bd73306ebe1198175d78a2b97a"
     },
     {
       "path": "docs/07_TEST_AND_ADVERSARIAL_MATRIX.md",
-      "bytes": 4445,
-      "sha256": "0fcf6e9e5fd68744a248cf79e50f4dd8f4dd0514438747cc275513ffc320e197"
+      "bytes": 4458,
+      "sha256": "87237cd54042ebaabf7bae9e80261f50fa4a59d93c971d8fb5da63f682519343"
     },
     {
       "path": "docs/08_DEPLOYMENT_AND_STEWARD.md",
-      "bytes": 3761,
-      "sha256": "2c2800804de049a7b88740ffe9df68fd0b112d776c735fe75755fa9d642280d9"
+      "bytes": 2248,
+      "sha256": "e83309f87e98b1f53fe54608737f5417b7ea86ddb8703040af1a0820b84fddca"
     },
     {
       "path": "docs/09_LIVE_RUNBOOK.md",
-      "bytes": 4399,
-      "sha256": "b4f22d9ecb69447e2df886cd0a5132307ff10e50f74ab44f0a0aebbd5b38c415"
+      "bytes": 4450,
+      "sha256": "0d140d395e2f67910cbe6da59c54c3b8b47e08fda6175c424633d775a154deee"
     },
     {
       "path": "docs/10_THREAT_MODEL.md",
@@ -85,8 +116,58 @@
     },
     {
       "path": "docs/11_SOURCE_API_REFERENCES.md",
-      "bytes": 2783,
-      "sha256": "d87e2c5632a0807311142dd2735287018ea3f97ee37e96ef243c6e1b4e1352f4"
+      "bytes": 4404,
+      "sha256": "fc95d56d6e056fc7fdd11082de277ff1e1143c671f7cbd10328028b571fe6f97"
+    },
+    {
+      "path": "docs/CONTRACT_API.md",
+      "bytes": 7400,
+      "sha256": "5d8a7b8133ef9c3bc76718f8b6b975248c52da427f58db39853986297bac51dc"
+    },
+    {
+      "path": "docs/DEPLOYMENT.md",
+      "bytes": 6188,
+      "sha256": "ffdc209fd4bd01de8e8841d5c70d6b997a055b3359e58e1c431a595b2d05a4f4"
+    },
+    {
+      "path": "docs/LIVE_VERIFICATION.md",
+      "bytes": 40866,
+      "sha256": "45e0dd0d5f1b08872a736488abc1ceef411531afbb00cd0d62a8cb41903162b6"
+    },
+    {
+      "path": "docs/MORE_INFO_CLOSEOUT.md",
+      "bytes": 3165,
+      "sha256": "b09902713cbd23b95504a2bb9339e46a9e48ae88e481e6f27bbe7e34333cde8d"
+    },
+    {
+      "path": "docs/REVIEWER_MATRIX.md",
+      "bytes": 2871,
+      "sha256": "b8aad0c0fbe4f011889d5f93c9481ad84c25cfe7e4521aca3e62c588d56ce4ba"
+    },
+    {
+      "path": "docs/SECURITY.md",
+      "bytes": 8572,
+      "sha256": "68edf876861e28935a37a00978ff45ba24f35bec7ea922f749d8496db87a5f1e"
+    },
+    {
+      "path": "docs/SETTLEMENT_MODEL.md",
+      "bytes": 2648,
+      "sha256": "47399eccc85acc461db2951a9f7725be4ddeab7e4f79b9ccf4816563d361e69b"
+    },
+    {
+      "path": "docs/STATE_MATRIX.md",
+      "bytes": 2868,
+      "sha256": "845f63db09dd09136787be8327ef46a58331af2402e16ae88c73934028f1eec3"
+    },
+    {
+      "path": "docs/TESTING.md",
+      "bytes": 2713,
+      "sha256": "29b09464ff43d0f4169ad39ed0198482f202c455ed9b792fedffee85925212cc"
+    },
+    {
+      "path": "docs/USER_GUIDE.md",
+      "bytes": 2746,
+      "sha256": "0084648bd50927fe744651102b2341147fd70cc972ca4025347f5bb73e6dcb6d"
     },
     {
       "path": "examples/test-fixtures/README.md",
@@ -104,129 +185,285 @@
       "sha256": "7cab23671864cf7aa8a373e6936c39b171662f266a64c4a6de3b302bddb306e4"
     },
     {
-      "path": "frontend-starter/.env.example",
-      "bytes": 237,
-      "sha256": "1c3c0e3774ec21535c62bc2326c73a31a5bdb7ab29fcd5578ebf1a72821ecead"
+      "path": "frontend/.env.example",
+      "bytes": 139,
+      "sha256": "6e6e4ca744a79201700895a9a69a52ee98bb5a1cc7ffaad7fdcadb90c034cd76"
     },
     {
-      "path": "frontend-starter/.gitignore",
+      "path": "frontend/.gitignore",
       "bytes": 48,
       "sha256": "0dfb0cd8dc5395b23140ca2730f4e864c5e3139cd0c0d39306b813418f6b005b"
     },
     {
-      "path": "frontend-starter/README.md",
-      "bytes": 1055,
-      "sha256": "829a83d956a35dbabba63273e976e320f5e39b3b277486388923648d15d271e3"
+      "path": "frontend/AGENTS.md",
+      "bytes": 679,
+      "sha256": "063098f6cb31bb44c6f8fbea25b3876de7ee1e5f7d00a50dbab506f6415eb7f0"
     },
     {
-      "path": "frontend-starter/app/activity/page.tsx",
-      "bytes": 493,
-      "sha256": "a117ebea653b79dc0eb2c2c440c377581a1f19b3788de0d30942757e3397aead"
+      "path": "frontend/README.md",
+      "bytes": 2265,
+      "sha256": "2bde9c134359051cedf453ed7780374ff007122eed4f3aeaf18ff2d900730c39"
     },
     {
-      "path": "frontend-starter/app/create/page.tsx",
-      "bytes": 566,
-      "sha256": "466bb3f03ba1bc2895dc3cf0545045a4e90d2aef4fbb28f3138eb81dee0de20a"
+      "path": "frontend/app/activity/page.tsx",
+      "bytes": 435,
+      "sha256": "6fd1993e34207747cfb6416fda215ece5acde23ddf07239ddad700d1d302295b"
     },
     {
-      "path": "frontend-starter/app/docs/page.tsx",
-      "bytes": 1520,
-      "sha256": "cdc605c437512c7ab6a4dfa144deecdeb49457fecfddcaedd6b9134a4bcbcd9c"
+      "path": "frontend/app/create/page.tsx",
+      "bytes": 15841,
+      "sha256": "4574285203eba4dfbe24834d781408672dd81c7dde0822331b5730c4645f9402"
     },
     {
-      "path": "frontend-starter/app/globals.css",
-      "bytes": 11005,
-      "sha256": "616578c3860cd5ab202b6d675d3989eaa1d67e3dbf3a07c76600fcd72150995c"
+      "path": "frontend/app/docs/page.tsx",
+      "bytes": 1937,
+      "sha256": "1638daf6d2e55353ffd06acd65c38a6d3acadf1a470f45df23c2d9e375ccda34"
     },
     {
-      "path": "frontend-starter/app/layout.tsx",
-      "bytes": 749,
-      "sha256": "6ebc3a1c5d5656dbffe44df80907c020f1b5607dfc20bcc4b97282b2298e0fff"
+      "path": "frontend/app/globals.css",
+      "bytes": 12813,
+      "sha256": "509276dc5c916a1ff5f8c55e1b56731e4358e2e12ef8aa0562312f2e970630e0"
     },
     {
-      "path": "frontend-starter/app/my-work/page.tsx",
-      "bytes": 548,
-      "sha256": "32591259991c504bcd3ce4a5ccd1e000a51089877d265da63e961c73a9ca3bde"
+      "path": "frontend/app/layout.tsx",
+      "bytes": 724,
+      "sha256": "d069138f3ee0240dc5371b2b2e8a3193bdef9ef5b4031c0622ce46f6598bb14c"
     },
     {
-      "path": "frontend-starter/app/page.tsx",
-      "bytes": 3465,
-      "sha256": "29476cc88477a824eafac9cb7a6182c2844afae564899d0de3c9187f6a478772"
+      "path": "frontend/app/my-work/page.tsx",
+      "bytes": 462,
+      "sha256": "4d741877bbdee02cc2b93707288acaa1c2d50eab8a740ba0e1a2c7bc99743183"
     },
     {
-      "path": "frontend-starter/app/programs/page.tsx",
-      "bytes": 506,
-      "sha256": "8be0cf686294eeebbf47efe22414e41e0bdb7f22d30d503b698ff29553743bcc"
+      "path": "frontend/app/page.tsx",
+      "bytes": 3526,
+      "sha256": "54f28135533b093887ae53466e6fa79713cbf880c32da916b3887ac849451f3e"
     },
     {
-      "path": "frontend-starter/components/site-header.tsx",
-      "bytes": 870,
-      "sha256": "4f2a94f91b01d127daf00a77120ff7e9fb1f4c46a0136f722e362efcee224afe"
+      "path": "frontend/app/product.css",
+      "bytes": 7490,
+      "sha256": "0f9c4872ca7f16186595565526c49fdbb378ddb264d76e0cc0377ef5a5c25006"
     },
     {
-      "path": "frontend-starter/components/starter-page.tsx",
-      "bytes": 1112,
-      "sha256": "be8d631a98ac597762697143a4fbf8d306f3d122285c52a5bc06cffa6ab0130e"
+      "path": "frontend/app/programs/[id]/challenges/page.tsx",
+      "bytes": 822,
+      "sha256": "32279a290d39e9cdd5fd43f4fc84c805898bf9f7d84b594df0dc144f28aa4694"
     },
     {
-      "path": "frontend-starter/components/wallet-control.tsx",
-      "bytes": 7357,
-      "sha256": "afdedccfd050de1582975f3c93be16185f85307808b8a0305bef1b397c5f69b7"
+      "path": "frontend/app/programs/[id]/evidence/page.tsx",
+      "bytes": 842,
+      "sha256": "b81d83a67e8668ecf98559f10afe52e08a533b36824666e0e8a8a30785f70cf5"
     },
     {
-      "path": "frontend-starter/eslint.config.mjs",
-      "bytes": 313,
-      "sha256": "8f5252c9ca326a715bd4acc73a995c37553ed164cb7c278595372ea2142f0034"
+      "path": "frontend/app/programs/[id]/page.tsx",
+      "bytes": 500,
+      "sha256": "c4e642a9e6ff9fdbd5fa59acba511f6f4dc1c284eb9f544f3cc1fb18d50b1a41"
     },
     {
-      "path": "frontend-starter/lib/network.ts",
-      "bytes": 871,
-      "sha256": "bdc813e77a1956e14b3b48c1c87f46acf9001e0619a9089040f1b3822d7c6e55"
+      "path": "frontend/app/programs/page.tsx",
+      "bytes": 630,
+      "sha256": "052d7f11f37a6f7c8a464d195ef117a1f7e30b4129893084dac7f53dacd7bcab"
     },
     {
-      "path": "frontend-starter/next-env.d.ts",
-      "bytes": 133,
-      "sha256": "899d99352204798b1ec170798fc4e3978c7410f812461b1c4bfc15224d960828"
+      "path": "frontend/app/treasury/page.tsx",
+      "bytes": 487,
+      "sha256": "16d53def09ca182fb5fc3e6c826a531117274d4f84bc9c27a8c236e3ba8b5e19"
     },
     {
-      "path": "frontend-starter/next.config.ts",
-      "bytes": 125,
-      "sha256": "c6fec4f61ecfd5790f04386c4cb408679d5797900eeb956456ee527b164fe6e8"
+      "path": "frontend/components/activity-feed.tsx",
+      "bytes": 2229,
+      "sha256": "cf917c73062393476fb844fd680010a8c883f1c232b9f6578c56fc17e0f70cdf"
     },
     {
-      "path": "frontend-starter/package.json",
-      "bytes": 617,
-      "sha256": "89b57375a136d28d9b1fdd8c5359156b1608237bf86515160401d8cb072ce18f"
+      "path": "frontend/components/program-detail.tsx",
+      "bytes": 29784,
+      "sha256": "70544a1305990e9dc38823fadbee3c9ab7b9a6fab401de95d4a64a90450b5073"
     },
     {
-      "path": "frontend-starter/public/ascende-hero.png",
+      "path": "frontend/components/program-registry.tsx",
+      "bytes": 4153,
+      "sha256": "aa0619e0408559a6164a5ecef8ed186d40b8d0026931b703977185affd863bfa"
+    },
+    {
+      "path": "frontend/components/rejected-payable-credit.tsx",
+      "bytes": 7442,
+      "sha256": "bc222e40985ad2d75306e5905fa1289669a9876607913e942955d2e875a49546"
+    },
+    {
+      "path": "frontend/components/site-header.tsx",
+      "bytes": 896,
+      "sha256": "96888558ebe454a2febe3316600fe56edeb969ff66159b18a62e61db7a15ea1b"
+    },
+    {
+      "path": "frontend/components/treasury-dashboard.tsx",
+      "bytes": 6633,
+      "sha256": "04f189f6066cf43b37e69ee4cf4c84b9c4615a65dbca195bc8ccfc8b12b2c53a"
+    },
+    {
+      "path": "frontend/components/wallet-control.tsx",
+      "bytes": 8829,
+      "sha256": "e59f0af2f733814ecf02f8ad32a35c516155f03c7237c5edee95262b0623aa3b"
+    },
+    {
+      "path": "frontend/e2e/app.spec.ts",
+      "bytes": 8848,
+      "sha256": "135b70ca003a09bd1409dba6015e759a6043c866a346dfa6e7e247bbf94b0f7a"
+    },
+    {
+      "path": "frontend/eslint.config.mjs",
+      "bytes": 325,
+      "sha256": "5f9151dadd25eea1cb991df794794c06a29f613dfb140e714ddae519a195d1be"
+    },
+    {
+      "path": "frontend/lib/capabilities.ts",
+      "bytes": 550,
+      "sha256": "fe114762298d746ae0c3a9ed1ef273b6cb230273ea49df02951d1d0f4a079db2"
+    },
+    {
+      "path": "frontend/lib/genlayer.test.ts",
+      "bytes": 3005,
+      "sha256": "f1524b91f9cdfa152c9eb62394a8e7adfc7937d341827f28463493f1588b614e"
+    },
+    {
+      "path": "frontend/lib/genlayer.ts",
+      "bytes": 13493,
+      "sha256": "c523f7ab71e9de01d230c7427643b559a05fe5987c2609da5cdaa342ac9c0ca9"
+    },
+    {
+      "path": "frontend/lib/network.ts",
+      "bytes": 911,
+      "sha256": "2c2a8a823a49a94a2f759c973cbb7df486481e45354d91e1a1b34504bf2a2f3c"
+    },
+    {
+      "path": "frontend/lib/preflight.test.ts",
+      "bytes": 5757,
+      "sha256": "27a03b2e8bef6385aed5d6990013e782d6da0fc4bfab19dbc8e6313f47e426ea"
+    },
+    {
+      "path": "frontend/lib/preflight.ts",
+      "bytes": 5590,
+      "sha256": "3ff46683c1b0715c7deab4552d810c15a84f013c960ab4379c833229b381cb98"
+    },
+    {
+      "path": "frontend/lib/wallet-preparation.test.ts",
+      "bytes": 1132,
+      "sha256": "5faad5ff52913d9d60b4a13f3fbd6a797a020dee87f722c8fe29029f3daed6ef"
+    },
+    {
+      "path": "frontend/lib/wallet-store.ts",
+      "bytes": 568,
+      "sha256": "b6b5e7679af4f27af1b0d4f04605e27ffe2e080db46ec38b00b85a73c00c1a2b"
+    },
+    {
+      "path": "frontend/next-env.d.ts",
+      "bytes": 288,
+      "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b"
+    },
+    {
+      "path": "frontend/next.config.ts",
+      "bytes": 161,
+      "sha256": "e6e2889f0e53aa19e784730ba89af08a8a36a096e5a715ed84ba7d0fd0a99c2c"
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "bytes": 254026,
+      "sha256": "b5b4a9845aebff7a23c568416863b28cc57bb514fef616e7332074e9b78a6526"
+    },
+    {
+      "path": "frontend/package.json",
+      "bytes": 748,
+      "sha256": "62b8e7785f1517eb5043e1f93347d853a97abc64465bb52651f4ee932a81f7da"
+    },
+    {
+      "path": "frontend/playwright.config.ts",
+      "bytes": 917,
+      "sha256": "74c499d976ceabf869642fa598236bf3eddd4d868756536ee50d605839790763"
+    },
+    {
+      "path": "frontend/public/ascende-hero.png",
       "bytes": 1011619,
       "sha256": "0b35c50dd07621abd2da0cf936da20808bc04f3a89c049932cf87e596e306ca5"
     },
     {
-      "path": "frontend-starter/public/ascende-mark.svg",
+      "path": "frontend/public/ascende-mark.svg",
       "bytes": 344,
       "sha256": "f16b5d1b1279ffa7f5c72257317cca0d57529f94932f46abf7c8ad1d99eff7a6"
     },
     {
-      "path": "frontend-starter/tsconfig.json",
-      "bytes": 562,
-      "sha256": "1519b3e409b0059442adaf1c0c663021214e914c0f80b40cbba705e378aa4537"
+      "path": "frontend/tsconfig.json",
+      "bytes": 699,
+      "sha256": "9f6409111d541fd054809ae3c4ffb90600eeda64530cc8082770878906007d12"
+    },
+    {
+      "path": "frontend/vitest.config.mts",
+      "bytes": 156,
+      "sha256": "2619ce6fc91fd5ed6daa2e76efdaa9d03fd46a2bbfd38671e2213d42300cb3e6"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 247855,
+      "sha256": "afc114d481b2436b479fb6679872eaaa54441ed6bb261b7caed7c3c2b8ec9630"
+    },
+    {
+      "path": "package.json",
+      "bytes": 201,
+      "sha256": "f4428d77e79537e6f1232742a11d66d59af4248f82850c72e317681da568323f"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 77,
+      "sha256": "72f3980e4b70f7288f45bcd885c476520ae569290977fbb219d9b0b6caf057fd"
+    },
+    {
+      "path": "scripts/install-genvm-runner.ps1",
+      "bytes": 853,
+      "sha256": "e4bc1d9e28a99e17b5c80994ad55ce3830d5e3366449852a67cf1f11ee5c7081"
     },
     {
       "path": "scripts/preflight.ps1",
-      "bytes": 631,
-      "sha256": "5fb17ce64c4d36f133d2b0d84b6363c358616a6081d9d81676c6e931b5ebcd64"
+      "bytes": 968,
+      "sha256": "0600572efe8ad0b23fe382f4d1591717c4debcba8f73b9a64ff46bf59411a4a1"
     },
     {
       "path": "scripts/preflight.sh",
-      "bytes": 438,
-      "sha256": "095f6c5caafa99620c0443bea5b24e2daeeb521d2ab3462edda1270e1b9de791"
+      "bytes": 393,
+      "sha256": "eb919268c470f2ce4e8a3ffc4d03d25b471774370557aef847c569257b25989a"
     },
     {
-      "path": "tests/README.md",
-      "bytes": 237,
-      "sha256": "204adb30c86ab230b69f687a0bb2ffabaa415c8645f9db4c31f236aad85f7805"
+      "path": "tests/conftest.py",
+      "bytes": 2607,
+      "sha256": "e217beafcf11aebf50061aca2f163763c5bf3f1f73c0cef0e219a86d4dc169fd"
+    },
+    {
+      "path": "tests/live-evidence/not-qualified.md",
+      "bytes": 433,
+      "sha256": "48d8741597db84d6a2ee3bacf1084cc46bb0417d1dca12d2a339edeca2dee1ab"
+    },
+    {
+      "path": "tests/live-evidence/qualified-challenge.md",
+      "bytes": 323,
+      "sha256": "085fff5a92ad9622ad090f293825eb8b2d0b49913ce38638634fc914eb3dd513"
+    },
+    {
+      "path": "tests/live-evidence/qualified.md",
+      "bytes": 268,
+      "sha256": "0e45e4eb26ae0b8ace69198cda82e23b9ba71c8d72259aed0d76ea633c333e67"
+    },
+    {
+      "path": "tests/test_contract.py",
+      "bytes": 61568,
+      "sha256": "e2d674b2c02e3600e6537a28ed95f602f4ab6e9eee659943a069fabd0e33c966"
     }
-  ]
+  ],
+  "release_note": "Deployed to stable Studionet 61999 at 0x5715eACA23d495b71E800Dd9eD6e13875855bd9c with normalized source-byte parity. Fresh 2-wei missing-evidence expiry, closure, refund and no-duplicate replay evidence is recorded. Production Vercel now points to this contract. Positive qualification, challenge flip, current-branch browser-wallet proof, and reconciled delivery remain outstanding.",
+  "deployment": {
+    "contract_address": "0x5715eACA23d495b71E800Dd9eD6e13875855bd9c",
+    "transaction": "0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e",
+    "source_body_sha256": "0E5FA7A4018A45F64A6CD5D44F3F67F5BF16831109A63C834396228AF3CE8014",
+    "source_file_sha256": "DE88D012F894F982E384182AEAF6E58FFF01D5CCD172362EA39498BF900595C",
+    "production_frontend_updated": true,
+    "production_frontend_url": "https://ascende-sand.vercel.app/",
+    "production_vercel_deployment_id": "dpl_AbJYH1Q7VYDh156KPqpdXtxEWwHZ",
+    "production_frontend_route_checks": ["/", "/programs", "/programs/1", "/programs/1/evidence", "/programs/1/challenges", "/create", "/my-work", "/treasury", "/activity", "/docs"]
+  }
 }

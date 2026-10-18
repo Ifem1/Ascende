@@ -1,41 +1,40 @@
 # Testing and CI
 
-The checked-in workflow is the release gate: [GitHub Actions](https://github.com/Ifem1/Ascende/actions/workflows/ci.yml). It runs the pinned GenVM contract checks on Windows, then frontend checks and Playwright on Ubuntu. A green run must exist for the final pushed commit before calling that source verified.
+The checked-in workflow is the release gate: [GitHub Actions](https://github.com/Ifem1/Ascende/actions/workflows/ci.yml). It runs pinned GenVM contract checks on Windows and frontend checks and Playwright on Ubuntu. A green result must exist for the exact final commit.
 
-## Local release checks
+## Current branch coverage
 
-- Contract Direct Mode after the multi-authority policy change: **59 passed** with Python 3.12.10, `genlayer-test 0.29.2`, `genlayer-py 0.16.3`, and GenVM linter `0.11.0` pinned to stable runtime `v0.2.16`.
-- GenVM lint: **3 checks passed**. Semantic validation: **29 methods** (13 view, 16 write). Generated schema matches `contracts/ascende.schema.json`.
-- Frontend: TypeScript, ESLint, Vitest (**13 tests**), Next.js production build and Playwright were rerun after adding the multi-authority form and settlement operation list. Local Playwright executed all seven cases successfully; the Windows runner took additional time to exit after tests.
-- Contract regressions cover one-host policy rejection, exact evidence manifests across required authorities, source-level contradictions becoming INCONCLUSIVE, exact leader/validator provenance agreement, and challenge outcomes that change after reevaluation. Playwright creation checks require two distinct hostnames per milestone. These E2E cases simulate EIP-1193 behavior; the genuine Rabby transaction and contract readback are separately recorded in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md).
+The Direct Mode suite covers acceptance and funding separation, permissionless expiry of unaccepted/unfunded drafts, sequential milestone progression and late activation, evidence deadline boundaries, unresolved review and challenge grace, retry exhaustion, bond ownership, immutable payment reservation, rejected payable credits, authority and URL policy, byte-level source citations, validator agreement, malformed/malicious packets, and conservation of principal and bonds. Current local run: **63 passed**.
 
-The checked-in source has changed since the live deployment. The existing deployment and its receipts do not prove the new multi-authority contract. A fresh stable Studionet deployment and source-matched live scenarios are still required; do not claim release verification until that is complete.
+Frontend tests cover creation preflight for required/optional authorities, manifest validation, draft readback, wallet preparation, extended finality polling and pending-status behavior. Current local runs: TypeScript, ESLint, production build passed; Vitest **16 passed**; all **7 Playwright cases passed** against a fresh local server. A genuine Rabby browser transaction created current-source program 1 via the production frontend; the separate SDK-created program 2 is clearly labeled in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). Exact-commit GitHub Actions run 39156835291 passed for branch commit 437a56359f448b33274ac5cc068d055df4807863.
 
-## Latest release verification — 2026-10-15
+The current contract source SHA-256 `8345bbdd755fe5e35eb02ae02ab0ddeb00deb7af51f0581bff552cf68d060217` is deployed at `0x1544852461c4F61F266F5c2930c315C85069f1a6`. The deployment receipt and schema were verified; current-source live qualification, challenge-flip, conflict/recovery, and funded wallet-UI outcomes are not yet established. Earlier lifecycle transactions belong to different sources and remain historical. See [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md).
 
-- Commit: [`bf0da8059dfc8ca98ebc5e985626880843f28771`](https://github.com/Ifem1/Ascende/commit/bf0da8059dfc8ca98ebc5e985626880843f28771).
-- [GitHub Actions run 38735284900](https://github.com/Ifem1/Ascende/actions/runs/38735284900): contract and frontend jobs passed. The contract job ran GenVM lint, semantic validation, schema generation and Direct Mode tests; the frontend job ran typecheck, ESLint, 12 Vitest tests, Next.js build and Playwright.
-- Vercel Production deployment `7092608908` completed successfully: [production deployment](https://ascende-d9qhdjbnh-ifem1s-projects.vercel.app).
-- The production wallet transaction and Program 1 contract readback are documented in [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). The user switched Rabby to the supplied account and Studionet 61999; the successful transaction confirms the actual sender and chain.
-- Windows CI sets `PYTHONUTF8=1` and `PYTHONIOENCODING=utf-8` and pins `GENVM_VERSION=v0.2.16` to avoid console encoding errors and runtime drift.
-
-Reproduce from the repository root in PowerShell:
+## Reproduce locally (PowerShell)
 
 ```powershell
+npm ci
 $env:GENVM_VERSION='v0.2.16'
 $env:PYTHONUTF8='1'
 $env:PYTHONIOENCODING='utf-8'
+python -m pip install -r requirements.txt
+./scripts/install-genvm-runner.ps1
+genvm-lint check contracts/ascende.py
+genvm-lint typecheck contracts/ascende.py
 genvm-lint lint contracts/ascende.py
 genvm-lint validate contracts/ascende.py
 genvm-lint schema --json -o contracts/ascende.schema.json contracts/ascende.py
-pytest -p no:cacheprovider --tb=short -q tests/test_contract.py
+git diff --exit-code -- contracts/ascende.schema.json
+python -m pytest -p no:cacheprovider --tb=short -q tests/test_contract.py
 Push-Location frontend
+npm ci
 npm run typecheck
 npm run lint
-npm test
+npm run test
 npm run build
+npx playwright install chromium
 npm run e2e
 Pop-Location
 ```
 
-A finalized parent transfer, a finalized child receipt, and contract-accounting reconciliation are different facts. The current contract intentionally retains transfer obligations as pending because it cannot authenticate a child result. See [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md) and [SECURITY.md](SECURITY.md).
+The root lockfile pins GenLayer CLI `0.39.1`; CI verifies that version and stable Studionet chain `61999`. No test switches to Studio-dev or a release candidate. Parent transaction finality, child execution, recipient credit, and contract-ledger reconciliation are separate facts; see [SECURITY.md](SECURITY.md).

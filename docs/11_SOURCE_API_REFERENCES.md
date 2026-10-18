@@ -18,7 +18,7 @@ Verified against public GenLayer documentation on **2026-10-13**; reference page
 - Studionet RPC `https://studio.genlayer.com/api`
 - Chain ID `61999` = `0xF22F`
 - Explorer `https://explorer-studio.genlayer.com`
-- Local tools: global CLI `0.39.1` (not pinned in repo), GenLayerJS `1.1.8` (lockfile-pinned), `genlayer-test 0.29.2`, `genlayer-py 0.16.3`, and Direct Mode runner `v0.2.16` (checksum-pinned). The deployed stable Studionet ABI has not been generated.
+- Local tools: repository-pinned GenLayer CLI `0.39.1`, GenLayerJS `1.1.8` (frontend lockfile), `genlayer-test 0.29.2`, `genlayer-py 0.16.3`, and Direct Mode runner `v0.2.16` (checksum-pinned). The ABI schema was generated from the current branch with the pinned runtime and all 33 public methods were present in the deployed schema readback at `0x1544852461c4F61F266F5c2930c315C85069f1a6` (source SHA-256 `8345bbdd755fe5e35eb02ae02ab0ddeb00deb7af51f0581bff552cf68d060217`).
 - DO NOT use chain 61997 or global RC CLI for this target.
 
 ## Public implementation reference review (2026-10-13)

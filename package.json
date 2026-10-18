@@ -1,0 +1,14 @@
+{
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "genlayer": "0.39.1"
+  },
+  "overrides": {
+    "genlayer": {
+      "vitest": "4.1.11"
+    },
+    "dockerode": {
+      "uuid": "11.1.1"
+    }
+  }
+}

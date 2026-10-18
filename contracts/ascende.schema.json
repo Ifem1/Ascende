@@ -4,6 +4,18 @@
     "kwparams": {}
   },
   "methods": {
+    "accept_program": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
     "challenge_milestone": {
       "params": [
         [
@@ -96,6 +108,30 @@
       "ret": "string",
       "payable": false
     },
+    "expire_unaccepted_program": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
+    "expire_unfunded_program": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": false
+    },
     "finalize_milestone": {
       "params": [
         [
@@ -127,6 +163,18 @@
       "readonly": false,
       "ret": "string",
       "payable": false
+    },
+    "fund_program": {
+      "params": [
+        [
+          "program_id",
+          "int"
+        ]
+      ],
+      "kwparams": {},
+      "readonly": false,
+      "ret": "string",
+      "payable": true
     },
     "get_capabilities": {
       "params": [

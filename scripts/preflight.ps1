@@ -4,7 +4,13 @@ Write-Host 'Repo:' (Get-Location)
 Write-Host 'Node:' (node --version)
 Write-Host 'npm:' (npm --version)
 Write-Host 'Python:' (python --version)
-if (Test-Path './node_modules/.bin/genlayer') { Write-Host 'Repo-local CLI:'; & ./node_modules/.bin/genlayer --version }
-else { Write-Host 'Repo-local CLI missing: install verified stable 0.39.1 if compatible, do NOT use global RC.' }
+if (-not (Test-Path './node_modules/.bin/genlayer.cmd')) { throw 'Repository-pinned GenLayer CLI is missing. Run npm ci.' }
+$cliVersion = (& npx --no-install genlayer --version).Trim()
+if ($cliVersion -ne '0.39.1') { throw "Expected repository-pinned GenLayer CLI 0.39.1, got $cliVersion" }
+Write-Host 'Repo-local CLI:' $cliVersion
+& npx --no-install genlayer network set studionet
+$network = (& npx --no-install genlayer network info | Out-String)
+if ($network -notmatch '61999') { throw 'GenLayer CLI is not configured for stable Studionet 61999.' }
+Write-Host $network
 Write-Host 'Chain requirement: 61999 (0xF22F) RPC https://studio.genlayer.com/api'
 Write-Host 'No deployment or wallet activity is performed by this preflight.'

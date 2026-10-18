@@ -4,9 +4,48 @@ Stable Studionet (chain 61999 / `0xF22F`). This is test evidence, not production
 
 ## Release source status
 
-The current multi-authority source is deployed at `0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD`. Its positive, disputed and failure lifecycle evidence is still outstanding. Older addresses and receipts below apply only to their listed historical source versions.
+The current contract source (`7ed29355d9e308f0c236e3a3df4aff8eb8c20649`, SHA-256 `8345bbdd755fe5e35eb02ae02ab0ddeb00deb7af51f0581bff552cf68d060217`) is deployed at `0x1544852461c4F61F266F5c2930c315C85069f1a6` on stable Studionet 61999. Deployment finality, execution, source bytes and schema readback match. Fresh live evidence on this deployment now includes a real injected-wallet browser draft creation and a separate supplied-wallet SDK draft creation; neither draft is funded, and no milestone evaluation or challenge has yet been run against this source. All evidence below for other contract addresses is historical and cannot prove current-source outcomes.
 
-## Current source deployment — 2026-10-17
+## Current production browser-wallet creation — current deployment
+
+- Production site: [Ascende](https://ascende-sand.vercel.app/), connected through injected Rabby as supplied Landlord 1 `0xD6423aE82a975d55C6CeaC222827A727325e0459`, on Studionet 61999.
+- Parent transaction: [`0x5aa8a40943fa193ce6881070fe6a012f926eb73c4bcece3abd06833bdbd88bc3`](https://explorer-studio.genlayer.com/tx/0x5aa8a40943fa193ce6881070fe6a012f926eb73c4bcece3abd06833bdbd88bc3). The public explorer records `FINALIZED`, sender Landlord 1, destination the canonical contract, value `0`, nonce `1588`, and three `agree` / two `idle` validator votes. Decoded calldata identifies `create_program`.
+- The transaction created program `1`, title “Ascende live reviewer proof — current contract”, with recipient supplied Tenant 1 `0x39680bd423437C0Eaa18493629652821Ec672C61`, two 1-wei tranches (2 wei proposed total), frozen criteria and two required HTTPS authorities per milestone. The exact Gist and GitHub fixture bytes and hashes are listed in the current deployment section below.
+- Authoritative `get_program_counter()` readback is `2`; `get_program(1)` matches the browser transaction's funder, recipient, title, purpose, two tranches, criteria, authorities and deadlines. Program 1 remains `DRAFT`, with `funded_wei=0`; the public page [program 1](https://ascende-sand.vercel.app/programs/1) shows the unfunded draft. This is a genuine browser-originated injected-wallet transaction, not an SDK or simulated wallet call.
+- No screenshot artifact was captured. This proves connection, correct network, transaction preparation, user-approved wallet broadcast, finality, successful execution and authoritative readback. It does not prove acceptance, funding, milestone decisions, challenges or child transfer delivery.
+
+## Current source SDK draft — current deployment
+
+- A separate no-value SDK transaction using supplied Tenant 2 `0xA49c51d759790116D451f256654dD9F0549D341F` created program `2`, title “Live multi-source review and challenge flip — 2026-10-18”, with supplied Landlord 2 `0x77e2EdBb43277bf772e207C517dde731935ffbA5` as recipient and two 1-wei tranches. Parent transaction: [`0xb2b65669517aa35b52a25e3535ed661f8fe9332c914d65c59e39dc8d1c05d19c`](https://explorer-studio.genlayer.com/tx/0xb2b65669517aa35b52a25e3535ed661f8fe9332c914d65c59e39dc8d1c05d19c), finalized with three validator agrees and two idle.
+- Program 2 is a draft and was not accepted or funded. This SDK transaction is not frontend-wallet evidence. The source code and protocol behavior are exercised by Direct Mode tests; no live evidence evaluation or challenge result is claimed here.
+
+## Historical production wallet creation — previous deployment
+
+- Site: [Ascende production](https://ascende-sand.vercel.app/), connected with injected Rabby as Landlord 1 `0xD6423aE82a975d55C6CeaC222827A727325e0459`, Studionet 61999. This is a historical transaction on a previous deployment.
+- Parent transaction: [`0x1307b888c9f6158557c6ee74a14fcbc7036412de0f430eedd74f1e478d62027a`](https://explorer-studio.genlayer.com/tx/0x1307b888c9f6158557c6ee74a14fcbc7036412de0f430eedd74f1e478d62027a). Explorer shows `FINALIZED`, execution `SUCCESS`, `MAJORITY_AGREE` (three validators agreed; two idle), sender Landlord 1, destination the canonical contract, attached value 0 GEN, and return value program ID 2.
+- Frozen terms: recipient Tenant 1 `0x39680bd423437C0Eaa18493629652821Ec672C61`; proposed budget 2 wei, two milestones of 1 wei each; meaningful criteria and frozen HTTPS authorities; both milestones remain locked until acceptance and funding.
+- Authoritative readback: program counter is 2; `get_program(2)` contains the matching funder, recipient, criteria, authorities, deadlines and 2-wei proposed budget, with state `DRAFT` and no funded principal. The public page [program 2](https://ascende-sand.vercel.app/programs/2) displays that same unfunded state.
+- This verifies wallet connection, browser-originated creation, finality, contract execution and readback. It does not prove program acceptance, funding, milestone decision, challenge, or child transfer delivery. No screenshot artifact was captured for this transaction.
+
+## Previous source deployment — 2026-10-17 (superseded)
+
+- Deployment transaction: [`0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e`](https://explorer-studio.genlayer.com/tx/0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e), finalized `SUCCESS`, `MAJORITY_AGREE`.
+- Contract: `0x5715eACA23d495b71E800Dd9eD6e13875855bd9c`, stable Studionet 61999.
+- Contract explorer: [historical contract and transaction history](https://explorer-studio.genlayer.com/address/0x5715eACA23d495b71E800Dd9eD6e13875855bd9c).
+- Initial unsuccessful create attempt: [`0x44e9682ddd0e76283dd2348d1437843708e53a1c5772c4dad106af9d3f7b626a`](https://explorer-studio.genlayer.com/tx/0x44e9682ddd0e76283dd2348d1437843708e53a1c5772c4dad106af9d3f7b626a). The CLI encoded the string recipient as an address-typed argument. It finalized with `MAJORITY_AGREE`, but created no program; counter stayed `0`, `get_program(1)` was empty, and `value_credited=false`. The corrected SDK call below passes the recipient as a string.
+- Corrected creation: program ID `1`, parent [`0xeee4dcf39084ed45bbc85bedb22912c4e5ac014de1d5ec434af6fea153920926`](https://explorer-studio.genlayer.com/tx/0xeee4dcf39084ed45bbc85bedb22912c4e5ac014de1d5ec434af6fea153920926), finalized `MAJORITY_AGREE`. Funder was supplied Landlord 1 `0xD6423aE82a975d55C6CeaC222827A727325e0459`; recipient was supplied Tenant 1 `0x39680bd423437C0Eaa18493629652821Ec672C61`. Direct contract readback confirms counter `1`, exact recipient/funder, frozen 2-wei budget, two 1-wei tranches, and `DRAFT` state. No value was attached to draft creation.
+- Recipient acceptance: [`0x64eb09c262d14af1cd12082cc534c981c5d2a43470377b17a6654c0428fbcdc3`](https://explorer-studio.genlayer.com/tx/0x64eb09c262d14af1cd12082cc534c981c5d2a43470377b17a6654c0428fbcdc3), finalized `MAJORITY_AGREE`; state became `ACCEPTED_UNFUNDED` with the correct recipient and acceptance timestamp.
+- Exact funding: [`0xce623bc44435b0944c131fff427ebed7ce4c7a812924d32892bb2ba06ca35274`](https://explorer-studio.genlayer.com/tx/0xce623bc44435b0944c131fff427ebed7ce4c7a812924d32892bb2ba06ca35274), finalized `MAJORITY_AGREE`, transaction value `2` wei and `value_credited=true`. Readback: `ACTIVE`, `funded_wei=2`, `locked_wei=2`, first milestone `OPEN`.
+- Missing evidence expiry: after milestone 0 deadline `1792260268`, supplied Tenant 2 `0xA49c51d759790116D451f256654dD9F0549D341F` called `expire_milestone(1,0)`. Parent [`0x9b0e8a67c5aba28af5a154be52451f4db88e90e5b7a6325e32e61320dbd7d044`](https://explorer-studio.genlayer.com/tx/0x9b0e8a67c5aba28af5a154be52451f4db88e90e5b7a6325e32e61320dbd7d044) finalized `MAJORITY_AGREE`. Readback records `FINAL_EXPIRED`, reason `EVIDENCE_NOT_SUBMITTED`, terminal timestamp `1792260295`, earned `0`, locked principal `2`.
+- Permissionless stopped closure: [`0x83dc53cb0697eda91565020dc6c9f7b122402b59a6e513693e4a22b46aa2db14`](https://explorer-studio.genlayer.com/tx/0x83dc53cb0697eda91565020dc6c9f7b122402b59a6e513693e4a22b46aa2db14), finalized `MAJORITY_AGREE`; readback `CLOSED_STOPPED`, locked `0`, refund claimable `2`, earned `0`. History includes recipient acceptance, exact funding, expiry reason/time, and closure release amount/time.
+- Refund authorization: [`0x5be83f5b6af62878fc01a56210a830b86d5d3ab2d2a767de126f035559cab148`](https://explorer-studio.genlayer.com/tx/0x5be83f5b6af62878fc01a56210a830b86d5d3ab2d2a767de126f035559cab148), finalized `MAJORITY_AGREE`. Operation `1` reserved exactly 2 wei for the original funder; refund claimable became 0 and authorized became 2.
+- Once-only transfer submission: parent [`0xe28aaa2ebcf305e2ae9f0870ccd200d4df3a3e9ac1c181e95ec27451314f9ab6`](https://explorer-studio.genlayer.com/tx/0xe28aaa2ebcf305e2ae9f0870ccd200d4df3a3e9ac1c181e95ec27451314f9ab6), finalized `MAJORITY_AGREE`; it triggered child [`0x4a077592d0d94fbd48bbb1cdbab7f597be24e96916c6f5ce5d82d44eb96e4766`](https://explorer-studio.genlayer.com/tx/0x4a077592d0d94fbd48bbb1cdbab7f597be24e96916c6f5ce5d82d44eb96e4766). Child receipt is `FINALIZED`, `value_credited=true`, value `2` wei, destination the original funder, and `result_name=NO_MAJORITY`. The source ledger remains correctly `TRANSFER_SUBMITTED`, pending `2`, delivered `0`; no child-result callback reconciles this status. Do not describe this as contract-confirmed delivery.
+- Duplicate replay: same operation `1` was submitted again in parent [`0x82a3ccbbd600252eb9d4a3bd409942213084dc878f3287cac0dc42bcf0594cc2`](https://explorer-studio.genlayer.com/tx/0x82a3ccbbd600252eb9d4a3bd409942213084dc878f3287cac0dc42bcf0594cc2), finalized `MAJORITY_AGREE`; it triggered no child. Readback still shows exactly one operation, `TRANSFER_SUBMITTED`, and pending `2`.
+- This historical browser-created draft used the frontend deployed from commit `89699560825c97f0279bbfa22ce0f5c6c7a2b2fe`; the contract source and address were unchanged by the subsequent frontend-only finality fix. Finality-hardening commit [`54a05677644ba61bd213b2dd18e927b8c3922443`](https://github.com/Ifem1/Ascende/commit/54a05677644ba61bd213b2dd18e927b8c3922443) passed exact-commit [GitHub Actions run 39069828082](https://github.com/Ifem1/Ascende/actions/runs/39069828082). Its Vercel deployment and route checks are historical and do not prove current-source wallet activity.
+
+## Historical source deployment — 2026-10-17 (superseded)
+
+All details in this subsection, including the Vercel deployment reference, describe that previous release only. They are not current branch deployment evidence.
 
 - Repository commit: [`fccac05730c95d68f5759c89f9e689c0d76165b5`](https://github.com/Ifem1/Ascende/commit/fccac05730c95d68f5759c89f9e689c0d76165b5).
 - Stable Studionet chain ID `61999` (`0xF22F`), RPC `https://studio.genlayer.com/api`.
@@ -17,7 +56,7 @@ The current multi-authority source is deployed at `0x2c7a6260f2958C0Bd6634182E99
 - No new program, evidence evaluation, challenge or settlement lifecycle has yet been executed against this deployment. The existing multi-authority Direct Mode tests are simulation evidence only, not live validator evidence.
 - Deployment transaction explorer: [view receipt](https://explorer-studio.genlayer.com/tx/0x03bc674baea5c6915ce840a20c6d17072171805d410b9e7bf968bbad0177be01).
 
-The production alias [ascende-sand.vercel.app](https://ascende-sand.vercel.app/) now uses this address. Vercel production deployment [`dpl_7LJoRtnqCG7DW5SgyzqKVDGNmw2F`](https://vercel.com/ifem1s-projects/ascende/7LJoRtnqCG7DW5SgyzqKVDGNmw2F) is `READY`; the deployed Docs page embeds the new contract address and source hash. Routes `/`, `/programs`, `/create`, `/my-work`, `/treasury`, `/activity`, and `/docs` returned HTTP 200. These are deployment smoke checks, not a real wallet-signed transaction or proof of positive/disputed/failure lifecycle outcomes. Do not reuse historical browser-created program or payout receipts below as proof for the current source.
+At that historical release, the production alias [ascende-sand.vercel.app](https://ascende-sand.vercel.app/) used this address. Vercel deployment [`dpl_7LJoRtnqCG7DW5SgyzqKVDGNmw2F`](https://vercel.com/ifem1s-projects/ascende/7LJoRtnqCG7DW5SgyzqKVDGNmw2F) was `READY`; the deployed Docs page embedded that contract address and source hash. These route checks are historical, not current deployment evidence. They are not a real wallet-signed transaction or proof of positive/disputed/failure lifecycle outcomes. Do not reuse historical browser-created program or payout receipts below as proof for the current source.
 
 ## Historical deployment — rejected payable and bounded refund (source `d80148c4…`)
 
@@ -117,6 +156,23 @@ The tests used 2 wei principal and 1 wei challenge bonds for programs 4 and 6. T
 - This historical deployment therefore has 5 wei (0.000000000000000005 GEN) in observed failed payable value with no state record: two failed program creations (2 wei each) and one failed challenge (1 wei). No recovery path exists on that address; the new source's recovery path is demonstrated above on a separate deployment.
 
 The successful challenge-resolution and abandoned-review receipts above belong to this historical source-matched deployment. The live test also shows that a 60-second challenge window can be missed under actual signing/execution timing; the contract tests separately cover boundary behavior.
+
+## Current source deployment
+
+- Deployment: [`0x46b46a4faa4101f010dffb338d7b4c9c401de1cc6a5891e7113a6baf06cee03c`](https://explorer-studio.genlayer.com/tx/0x46b46a4faa4101f010dffb338d7b4c9c401de1cc6a5891e7113a6baf06cee03c), finalized `SUCCESS`, `MAJORITY_AGREE` (three agree, two idle).
+- Contract: [`0x1544852461c4F61F266F5c2930c315C85069f1a6`](https://explorer-studio.genlayer.com/address/0x1544852461c4F61F266F5c2930c315C85069f1a6); chain ID 61999; source SHA-256 `8345bbdd755fe5e35eb02ae02ab0ddeb00deb7af51f0581bff552cf68d060217`.
+- Initial authoritative reads: program counter `0`; every protocol accounting bucket `0`; live schema includes all 33 expected methods.
+- Public fictional fixtures, pinned to Git commit `7ed29355d9e308f0c236e3a3df4aff8eb8c20649` and Gist revision `852e81c070b3e25bf5ad451d0d7997f327a538a6`. Both hosts are GitHub-controlled and share owner `Ifem1`; distinct hostnames do not prove organizational independence. The bodies are explicitly fictional test data. Both URLs were fetched with HTTP 200 and exact byte-length/SHA-256 matches:
+
+| Case | Authority A (`raw.githubusercontent.com`) | Authority B (`gist.githubusercontent.com`) |
+| --- | --- | --- |
+| Stage A PASS | 116 bytes, `b51f70d401323e7800acfc6044379dca2f24c0aa2d68b72f94fe786edc9a8fa0` | 115 bytes, `6935f92384406693385cb636c4590ee068b59198f123cbb25e764da6a9fb86fc` |
+| Stage B initial FAIL | 124 bytes, `a9d4e6fc6285e4432b82b7d4cf2e6696bade8f2a8e66edd0fbf78aab675f15f8` | 123 bytes, `773520d0d4ee1f8604de584a25e84e9da334eaccfca7a1e442e4adc93f2479d5` |
+| Stage B challenge PASS | 126 bytes, `56efbe7c96361194b1d898966e17b186a63b89cd2a3930564b88a95f3f739e71` | 125 bytes, `1d534160e4436bce62bdc6488e20257a69b38eff1eaf5c61f2e1cb21edabb076` |
+| Stage C conflict | 116 bytes, `fd3ac45e105034023129a80399c8748933301bf6b0f45c6205a508bb0b0b3664` | 115 bytes, `de84ee7f1a1f71086c4df96397452c3264d6278375e23e2123686258e881035b` |
+
+Authority A URL pattern: `https://raw.githubusercontent.com/Ifem1/Ascende/7ed29355d9e308f0c236e3a3df4aff8eb8c20649/test-fixtures/authority-a/`. Authority B URL pattern: `https://gist.githubusercontent.com/Ifem1/678692378c37e26f0375d070a6964ba5/raw/852e81c070b3e25bf5ad451d0d7997f327a538a6/`. These fixtures are not live adjudication results.
+
 
 ## Historical deployment — superseded source
 

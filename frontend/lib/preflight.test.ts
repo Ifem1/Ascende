@@ -19,7 +19,7 @@ describe("evidence preflight", () => {
     expect(() => validateEvidenceEntry(valid, "abc", "1", [{ prefix: authority, required: true }])).toThrow(/SHA-256/);
     expect(() => validateEvidenceEntry(valid, "a".repeat(64), "0", [{ prefix: authority, required: true }])).toThrow(/byte length/);
     expect(() => validateEvidenceEntry(valid, "a".repeat(64), "65537", [{ prefix: authority, required: true }])).toThrow(/64 KiB/);
-    expect(() => validateEvidenceManifest([{ url: valid, sha256: "a".repeat(64), byteLength: "1" }], [{ prefix: authority, required: true }, { prefix: "https://other.example/", required: true }])).toThrow(/every required/);
+    expect(() => validateEvidenceManifest([{ url: valid, sha256: "a".repeat(64), byteLength: "1" }], [{ prefix: authority, required: true }, { prefix: "https://other.example/", required: true }])).toThrow(/required authority/);
   });
 
   it("rejects deceptive frozen source prefixes", () => {
@@ -33,7 +33,28 @@ describe("evidence preflight", () => {
       { url: `${authority}a.json`, sha256: "a".repeat(64), byteLength: "1" },
       { url: `${authorityTwo}b.json`, sha256: "b".repeat(64), byteLength: "2" },
     ], authorities)).toHaveLength(2);
-    expect(() => validateEvidenceManifest([{ url: `${authority}a.json`, sha256: "a".repeat(64), byteLength: "1" }], authorities)).toThrow(/every required authority/);
+    expect(() => validateEvidenceManifest([{ url: `${authority}a.json`, sha256: "a".repeat(64), byteLength: "1" }], authorities)).toThrow(/required authority/);
+  });
+
+  it("supports optional sources but binds each populated row to its frozen authority", () => {
+    const authorities = [
+      { prefix: authority, required: true },
+      { prefix: authorityTwo, required: true },
+      { prefix: "https://official.example/status/", required: false },
+    ];
+    const requiredEntries = [
+      { url: `${authority}a.json`, sha256: "a".repeat(64), byteLength: "1" },
+      { url: `${authorityTwo}b.json`, sha256: "b".repeat(64), byteLength: "2" },
+    ];
+    expect(validateEvidenceManifest(requiredEntries, authorities)).toHaveLength(2);
+    expect(validateEvidenceManifest([
+      ...requiredEntries,
+      { url: `${authorities[2].prefix}c.json`, sha256: "c".repeat(64), byteLength: "3" },
+    ], authorities)).toHaveLength(3);
+    expect(() => validateEvidenceManifest([
+      { url: `${authorityTwo}a.json`, sha256: "a".repeat(64), byteLength: "1" },
+      { url: `${authority}b.json`, sha256: "b".repeat(64), byteLength: "2" },
+    ], authorities.slice(0, 2))).toThrow(/corresponding frozen authority/i);
   });
 });
 
@@ -46,6 +67,30 @@ describe("payable creation preflight", () => {
     expect(() => validateCreationPreflight({ ...base, tranches: [0n, 1n] })).toThrow(/positive tranche/);
     expect(() => validateCreationPreflight({ ...base, tranches: [(1n << 256n) - 1n, 1n] })).toThrow(/positive tranche|u256/);
     expect(() => validateCreationPreflight({ ...base, recipient: "0x0000000000000000000000000000000000000000" })).toThrow(/nonzero/);
+  });
+
+  it("requires at least two required authorities while allowing optional sources", () => {
+    expect(validateCreationPreflight({
+      ...base,
+      authorities: [[
+        { prefix: authority, required: true },
+        { prefix: authorityTwo, required: true },
+        { prefix: "https://official.example/status/", required: false },
+      ], [
+        { prefix: authority, required: true },
+        { prefix: authorityTwo, required: true },
+      ]],
+    })).toBe(3n);
+    expect(() => validateCreationPreflight({
+      ...base,
+      authorities: [[
+        { prefix: authority, required: true },
+        { prefix: authorityTwo, required: false },
+      ], [
+        { prefix: authority, required: true },
+        { prefix: authorityTwo, required: true },
+      ]],
+    })).toThrow(/at least two required/i);
   });
 
   it("accepts only positive exact GEN amount strings", () => {

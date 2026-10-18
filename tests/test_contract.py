@@ -37,7 +37,7 @@ def _manifest(url=URL_A, body=BODY_A):
     ])
 
 
-def _decision_packet(contract, program_id, milestone_index=0, verdict="QUALIFIED"):
+def _decision_packet(contract, program_id, milestone_index=0, verdict="QUALIFIED", source_bodies=None):
     program = json.loads(contract.get_program(program_id))
     milestone = program["milestones"][milestone_index]
     manifest = milestone["manifest"]
@@ -51,14 +51,27 @@ def _decision_packet(contract, program_id, milestone_index=0, verdict="QUALIFIED
             source_finding = "CONTRADICTED"
         elif verdict == "INCONCLUSIVE":
             finding, source_finding = "INSUFFICIENT", "INSUFFICIENT"
-        findings.append({"criterion_index": index, "finding": finding, "source_findings": [
-            {"source_index": source_index, "finding": source_finding} for source_index in range(len(manifest))
-        ]})
+        claims = []
+        for source_index, entry in enumerate(manifest):
+            body = (source_bodies[source_index] if source_bodies is not None else BODY_A if entry["url"] == URL_A else BODY_B)
+            claims.append(_source_claim(source_index, source_finding, body))
+        findings.append({"criterion_index": index, "finding": finding, "source_findings": claims})
     return json.dumps({"evidence_root": root, "findings": findings})
 
 
-def _mock_review(vm, contract, program_id, milestone_index=0, verdict="QUALIFIED", pattern="independent milestone evidence evaluator"):
-    vm.mock_llm(pattern, _decision_packet(contract, program_id, milestone_index, verdict))
+def _source_claim(source_index, finding, body=BODY_A):
+    end = min(len(body), 9)
+    return {"source_index": source_index, "finding": finding, "byte_start": 0, "byte_end": end, "quote": body[:end].decode("utf-8")}
+
+
+def _source_claim_span(source_index, finding, body, quoted: bytes):
+    start = body.index(quoted)
+    end = start + len(quoted)
+    return {"source_index": source_index, "finding": finding, "byte_start": start, "byte_end": end, "quote": body[start:end].decode("utf-8")}
+
+
+def _mock_review(vm, contract, program_id, milestone_index=0, verdict="QUALIFIED", pattern="independent milestone evidence evaluator", source_bodies=None):
+    vm.mock_llm(pattern, _decision_packet(contract, program_id, milestone_index, verdict, source_bodies))
 
 
 def _program(recipient=None, tranche_a=2 * WEI, tranche_b=3 * WEI):
@@ -78,6 +91,7 @@ def _program(recipient=None, tranche_a=2 * WEI, tranche_b=3 * WEI):
         },
     ]
     policy = {
+        "acceptance_window": 7 * 24 * 60 * 60,
         "challenge_window": 60,
         "retry_spacing": 60,
         "retry_grace": 300,
@@ -90,8 +104,18 @@ def _program(recipient=None, tranche_a=2 * WEI, tranche_b=3 * WEI):
 def _create(contract, vm, funder, args=None):
     args = args or _program()
     vm.sender = funder
-    vm.value = 5 * WEI
-    return contract.create_program(*args)
+    vm.value = 0
+    program_id = contract.create_program(*args)
+    if int(program_id) == 0:
+        return program_id
+    recipient = str(create_address("bob")) if args is None else args[0]
+    vm.sender = recipient
+    vm.value = 0
+    assert contract.accept_program(program_id) == "ACCEPTED_UNFUNDED"
+    vm.sender = funder
+    vm.value = sum(int(item["tranche_wei"]) for item in json.loads(args[3]))
+    assert contract.fund_program(program_id) == "ACTIVE"
+    return program_id
 
 
 def _seal_and_evaluate(contract, vm, recipient, program_id, verdict="QUALIFIED", url=URL_A, body=BODY_A, milestone_index=0):
@@ -114,6 +138,82 @@ def test_exact_funding_stores_program_and_frozen_tranches(direct_vm, direct_depl
     assert program["funded_wei"] == str(5 * WEI)
     assert [m["status"] for m in program["milestones"]] == ["OPEN", "LOCKED"]
     assert contract.get_program_counter() == 1
+
+
+def test_program_terms_require_recipient_acceptance_before_funder_activation(direct_vm, direct_deploy):
+    contract = direct_deploy("contracts/ascende.py")
+    funder = direct_vm.sender
+    args = _program()
+    direct_vm.value = 0
+    program_id = contract.create_program(*args)
+    draft = json.loads(contract.get_program(program_id))
+    assert draft["status"] == "DRAFT"
+    assert draft["funded_wei"] == draft["locked_wei"] == "0"
+    assert draft["budget_wei"] == str(5 * WEI)
+    with direct_vm.expect_revert("RECIPIENT_ONLY"):
+        contract.accept_program(program_id)
+    direct_vm.sender = funder
+    direct_vm.value = 5 * WEI
+    assert contract.fund_program(program_id) == "REJECTED_REFUND_CREDIT_RECORDED"
+    assert json.loads(contract.get_program(program_id))["status"] == "DRAFT"
+    credit = json.loads(contract.get_rejected_payable_credit("0x" + bytes(funder).hex()))
+    assert credit["available_wei"] == str(5 * WEI)
+    direct_vm.sender = args[0]
+    direct_vm.value = 0
+    assert contract.accept_program(program_id) == "ACCEPTED_UNFUNDED"
+    accepted = json.loads(contract.get_program(program_id))
+    assert accepted["accepted_at"] > 0
+    assert accepted["status"] == "ACCEPTED_UNFUNDED"
+    assert accepted["funded_wei"] == "0"
+    direct_vm.sender = funder
+    direct_vm.value = 5 * WEI
+    assert contract.fund_program(program_id) == "ACTIVE"
+    active = json.loads(contract.get_program(program_id))
+    assert active["status"] == "ACTIVE"
+    assert active["funded_wei"] == active["locked_wei"] == str(5 * WEI)
+    assert active["milestones"][0]["status"] == "OPEN"
+    history = json.loads(contract.get_resolution_history(program_id, 0, 100))
+    assert [item["kind"] for item in history if item["kind"] in ("RECIPIENT_ACCEPTED", "PROGRAM_FUNDED_AND_ACTIVATED")] == ["RECIPIENT_ACCEPTED", "PROGRAM_FUNDED_AND_ACTIVATED"]
+
+
+def test_unaccepted_and_accepted_unfunded_programs_expire_without_stranding_principal(direct_vm, direct_deploy):
+    contract = direct_deploy("contracts/ascende.py")
+    funder = direct_vm.sender
+    args = list(_program())
+    policy = json.loads(args[4])
+    policy["acceptance_window"] = 120
+    args[4] = json.dumps(policy)
+    direct_vm.value = 0
+    unaccepted_id = contract.create_program(*args)
+    unaccepted = json.loads(contract.get_program(unaccepted_id))
+    deadline = unaccepted["accept_deadline"]
+    with direct_vm.expect_revert("ACCEPTANCE_DEADLINE_STILL_OPEN"):
+        contract.expire_unaccepted_program(unaccepted_id)
+    _warp_epoch(direct_vm, deadline + 1)
+    assert contract.expire_unaccepted_program(unaccepted_id) == "CANCELED_UNACCEPTED"
+    expired = json.loads(contract.get_program(unaccepted_id))
+    assert expired["status"] == "CANCELED_UNACCEPTED"
+    assert expired["terminal_reason"] == "RECIPIENT_DID_NOT_ACCEPT_BEFORE_DEADLINE"
+    assert expired["funded_wei"] == expired["locked_wei"] == "0"
+    direct_vm.sender = args[0]
+    with direct_vm.expect_revert("PROGRAM_NOT_AWAITING_ACCEPTANCE"):
+        contract.accept_program(unaccepted_id)
+
+    direct_vm.sender = funder
+    direct_vm.warp(datetime.fromtimestamp(deadline + 2, timezone.utc).isoformat().replace("+00:00", "Z"))
+    second_policy = json.loads(args[4])
+    second_policy["acceptance_window"] = 120
+    args[4] = json.dumps(second_policy)
+    unfunded_id = contract.create_program(*args)
+    direct_vm.sender = args[0]
+    assert contract.accept_program(unfunded_id) == "ACCEPTED_UNFUNDED"
+    unfunded = json.loads(contract.get_program(unfunded_id))
+    _warp_epoch(direct_vm, unfunded["accept_deadline"] + 1)
+    assert contract.expire_unfunded_program(unfunded_id) == "EXPIRED_UNFUNDED"
+    expired_unfunded = json.loads(contract.get_program(unfunded_id))
+    assert expired_unfunded["status"] == "EXPIRED_UNFUNDED"
+    assert expired_unfunded["funded_wei"] == expired_unfunded["locked_wei"] == "0"
+    assert contract.get_program_counter() == 2
 
 
 def test_creation_rejects_milestone_with_only_one_required_source_hostname(direct_vm, direct_deploy):
@@ -268,19 +368,30 @@ def test_evidence_deadline_exact_boundary(direct_vm, direct_deploy, direct_bob, 
             contract.submit_evidence(program_id, 0, _manifest())
 
 
-@pytest.mark.parametrize("sent", [0, 5 * WEI - 1, 5 * WEI + 1])
-def test_wrong_funding_amount_reverts(direct_vm, direct_deploy, sent):
+@pytest.mark.parametrize("sent", [5 * WEI - 1, 5 * WEI, 5 * WEI + 1])
+def test_wrong_activation_amount_never_activates_and_credits_only_received_value(direct_vm, direct_deploy, sent):
     contract = direct_deploy("contracts/ascende.py")
     sender = direct_vm.sender
+    args = _program()
+    direct_vm.value = 0
+    program_id = contract.create_program(*args)
+    direct_vm.sender = args[0]
+    assert contract.accept_program(program_id) == "ACCEPTED_UNFUNDED"
+    direct_vm.sender = sender
     direct_vm.value = sent
-    assert int(contract.create_program(*_program())) == 0
-    assert contract.get_program_counter() == 0
+    if sent == 5 * WEI:
+        assert contract.fund_program(program_id) == "ACTIVE"
+        assert json.loads(contract.get_program(program_id))["status"] == "ACTIVE"
+        return
+    assert contract.fund_program(program_id) == "REJECTED_REFUND_CREDIT_RECORDED"
+    program = json.loads(contract.get_program(program_id))
+    assert program["status"] == "ACCEPTED_UNFUNDED"
+    assert program["funded_wei"] == program["locked_wei"] == "0"
     credit = json.loads(contract.get_rejected_payable_credit("0x" + bytes(sender).hex()))
     assert int(credit["credited_wei"]) == sent
     assert int(credit["available_wei"]) == sent
-    if sent:
-        ledger = json.loads(contract.get_rejected_payable_ledger("0x" + bytes(sender).hex()))
-        assert ledger["rejections"][0]["reason"] == "EXACT_FUNDING_REQUIRED"
+    ledger = json.loads(contract.get_rejected_payable_ledger("0x" + bytes(sender).hex()))
+    assert ledger["rejections"][0]["reason"] == "INVALID_FUNDING_AMOUNT"
 
 
 def test_invalid_recipient_and_funder_recipient_alias_revert(direct_vm, direct_deploy):
@@ -439,6 +550,61 @@ def test_manifest_is_not_trusted_until_exact_source_bytes_are_checked(direct_vm,
     assert contract.evaluate_milestone(program_id, 0) == "SOURCE_UNAVAILABLE"
 
 
+def test_decision_quote_must_match_the_fetched_authority_bytes(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    direct_vm.sender = direct_bob
+    contract.submit_evidence(program_id, 0, _manifest())
+    direct_vm.mock_web(URL_A, {"status": 200, "body": BODY_A})
+    direct_vm.mock_web(URL_B, {"status": 200, "body": BODY_B})
+    packet = json.loads(_decision_packet(contract, program_id))
+    packet["findings"][0]["source_findings"][0]["quote"] = "forged quotation"
+    direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(packet))
+    assert contract.evaluate_milestone(program_id, 0) == "MODEL_OUTPUT_INVALID"
+    saved = json.loads(contract.get_program(program_id))
+    assert saved["milestones"][0]["status"] == "RETRYABLE"
+    assert saved["earned_wei"] == "0"
+
+
+def test_valid_different_citations_reach_consensus_with_utf8_byte_offsets(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    body_a = "prefix delivered café verified".encode("utf-8")
+    body_b = "record delivered café confirmed".encode("utf-8")
+    manifest = json.dumps([
+        {"url": URL_A, "sha256": hashlib.sha256(body_a).hexdigest(), "byte_length": len(body_a)},
+        {"url": URL_B, "sha256": hashlib.sha256(body_b).hexdigest(), "byte_length": len(body_b)},
+    ])
+    direct_vm.sender = direct_bob
+    contract.submit_evidence(program_id, 0, manifest)
+
+    leader_packet = json.loads(_decision_packet(contract, program_id, source_bodies=[body_a, body_b]))
+    validator_packet = json.loads(_decision_packet(contract, program_id, source_bodies=[body_a, body_b]))
+    for finding in leader_packet["findings"]:
+        finding["source_findings"] = [
+            _source_claim_span(0, "SUPPORTED", body_a, b"delivered"),
+            _source_claim_span(1, "SUPPORTED", body_b, b"confirmed"),
+        ]
+    for finding in validator_packet["findings"]:
+        finding["source_findings"] = [
+            _source_claim_span(0, "SUPPORTED", body_a, "café".encode("utf-8")),
+            _source_claim_span(1, "SUPPORTED", body_b, "café".encode("utf-8")),
+        ]
+
+    direct_vm.mock_web(URL_A, {"status": 200, "body": body_a})
+    direct_vm.mock_web(URL_B, {"status": 200, "body": body_b})
+    direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(leader_packet))
+    assert contract.evaluate_milestone(program_id, 0) == "QUALIFIED"
+
+    # The validator independently fetches the same committed bytes and
+    # provides different, also byte-valid citations for both sources.
+    direct_vm.clear_mocks()
+    direct_vm.mock_web(URL_A, {"status": 200, "body": body_a})
+    direct_vm.mock_web(URL_B, {"status": 200, "body": body_b})
+    direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(validator_packet))
+    assert direct_vm.run_validator() is True
+
+
 def test_stage_two_cannot_be_submitted_before_stage_one_qualifies(direct_vm, direct_deploy, direct_bob):
     contract = direct_deploy("contracts/ascende.py")
     program_id = _create(contract, direct_vm, direct_vm.sender)
@@ -455,6 +621,9 @@ def test_qualified_milestone_is_only_provisional_until_window_closes(direct_vm, 
     assert program["milestones"][0]["status"] == "PROVISIONAL_QUALIFIED"
     assert program["milestones"][1]["status"] == "LOCKED"
     assert program["earned_claimable_wei"] == "0"
+    for source_claim in program["milestones"][0]["decision_history"][0]["packet"]["findings"][0]["source_findings"]:
+        source_body = BODY_A if source_claim["source_index"] == 0 else BODY_B
+        assert source_body[source_claim["byte_start"]:source_claim["byte_end"]].decode("utf-8") == source_claim["quote"]
 
 
 def test_validator_disagreement_rejects_consensus(direct_vm, direct_deploy, direct_bob):
@@ -497,7 +666,7 @@ def test_validator_provenance_disagreement_rejects_consensus(direct_vm, direct_d
     packet = _decision_packet(contract, program_id)
     packet_value = json.loads(packet)
     packet_value["findings"][0]["source_findings"] = [
-        {"source_index": 0, "finding": "SUPPORTED"}, {"source_index": 1, "finding": "SUPPORTED"}, {"source_index": 2, "finding": "SUPPORTED"},
+        _source_claim(0, "SUPPORTED"), _source_claim(1, "SUPPORTED"), _source_claim(2, "SUPPORTED"),
     ]
     direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(packet_value))
     assert contract.evaluate_milestone(program_id, 0) == "QUALIFIED"
@@ -508,7 +677,7 @@ def test_validator_provenance_disagreement_rejects_consensus(direct_vm, direct_d
     direct_vm.mock_web(other_prefix + "independent.json", {"status": 200, "body": BODY_B})
     packet_value["findings"][0]["finding"] = "INSUFFICIENT"
     packet_value["findings"][0]["source_findings"] = [
-        {"source_index": 0, "finding": "SUPPORTED"}, {"source_index": 1, "finding": "SUPPORTED"}, {"source_index": 2, "finding": "CONTRADICTED"},
+        _source_claim(0, "SUPPORTED"), _source_claim(1, "SUPPORTED"), _source_claim(2, "CONTRADICTED"),
     ]
     direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(packet_value))
     assert direct_vm.run_validator() is False
@@ -522,7 +691,7 @@ def test_prompt_injection_text_is_untrusted_and_insufficient_findings_do_not_ves
     contract.submit_evidence(program_id, 0, _manifest(URL_A, injection))
     direct_vm.mock_web(URL_A, {"status": 200, "body": injection})
     direct_vm.mock_web(URL_B, {"status": 200, "body": BODY_B})
-    _mock_review(direct_vm, contract, program_id, verdict="INCONCLUSIVE")
+    _mock_review(direct_vm, contract, program_id, verdict="INCONCLUSIVE", source_bodies=[injection, BODY_B])
     assert contract.evaluate_milestone(program_id, 0) == "INCONCLUSIVE"
     milestone = json.loads(contract.get_program(program_id))["milestones"][0]
     accounting = json.loads(contract.get_program_accounting(program_id))
@@ -543,8 +712,8 @@ def test_conflicting_authorities_are_inconclusive_and_cannot_vest(direct_vm, dir
         "criterion_index": 0,
         "finding": "INSUFFICIENT",
         "source_findings": [
-            {"source_index": 0, "finding": "SUPPORTED"},
-            {"source_index": 1, "finding": "CONTRADICTED"},
+            _source_claim(0, "SUPPORTED"),
+            _source_claim(1, "CONTRADICTED"),
         ],
     }
     direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(packet))
@@ -940,8 +1109,8 @@ def test_versioned_path_authority_allows_at_sign_but_rejects_userinfo(direct_vm,
     direct_vm.sender = create_address("funder2")
     assert int(_create(contract, direct_vm, direct_vm.sender, tuple(args))) == 0
     credit = json.loads(contract.get_rejected_payable_credit(str(direct_vm.sender).lower()))
-    assert credit["credited_wei"] == credit["available_wei"] == str(5 * WEI)
-    assert json.loads(contract.get_rejected_payable_ledger(str(direct_vm.sender).lower()))["rejections"][0]["reason"] == "INVALID_AUTHORITIES"
+    assert credit["credited_wei"] == credit["available_wei"] == "0"
+    assert contract.get_program_counter() == 1
 
 
 def test_frozen_criteria_and_authorities_are_unchanged_after_creation(direct_vm, direct_deploy):
