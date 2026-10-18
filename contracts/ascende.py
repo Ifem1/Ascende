@@ -334,14 +334,22 @@ def _normalize_decision_packet(raw: object, criteria_count: int, manifest: list,
 
 
 def _decision_agreement_key(packet: dict) -> str:
-    # Citations can differ while validators still reach the same defensible
-    # finding. Validators must agree on the exact criterion-level provenance,
-    # as well as the evidence root and outcome.
+    # Each packet has already had every citation verified against the
+    # validator's independently fetched bytes. Compare material decisions
+    # and provenance, but do not require independent evaluators to choose the
+    # same valid quotation or byte span.
     return _json({
         "evidence_root": packet["evidence_root"],
         "classification": packet["classification"],
         "findings": [
-            {"criterion_index": finding["criterion_index"], "finding": finding["finding"], "source_findings": finding["source_findings"]}
+            {
+                "criterion_index": finding["criterion_index"],
+                "finding": finding["finding"],
+                "source_findings": [
+                    {"source_index": source["source_index"], "finding": source["finding"]}
+                    for source in finding["source_findings"]
+                ],
+            }
             for finding in packet["findings"]
         ],
     })

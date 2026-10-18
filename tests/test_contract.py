@@ -64,6 +64,12 @@ def _source_claim(source_index, finding, body=BODY_A):
     return {"source_index": source_index, "finding": finding, "byte_start": 0, "byte_end": end, "quote": body[:end].decode("utf-8")}
 
 
+def _source_claim_span(source_index, finding, body, quoted: bytes):
+    start = body.index(quoted)
+    end = start + len(quoted)
+    return {"source_index": source_index, "finding": finding, "byte_start": start, "byte_end": end, "quote": body[start:end].decode("utf-8")}
+
+
 def _mock_review(vm, contract, program_id, milestone_index=0, verdict="QUALIFIED", pattern="independent milestone evidence evaluator", source_bodies=None):
     vm.mock_llm(pattern, _decision_packet(contract, program_id, milestone_index, verdict, source_bodies))
 
@@ -558,6 +564,45 @@ def test_decision_quote_must_match_the_fetched_authority_bytes(direct_vm, direct
     saved = json.loads(contract.get_program(program_id))
     assert saved["milestones"][0]["status"] == "RETRYABLE"
     assert saved["earned_wei"] == "0"
+
+
+def test_valid_different_citations_reach_consensus_with_utf8_byte_offsets(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    body_a = "prefix delivered café verified".encode("utf-8")
+    body_b = "record delivered café confirmed".encode("utf-8")
+    manifest = json.dumps([
+        {"url": URL_A, "sha256": hashlib.sha256(body_a).hexdigest(), "byte_length": len(body_a)},
+        {"url": URL_B, "sha256": hashlib.sha256(body_b).hexdigest(), "byte_length": len(body_b)},
+    ])
+    direct_vm.sender = direct_bob
+    contract.submit_evidence(program_id, 0, manifest)
+
+    leader_packet = json.loads(_decision_packet(contract, program_id, source_bodies=[body_a, body_b]))
+    validator_packet = json.loads(_decision_packet(contract, program_id, source_bodies=[body_a, body_b]))
+    for finding in leader_packet["findings"]:
+        finding["source_findings"] = [
+            _source_claim_span(0, "SUPPORTED", body_a, b"delivered"),
+            _source_claim_span(1, "SUPPORTED", body_b, b"confirmed"),
+        ]
+    for finding in validator_packet["findings"]:
+        finding["source_findings"] = [
+            _source_claim_span(0, "SUPPORTED", body_a, "café".encode("utf-8")),
+            _source_claim_span(1, "SUPPORTED", body_b, "café".encode("utf-8")),
+        ]
+
+    direct_vm.mock_web(URL_A, {"status": 200, "body": body_a})
+    direct_vm.mock_web(URL_B, {"status": 200, "body": body_b})
+    direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(leader_packet))
+    assert contract.evaluate_milestone(program_id, 0) == "QUALIFIED"
+
+    # The validator independently fetches the same committed bytes and
+    # provides different, also byte-valid citations for both sources.
+    direct_vm.clear_mocks()
+    direct_vm.mock_web(URL_A, {"status": 200, "body": body_a})
+    direct_vm.mock_web(URL_B, {"status": 200, "body": body_b})
+    direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(validator_packet))
+    assert direct_vm.run_validator() is True
 
 
 def test_stage_two_cannot_be_submitted_before_stage_one_qualifies(direct_vm, direct_deploy, direct_bob):

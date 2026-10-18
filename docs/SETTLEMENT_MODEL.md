@@ -14,4 +14,4 @@ The environment's read-only probe confirmed chain ID `61999` (`0xf22f`) and a pu
 
 ## Evidence limits
 
-Multiple source findings and byte citations improve traceability and make criterion-level validator agreement material to a tranche decision. They do not establish independent ownership, truthful publishing, final redirect origin, or semantic correctness. These limitations remain release disclosures in [SECURITY.md](SECURITY.md).
+Multiple source findings and byte citations improve traceability and make criterion-level validator agreement material to a tranche decision. Each leader and validator citation is independently checked against fetched bytes; source-level classes and criterion outcomes must agree, while valid quotation spans may differ. These controls do not establish independent ownership, truthful publishing, final redirect origin, or semantic correctness. These limitations remain release disclosures in [SECURITY.md](SECURITY.md).
