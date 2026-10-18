@@ -4,7 +4,7 @@
 
 ## Current branch release status
 
-This is a stable Studionet reviewer demonstration, not production-safe escrow. The contract source has been deployed and byte-verified. Its positive qualification, challenge-flip, conflict/recovery and injected-wallet scenarios are still pending. The public Vercel production contract-address variable now points at this contract; alias redeployment and production-route verification remain release tasks.
+This is a stable Studionet reviewer demonstration, not production-safe escrow. The contract source has been deployed and byte-verified. A genuine production injected-wallet creation and current-source state readback are verified. Current-source positive qualification, challenge-flip, conflict/recovery and funded UI scenarios remain incomplete. The production alias now serves the current contract configuration.
 
 ## Current branch deployment — 2026-10-18
 
@@ -14,8 +14,8 @@ This is a stable Studionet reviewer demonstration, not production-safe escrow. T
 - Deployment transaction: [`0x46b46a4faa4101f010dffb338d7b4c9c401de1cc6a5891e7113a6baf06cee03c`](https://explorer-studio.genlayer.com/tx/0x46b46a4faa4101f010dffb338d7b4c9c401de1cc6a5891e7113a6baf06cee03c), `FINALIZED`, execution `SUCCESS`, `MAJORITY_AGREE`; five validators revealed votes, three agreed and two were idle. Deployer: supplied Landlord 1 `0xD6423aE82a975d55C6CeaC222827A727325e0459`.
 - `contracts/ascende.py` and `gen_getContractCode` readback are both 71,993 bytes with SHA-256 `8345BBDD755FE5E35EB02AE02AB0DDEB00DEB7AF51F0581BFF552CF68D060217`.
 - `gen_getContractSchema` readback contains 33 public methods and matches the generated API surface. Initial `get_program_counter()` is `0`; every protocol accounting bucket read is zero.
-- GitHub Actions for the source commit: [run 39154715318](https://github.com/Ifem1/Ascende/actions/runs/39154715318); final status is pending until the workflow completes.
-- Vercel production environment now has `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0x1544852461c4F61F266F5c2930c315C85069f1a6`; this update takes effect only after a production deployment. The production alias is not yet source-aligned.
+- Exact-commit GitHub Actions: [run 39156835291](https://github.com/Ifem1/Ascende/actions/runs/39156835291), successful for branch commit `437a56359f448b33274ac5cc068d055df4807863`.
+- Vercel production deployment `dpl_5WTPXRbqwM5aLVDTChFrNfiZDLpx` is `READY` and aliased to [ascende-sand.vercel.app](https://ascende-sand.vercel.app/). Its build uses `NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=0x1544852461c4F61F266F5c2930c315C85069f1a6` and `NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api`.
 
 ## Previous deployed source (historical; not this branch)
 

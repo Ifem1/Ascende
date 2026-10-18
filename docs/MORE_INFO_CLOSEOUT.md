@@ -10,7 +10,7 @@
 
 ## Verification state
 
-The latest local verification recorded 63 Direct Mode tests; exact-commit GitHub Actions is running at [run 39154715318](https://github.com/Ifem1/Ascende/actions/runs/39154715318). The current branch source is deployed at `0x1544852461c4F61F266F5c2930c315C85069f1a6` with SHA-256 `8345bbdd755fe5e35eb02ae02ab0ddeb00deb7af51f0581bff552cf68d060217`. Current-source live milestone and injected-wallet scenarios are not yet recorded. Older live lifecycle and wallet receipts belong to prior source deployments. The Vercel production contract-address variable has been updated; the production alias alignment remains pending the final `main` deployment.
+The latest contract suite has 63 Direct Mode tests. Exact-commit [GitHub Actions run 39156835291](https://github.com/Ifem1/Ascende/actions/runs/39156835291) passed on commit `437a56359f448b33274ac5cc068d055df4807863`, including GenVM lint, type/semantic/schema checks, frontend checks, unit tests, production build and all Playwright tests. The contract is deployed at `0x1544852461c4F61F266F5c2930c315C85069f1a6` with SHA-256 `8345bbdd755fe5e35eb02ae02ab0ddeb00deb7af51f0581bff552cf68d060217`. A genuine Rabby browser transaction created current-source program 1, finalized with three validator agrees, and the authoritative contract readback matches; the program is unfunded. Program 2 was created using the SDK and is also an unfunded draft. Current-source live milestone evaluation, challenge and recovery remain unverified. Production alias `https://ascende-sand.vercel.app` now serves Vercel deployment `dpl_5WTPXRbqwM5aLVDTChFrNfiZDLpx`, built from this branch's frontend; final `main` merge/deployment still needs verification.
 
 ## Unresolved capabilities
 
@@ -19,4 +19,4 @@ The latest local verification recorded 63 Direct Mode tests; exact-commit GitHub
 - Unexpected failed payable calls may strand attached GEN without matching state.
 - The available Web Access interface does not enforce final redirect-origin policy.
 
-**Verdict: implementation hardening, source-matched Studionet deployment, a missing-evidence recovery/refund lifecycle, and genuine browser-wallet program creation are documented. Positive qualification and challenge-flip live evidence remain incomplete. The wallet proof creates an unfunded draft only. This is not production-safe escrow.**
+**Verdict: implementation hardening, source-matched Studionet deployment, missing-evidence recovery/refund evidence on a previous deployment, and a genuine current-source browser-wallet draft creation are documented. Current-source positive qualification and challenge-flip live evidence remain incomplete. The browser proof creates an unfunded draft only. This is not production-safe escrow.**
