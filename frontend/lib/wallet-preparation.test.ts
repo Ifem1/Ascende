@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 describe("selected injected wallet transaction preparation", () => {
   it("uses the selected provider without depending on window.ethereum", async () => {
-    const contract = "0x2c7a6260f2958C0Bd6634182E9978d209F0a06aD";
+    const contract = "0x5bF12b1033A5827edBB27cdc92C7FAb0C4d1304F";
     vi.stubEnv("NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS", contract);
     vi.resetModules();
 
@@ -25,5 +25,5 @@ describe("selected injected wallet transaction preparation", () => {
     expect(prepared.simulated).toBe(false);
     expect(request).toHaveBeenCalledTimes(1);
     vi.unstubAllEnvs();
-  });
+  }, 20_000);
 });

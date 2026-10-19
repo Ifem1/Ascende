@@ -126,12 +126,13 @@ test("treasury separates submitted transfers from recorded delivery", async ({ p
 
 test("docs page links to current deployment evidence and states settlement limits", async ({ page }) => {
   await page.goto("/docs");
-  await expect(page.getByText(/this release is deployed on stable studionet 61999/i)).toBeVisible();
-  await expect(page.getByRole("link", { name: /0x1544852461c4f61f266f5c2930c315c85069f1a6/i }))
-    .toHaveAttribute("href", "https://explorer-studio.genlayer.com/address/0x1544852461c4F61F266F5c2930c315C85069f1a6");
-  await expect(page.getByRole("link", { name: /read the live verification record/i }))
+  await expect(page.getByText(/the current test deployment is on stable studionet 61999/i)).toBeVisible();
+  await expect(page.getByRole("link", { name: /0x5bf12b1033a5827edbb27cdc92c7fab0c4d1304f/i }))
+    .toHaveAttribute("href", "https://explorer-studio.genlayer.com/address/0x5bF12b1033A5827edBB27cdc92C7FAb0C4d1304F");
+  await expect(page.getByRole("link", { name: /the release evidence/i }))
     .toHaveAttribute("href", "https://github.com/Ifem1/Ascende/blob/main/docs/LIVE_VERIFICATION.md");
   await expect(page.getByText(/no deployment or live transfer proof is published yet/i)).toHaveCount(0);
+  await expect(page.getByText(/this is a testnet demonstration, not production-safe escrow/i)).toBeVisible();
 });
 
 test("mobile layout has no horizontal page overflow", async ({ page }) => {
