@@ -39,6 +39,7 @@ PAYABLE_REJECTION_CODES = {
     "BUDGET_OVERFLOW",
     "EXACT_FUNDING_REQUIRED",
     "PROGRAM_NOT_FOUND",
+    "NOT_PROGRAM_FUNDER",
     "NOT_PROGRAM_PARTY",
     "MILESTONE_NOT_FOUND",
     "CHALLENGE_ALREADY_USED",
@@ -274,26 +275,42 @@ def _normalize_decision_packet(raw: object, criteria_count: int, manifest: list,
             return None
         if classification not in ("SUPPORTED", "CONTRADICTED", "INSUFFICIENT"):
             return None
-        if not isinstance(source_findings, list) or any(not isinstance(source, dict) or set(source) != {"source_index", "finding", "byte_start", "byte_end", "quote"} for source in source_findings):
+        if not isinstance(source_findings, list) or any(
+            not isinstance(source, dict)
+            or not {"source_index", "finding", "quote"}.issubset(set(source))
+            or set(source) - {"source_index", "finding", "quote", "byte_start", "byte_end"}
+            or (("byte_start" in source) != ("byte_end" in source))
+            for source in source_findings
+        ):
             return None
+        normalized_sources = []
         for source in source_findings:
             source_index = source.get("source_index")
-            byte_start = source.get("byte_start")
-            byte_end = source.get("byte_end")
             quote = source.get("quote")
             if (not isinstance(source_index, int) or isinstance(source_index, bool) or not 0 <= source_index < len(manifest)
                     or source.get("finding") not in ("SUPPORTED", "CONTRADICTED", "INSUFFICIENT")
-                    or not isinstance(byte_start, int) or isinstance(byte_start, bool)
-                    or not isinstance(byte_end, int) or isinstance(byte_end, bool)
-                    or not isinstance(quote, str) or not 1 <= len(quote) <= 500
-                    or not 0 <= byte_start < byte_end <= len(evidence_bytes[source_index])
-                    or byte_end - byte_start > 2048):
+                    or not isinstance(quote, str) or not 1 <= len(quote) <= 500):
                 return None
             try:
-                if evidence_bytes[source_index][byte_start:byte_end].decode("utf-8") != quote:
+                quote_bytes = quote.encode("utf-8")
+                evidence = evidence_bytes[source_index]
+                if not 1 <= len(quote_bytes) <= 2048:
+                    return None
+                byte_start = evidence.find(quote_bytes)
+                if byte_start < 0 or evidence.find(quote_bytes, byte_start + 1) >= 0:
+                    return None
+                byte_end = byte_start + len(quote_bytes)
+                if evidence[byte_start:byte_end] != quote_bytes:
                     return None
             except Exception:
                 return None
+            normalized_sources.append({
+                "source_index": source_index,
+                "finding": source["finding"],
+                "byte_start": byte_start,
+                "byte_end": byte_end,
+                "quote": quote,
+            })
         sources = [source["source_index"] for source in source_findings]
         if len(set(sources)) != len(sources):
             return None
@@ -317,7 +334,7 @@ def _normalize_decision_packet(raw: object, criteria_count: int, manifest: list,
         normalized.append({
             "criterion_index": index,
             "finding": classification,
-            "source_findings": sorted(source_findings, key=lambda source: source["source_index"]),
+            "source_findings": sorted(normalized_sources, key=lambda source: source["source_index"]),
         })
     if len(seen) != criteria_count:
         return None
@@ -548,17 +565,17 @@ class Ascende(gl.Contract):
                 "return exactly one finding with criterion_index, finding "
                 "(SUPPORTED, CONTRADICTED, or INSUFFICIENT), and source_findings "
                 "listing every required source_index exactly once and its own finding "
-                "(SUPPORTED, CONTRADICTED, or INSUFFICIENT), plus byte_start, byte_end "
-                "and quote copied exactly from that source's UTF-8 bytes. Use a short "
-                "verbatim span that directly supports or contradicts the criterion; "
-                "byte offsets are zero-based, end-exclusive UTF-8 byte offsets. "
+                "(SUPPORTED, CONTRADICTED, or INSUFFICIENT), and quote copied "
+                "verbatim from that source's UTF-8 bytes. Do not return byte offsets; "
+                "the contract derives them from the exact fetched bytes. Use a short "
+                "unique verbatim span that directly supports or contradicts the criterion. "
                 "A supported or contradicted finding requires direct evidence from at least two distinct required authority hostnames. If required authorities conflict materially, classify that criterion as INSUFFICIENT unless two independent authorities corroborate one conclusion. Do not infer failure from missing evidence. Return exactly this JSON "
                 "shape with no extra keys: {\"evidence_root\": string, "
                 "\"classification\": \"QUALIFIED\" | \"NOT_QUALIFIED\" | \"INCONCLUSIVE\", "
                 "\"findings\": "
                 "[{\"criterion_index\": integer, \"finding\": string, "
                 "\"source_findings\": [{\"source_index\": integer, \"finding\": string, "
-                "\"byte_start\": integer, \"byte_end\": integer, \"quote\": string}]}]}. Derive each criterion finding "
+                "\"quote\": string}]}]}. Derive each criterion finding "
                 "from its source_findings: at least two required distinct hostnames "
                 "must support it, or two must contradict it; mixed support and "
                 "contradiction is INSUFFICIENT. Derive the overall classification "

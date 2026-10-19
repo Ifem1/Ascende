@@ -29,7 +29,7 @@ NEXT_PUBLIC_ASCENDE_CONTRACT_ADDRESS=<address deployed from this exact source>
 NEXT_PUBLIC_GENLAYER_RPC=https://studio.genlayer.com/api
 ```
 
-The application pins the chain to Studionet 61999 in code; it does not read public network or chain-ID environment variables. The current contract is `0x1544852461c4F61F266F5c2930c315C85069f1a6`; the production Vercel build points to this address and RPC. See [DEPLOYMENT.md](DEPLOYMENT.md) for the current deployment and [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md) for the browser transaction. Do not configure a build with a guessed or historical address. A build without a valid contract address displays a clear unavailable state and disables real writes. Never store provider credentials in public env.
+The application pins the chain to Studionet 61999 in code; it does not read public network or chain-ID environment variables. The canonical test contract is `0x5bF12b1033A5827edBB27cdc92C7FAb0C4d1304F`; the Vercel production build uses this address and RPC `https://studio.genlayer.com/api`. The production alias and Docs page were checked after deployment. See [DEPLOYMENT.md](DEPLOYMENT.md) and [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md). Do not configure a build with a guessed or historical address. A build without a valid contract address displays a clear unavailable state and disables real writes. Never store provider credentials in public env.
 
 ## Wallet UX acceptance
 

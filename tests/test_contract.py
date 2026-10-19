@@ -394,6 +394,80 @@ def test_wrong_activation_amount_never_activates_and_credits_only_received_value
     assert ledger["rejections"][0]["reason"] == "INVALID_FUNDING_AMOUNT"
 
 
+def test_wrong_funder_exact_payable_is_credited_only_to_original_sender(direct_vm, direct_deploy):
+    contract = direct_deploy("contracts/ascende.py")
+    funder = direct_vm.sender
+    args = _program()
+    direct_vm.sender = funder
+    direct_vm.value = 0
+    program_id = contract.create_program(*args)
+    direct_vm.sender = args[0]
+    assert contract.accept_program(program_id) == "ACCEPTED_UNFUNDED"
+    budget = int(json.loads(contract.get_program(program_id))["budget_wei"])
+    attacker = create_address("unauthorized-funder")
+    direct_vm.sender = attacker
+    direct_vm.value = budget
+
+    assert contract.fund_program(program_id) == "REJECTED_REFUND_CREDIT_RECORDED"
+    program = json.loads(contract.get_program(program_id))
+    assert program["status"] == "ACCEPTED_UNFUNDED"
+    assert program["funded_wei"] == program["locked_wei"] == "0"
+
+    attacker_owner = str(attacker).lower()
+    attacker_ledger = json.loads(contract.get_rejected_payable_ledger(attacker_owner))
+    funder_owner = "0x" + bytes(funder).hex()
+    funder_ledger = json.loads(contract.get_rejected_payable_ledger(funder_owner))
+    assert attacker_ledger["credited_wei"] == attacker_ledger["available_wei"] == str(budget)
+    assert attacker_ledger["rejections"][0]["reason"] == "NOT_PROGRAM_FUNDER"
+    assert funder_ledger["credited_wei"] == funder_ledger["available_wei"] == "0"
+
+    direct_vm.sender = attacker
+    operation_id = contract.request_rejected_payable_refund(str(budget))
+    reserved = json.loads(contract.get_rejected_payable_ledger(attacker_owner))
+    assert reserved["credited_wei"] == reserved["authorized_wei"] == str(budget)
+    assert reserved["available_wei"] == reserved["pending_wei"] == "0"
+    assert reserved["operations"][0]["id"] == str(int(operation_id))
+
+
+@pytest.mark.parametrize("failure", ["expired-window", "duplicate-funding"])
+def test_expired_or_duplicate_funding_credits_sender_without_changing_program(direct_vm, direct_deploy, failure):
+    contract = direct_deploy("contracts/ascende.py")
+    funder = direct_vm.sender
+    args = list(_program())
+    if failure == "expired-window":
+        policy = json.loads(args[4])
+        policy["acceptance_window"] = 60
+        args[4] = json.dumps(policy)
+    direct_vm.sender = funder
+    direct_vm.value = 0
+    program_id = contract.create_program(*args)
+    direct_vm.sender = args[0]
+    assert contract.accept_program(program_id) == "ACCEPTED_UNFUNDED"
+    direct_vm.sender = funder
+    budget = int(json.loads(contract.get_program(program_id))["budget_wei"])
+
+    if failure == "expired-window":
+        deadline = int(json.loads(contract.get_program(program_id))["accept_deadline"])
+        _warp_epoch(direct_vm, deadline + 1)
+        expected_reason = "FUNDING_DEADLINE_PASSED"
+    else:
+        direct_vm.value = budget
+        assert contract.fund_program(program_id) == "ACTIVE"
+        expected_reason = "PROGRAM_NOT_ACCEPTED"
+
+    direct_vm.value = budget
+    assert contract.fund_program(program_id) == "REJECTED_REFUND_CREDIT_RECORDED"
+    program = json.loads(contract.get_program(program_id))
+    expected_status = "ACCEPTED_UNFUNDED" if failure == "expired-window" else "ACTIVE"
+    expected_funded = "0" if failure == "expired-window" else str(budget)
+    assert program["status"] == expected_status
+    assert program["funded_wei"] == expected_funded
+    owner = "0x" + bytes(funder).hex()
+    credit = json.loads(contract.get_rejected_payable_ledger(owner))
+    assert credit["credited_wei"] == credit["available_wei"] == str(budget)
+    assert credit["rejections"][0]["reason"] == expected_reason
+
+
 def test_invalid_recipient_and_funder_recipient_alias_revert(direct_vm, direct_deploy):
     contract = direct_deploy("contracts/ascende.py")
     sender = direct_vm.sender
@@ -603,6 +677,71 @@ def test_valid_different_citations_reach_consensus_with_utf8_byte_offsets(direct
     direct_vm.mock_web(URL_B, {"status": 200, "body": body_b})
     direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(validator_packet))
     assert direct_vm.run_validator() is True
+
+
+def test_quote_only_packets_derive_utf8_offsets_and_ignore_model_offsets(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    body_a = "✅ release: café passed validation".encode("utf-8")
+    body_b = "📦 mirror: café passed validation".encode("utf-8")
+    manifest = json.dumps([
+        {"url": URL_A, "sha256": hashlib.sha256(body_a).hexdigest(), "byte_length": len(body_a)},
+        {"url": URL_B, "sha256": hashlib.sha256(body_b).hexdigest(), "byte_length": len(body_b)},
+    ])
+    direct_vm.sender = direct_bob
+    contract.submit_evidence(program_id, 0, manifest)
+
+    packet = json.loads(_decision_packet(contract, program_id, source_bodies=[body_a, body_b]))
+    for source in packet["findings"][0]["source_findings"]:
+        source["quote"] = "café passed validation"
+        source.pop("byte_start")
+        source.pop("byte_end")
+
+    direct_vm.mock_web(URL_A, {"status": 200, "body": body_a})
+    direct_vm.mock_web(URL_B, {"status": 200, "body": body_b})
+    direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(packet))
+    assert contract.evaluate_milestone(program_id, 0) == "QUALIFIED"
+    saved = json.loads(contract.get_program(program_id))["milestones"][0]["decision_history"][0]["packet"]
+    for source, body in zip(saved["findings"][0]["source_findings"], (body_a, body_b)):
+        expected_start = body.index("café passed validation".encode("utf-8"))
+        assert source["byte_start"] == expected_start
+        assert source["byte_end"] == expected_start + len("café passed validation".encode("utf-8"))
+        assert body[source["byte_start"]:source["byte_end"]].decode("utf-8") == source["quote"]
+
+    # A legacy model may emit character offsets that are wrong for UTF-8.
+    # Those untrusted fields are discarded; each validator derives its own span.
+    direct_vm.clear_mocks()
+    for source in packet["findings"][0]["source_findings"]:
+        source["byte_start"] = 1
+        source["byte_end"] = 2
+    direct_vm.mock_web(URL_A, {"status": 200, "body": body_a})
+    direct_vm.mock_web(URL_B, {"status": 200, "body": body_b})
+    direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(packet))
+    assert direct_vm.run_validator() is True
+
+
+def test_ambiguous_quote_cannot_support_a_decision(direct_vm, direct_deploy, direct_bob):
+    contract = direct_deploy("contracts/ascende.py")
+    program_id = _create(contract, direct_vm, direct_vm.sender)
+    repeated = b"release passed; release passed"
+    manifest = json.dumps([
+        {"url": URL_A, "sha256": hashlib.sha256(repeated).hexdigest(), "byte_length": len(repeated)},
+        {"url": URL_B, "sha256": hashlib.sha256(repeated).hexdigest(), "byte_length": len(repeated)},
+    ])
+    direct_vm.sender = direct_bob
+    contract.submit_evidence(program_id, 0, manifest)
+    packet = json.loads(_decision_packet(contract, program_id, source_bodies=[repeated, repeated]))
+    for source in packet["findings"][0]["source_findings"]:
+        source["quote"] = "release passed"
+        source.pop("byte_start")
+        source.pop("byte_end")
+    direct_vm.mock_web(URL_A, {"status": 200, "body": repeated})
+    direct_vm.mock_web(URL_B, {"status": 200, "body": repeated})
+    direct_vm.mock_llm("independent milestone evidence evaluator", json.dumps(packet))
+    assert contract.evaluate_milestone(program_id, 0) == "MODEL_OUTPUT_INVALID"
+    milestone = json.loads(contract.get_program(program_id))["milestones"][0]
+    assert milestone["status"] == "RETRYABLE"
+    assert json.loads(contract.get_program_accounting(program_id))["earned_wei"] == "0"
 
 
 def test_stage_two_cannot_be_submitted_before_stage_one_qualifies(direct_vm, direct_deploy, direct_bob):

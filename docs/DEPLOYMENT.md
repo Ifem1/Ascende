@@ -2,11 +2,17 @@
 
 **Canonical test deployment:** stable GenLayer Studionet, chain ID `61999` (`0xF22F`), RPC `https://studio.genlayer.com/api`.
 
-## Current branch release status
+## Corrective release status — 2026-10-19
 
-This is a stable Studionet reviewer demonstration, not production-safe escrow. The contract source has been deployed and byte-verified. A genuine production injected-wallet creation and current-source state readback are verified. Current-source positive qualification, challenge-flip, conflict/recovery and funded UI scenarios remain incomplete. The production alias now serves the current contract configuration.
+Corrective source commit [`ff50ce9316673496dae423ca63f155043a2dba53`](https://github.com/Ifem1/Ascende/commit/ff50ce9316673496dae423ca63f155043a2dba53) is deployed to stable Studionet at [`0x5bF12b1033A5827edBB27cdc92C7FAb0C4d1304F`](https://explorer-studio.genlayer.com/address/0x5bF12b1033A5827edBB27cdc92C7FAb0C4d1304F), source SHA-256 `98bc175a714326dd926a92ffff709f2cfd42fc4709e04c1a940d9c5e94017a04`. Deployment receipt [`0x8dd7d2e4483b6f9e370e4c1985d482c47a819662caf5251c4e0eb0c092ab247b`](https://explorer-studio.genlayer.com/tx/0x8dd7d2e4483b6f9e370e4c1985d482c47a819662caf5251c4e0eb0c092ab247b) finalized with majority agreement; live source-byte readback exactly matches local source. Fresh scenarios now cover wrong-funder payable rejection/refund, qualification followed by a challenge reversal, a negative decision/refund, and conflicting authorities producing `INCONCLUSIVE` followed by bounded closure. Child receipts report credit, but contract accounting remains pending and unverifiable. See [LIVE_VERIFICATION.md](LIVE_VERIFICATION.md) for transaction hashes and precise limits.
 
-## Current branch deployment — 2026-10-18
+The Vercel production environment points to the corrective contract. Production deployment [`dpl_8fuNt8H4R7SgvFF8ygus64XKNVD4`](https://vercel.com/ifem1s-projects/ascende/8fuNt8H4R7SgvFF8ygus64XKNVD4) reached `READY` and is aliased to [ascende-sand.vercel.app](https://ascende-sand.vercel.app/). All checked production routes returned HTTP 200, and `/docs` embeds the corrective address and source SHA-256. This deployment contains the frontend from commit `78182ee223ac48c95814d2f28b9b9887b7ef9c3f`; final documentation updates will be redeployed after commit. This is a reviewer demonstration, not production-safe escrow.
+
+## Superseded release status
+
+This paragraph describes the superseded `0x154485…` deployment only. Its injected-wallet browser transaction is historical and is not evidence of a transaction on the corrective address. Current deployment and frontend state are recorded above.
+
+## Superseded deployment — 2026-10-18
 
 - Source commit used for deployment: [`7ed29355d9e308f0c236e3a3df4aff8eb8c20649`](https://github.com/Ifem1/Ascende/commit/7ed29355d9e308f0c236e3a3df4aff8eb8c20649). The deployed contract source is unchanged by subsequent documentation-only commits.
 - Contract: `0x1544852461c4F61F266F5c2930c315C85069f1a6`; [Studionet explorer](https://explorer-studio.genlayer.com/address/0x1544852461c4F61F266F5c2930c315C85069f1a6).
