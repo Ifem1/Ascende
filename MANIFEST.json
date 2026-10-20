@@ -1,7 +1,7 @@
 {
   "project": "ASCENDE",
-  "generated_at": "2026-10-17T18:11:17Z",
-  "status": "branch_deployed_expiry_refund_live_positive_challenge_pending",
+  "generated_at": "2026-10-20T16:24:24Z",
+  "status": "verified_corrective_deployment_source_parity_and_live_scenarios",
   "network": {
     "name": "stable Studionet",
     "chain_id": 61999,
@@ -9,9 +9,12 @@
   },
   "source": {
     "contract": "contracts/ascende.py",
-    "sha256": "de88d012f894f982e384182aeaf6e58fff01d5ccd172362ea39498bf900595c4",
+    "sha256": "bfb369ad103b9e98dfecd92ecc9d9800187b6e7661bfdb68b9d5387a9b44714e",
+    "bytes": 72445,
+    "line_endings": "LF",
+    "lf_newlines": 1549,
     "schema": "contracts/ascende.schema.json",
-    "schema_sha256": "8ec06d83e289c5996003b848c87ab13907535dacb5fad8e962b625178e3cce9d"
+    "schema_sha256": "7afe96846440ab521fd2261cab20b88c9368d47ae6fd6058c026de4bc8714323"
   },
   "items": [
     {
@@ -21,13 +24,13 @@
     },
     {
       "path": ".github/workflows/ci.yml",
-      "bytes": 2243,
-      "sha256": "4e45fda784b0834f097153dfc18522f2d2508640874ec0d74e26cf448aa83f75"
+      "bytes": 2367,
+      "sha256": "475678eb4dac6e6af0a672f2803e252854271361895332683ed23fb7919ffb76"
     },
     {
       "path": ".gitignore",
-      "bytes": 219,
-      "sha256": "f5728251d4b1d6cf64d4854267c4e5137b8a9f6aa5d4a74cc3acab34165a26a8"
+      "bytes": 217,
+      "sha256": "ca0a003bca99005a6b7ab65cb18d364b6907dddc4d11379ccb98dfb7f1401f71"
     },
     {
       "path": ".vercelignore",
@@ -41,8 +44,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 4941,
-      "sha256": "fb4316e3e2545daf2ce6d4eba904a77cea4c06c616ca8fb14d9996f0ac7e1aa5"
+      "bytes": 5329,
+      "sha256": "5b54030a0eb36f0f322cea2c6f59608174e188f8f318f88cb8253466b0a17180"
     },
     {
       "path": "contracts/README.md",
@@ -51,13 +54,13 @@
     },
     {
       "path": "contracts/ascende.py",
-      "bytes": 71724,
-      "sha256": "de88d012f894f982e384182aeaf6e58fff01d5ccd172362ea39498bf900595c4"
+      "bytes": 72445,
+      "sha256": "bfb369ad103b9e98dfecd92ecc9d9800187b6e7661bfdb68b9d5387a9b44714e"
     },
     {
       "path": "contracts/ascende.schema.json",
-      "bytes": 8805,
-      "sha256": "8ec06d83e289c5996003b848c87ab13907535dacb5fad8e962b625178e3cce9d"
+      "bytes": 8325,
+      "sha256": "7afe96846440ab521fd2261cab20b88c9368d47ae6fd6058c026de4bc8714323"
     },
     {
       "path": "design/CONCEPT_ONLY-not-live-product.png",
@@ -76,8 +79,8 @@
     },
     {
       "path": "docs/03_EVIDENCE_AND_CONSENSUS.md",
-      "bytes": 4081,
-      "sha256": "08193f4446a4f1ebb810b1ff0e91e146c42e23a3674a59eb41b2787cb8ee5f3b"
+      "bytes": 4401,
+      "sha256": "dfaaf275fef065edaff19dcaa0eecbcaebbfe007bb1945bd538bf183dfbfc6a3"
     },
     {
       "path": "docs/04_TREASURY_AND_PAYMENT_SAFETY.md",
@@ -91,8 +94,8 @@
     },
     {
       "path": "docs/06_WALLET_AND_SDK.md",
-      "bytes": 4059,
-      "sha256": "b8d1988e8a8cea15f2eb374e1497241d2eb8b9bd73306ebe1198175d78a2b97a"
+      "bytes": 4191,
+      "sha256": "7ea2670803d25f4ced7dc378d85d17a0d2304900a0dc17fcc9dc915a994ba289"
     },
     {
       "path": "docs/07_TEST_AND_ADVERSARIAL_MATRIX.md",
@@ -101,8 +104,8 @@
     },
     {
       "path": "docs/08_DEPLOYMENT_AND_STEWARD.md",
-      "bytes": 2248,
-      "sha256": "e83309f87e98b1f53fe54608737f5417b7ea86ddb8703040af1a0820b84fddca"
+      "bytes": 2788,
+      "sha256": "3e0bc67863eeee87c888cc4e2524c99ba11ea9964b32b0a93cc5e2e05d6f036b"
     },
     {
       "path": "docs/09_LIVE_RUNBOOK.md",
@@ -116,43 +119,43 @@
     },
     {
       "path": "docs/11_SOURCE_API_REFERENCES.md",
-      "bytes": 4404,
-      "sha256": "fc95d56d6e056fc7fdd11082de277ff1e1143c671f7cbd10328028b571fe6f97"
+      "bytes": 4499,
+      "sha256": "0e666961f3f72ff0318614c867e480709e892e16db55358df1cccaa7414ffa3e"
     },
     {
       "path": "docs/CONTRACT_API.md",
-      "bytes": 7400,
-      "sha256": "5d8a7b8133ef9c3bc76718f8b6b975248c52da427f58db39853986297bac51dc"
+      "bytes": 7542,
+      "sha256": "1f4c9b4eb6b39ea6d3e23b29d61d5e7bfec698d4bfa2ec3970d90b0743e19799"
     },
     {
       "path": "docs/DEPLOYMENT.md",
-      "bytes": 6188,
-      "sha256": "ffdc209fd4bd01de8e8841d5c70d6b997a055b3359e58e1c431a595b2d05a4f4"
+      "bytes": 8144,
+      "sha256": "d549470ae9e0e4aaa235fae7260a48066b0febd2fab23fcf8b747bb77a8ffe29"
     },
     {
       "path": "docs/LIVE_VERIFICATION.md",
-      "bytes": 40866,
-      "sha256": "45e0dd0d5f1b08872a736488abc1ceef411531afbb00cd0d62a8cb41903162b6"
+      "bytes": 78793,
+      "sha256": "909d13f3096d2b70691e83485776a6056bdc2deb1a753e7de25c84a54a953c26"
     },
     {
       "path": "docs/MORE_INFO_CLOSEOUT.md",
-      "bytes": 3165,
-      "sha256": "b09902713cbd23b95504a2bb9339e46a9e48ae88e481e6f27bbe7e34333cde8d"
+      "bytes": 2931,
+      "sha256": "543fe03c5bd64d42ee6c713ece07d83911b8e62a5e4f78a08a8c739300d4ed3f"
     },
     {
       "path": "docs/REVIEWER_MATRIX.md",
-      "bytes": 2871,
-      "sha256": "b8aad0c0fbe4f011889d5f93c9481ad84c25cfe7e4521aca3e62c588d56ce4ba"
+      "bytes": 3853,
+      "sha256": "89e01ebe74e265630722875256de2531d3524732bca95c9e331d16b5f95c90bc"
     },
     {
       "path": "docs/SECURITY.md",
-      "bytes": 8572,
-      "sha256": "68edf876861e28935a37a00978ff45ba24f35bec7ea922f749d8496db87a5f1e"
+      "bytes": 8544,
+      "sha256": "dbbdb3fd86562c9689546ac39ca5515a7542e44b42bef48c59793c63cbcc4151"
     },
     {
       "path": "docs/SETTLEMENT_MODEL.md",
-      "bytes": 2648,
-      "sha256": "47399eccc85acc461db2951a9f7725be4ddeab7e4f79b9ccf4816563d361e69b"
+      "bytes": 2837,
+      "sha256": "f928dd955c878c62787ec60e3ac12abefd6d9f453ac893f7a35aae26e307ad35"
     },
     {
       "path": "docs/STATE_MATRIX.md",
@@ -161,8 +164,8 @@
     },
     {
       "path": "docs/TESTING.md",
-      "bytes": 2713,
-      "sha256": "29b09464ff43d0f4169ad39ed0198482f202c455ed9b792fedffee85925212cc"
+      "bytes": 3821,
+      "sha256": "dddd2305d6c85ebc12ab5d9ffa4cdd52e3f3f2c1e6c06f54abce650f317930e3"
     },
     {
       "path": "docs/USER_GUIDE.md",
@@ -186,8 +189,8 @@
     },
     {
       "path": "frontend/.env.example",
-      "bytes": 139,
-      "sha256": "6e6e4ca744a79201700895a9a69a52ee98bb5a1cc7ffaad7fdcadb90c034cd76"
+      "bytes": 137,
+      "sha256": "116170e75063103fc36bfe5e4dd91682514d88906881596339d4c7c89409d45e"
     },
     {
       "path": "frontend/.gitignore",
@@ -201,8 +204,8 @@
     },
     {
       "path": "frontend/README.md",
-      "bytes": 2265,
-      "sha256": "2bde9c134359051cedf453ed7780374ff007122eed4f3aeaf18ff2d900730c39"
+      "bytes": 2225,
+      "sha256": "e0a8ad2dff615f2fc89459e19a8ff58c71985600dd84fd499f46a3ebb48cff76"
     },
     {
       "path": "frontend/app/activity/page.tsx",
@@ -211,18 +214,18 @@
     },
     {
       "path": "frontend/app/create/page.tsx",
-      "bytes": 15841,
-      "sha256": "4574285203eba4dfbe24834d781408672dd81c7dde0822331b5730c4645f9402"
+      "bytes": 17912,
+      "sha256": "f265901b6d43f2766d04656caffabd257252460480d9e1f932d9d0b70d97a9e3"
     },
     {
       "path": "frontend/app/docs/page.tsx",
-      "bytes": 1937,
-      "sha256": "1638daf6d2e55353ffd06acd65c38a6d3acadf1a470f45df23c2d9e375ccda34"
+      "bytes": 2111,
+      "sha256": "e2becb71315e6b312e77f74c70ba4a12a1cfc663730e7354ca444df3a92c7fdf"
     },
     {
       "path": "frontend/app/globals.css",
-      "bytes": 12813,
-      "sha256": "509276dc5c916a1ff5f8c55e1b56731e4358e2e12ef8aa0562312f2e970630e0"
+      "bytes": 13476,
+      "sha256": "d8ed9e397cbcdb2e5beee3003802877696a7f3b3e302aeb6ecf91620806d1e60"
     },
     {
       "path": "frontend/app/layout.tsx",
@@ -306,8 +309,8 @@
     },
     {
       "path": "frontend/e2e/app.spec.ts",
-      "bytes": 8848,
-      "sha256": "135b70ca003a09bd1409dba6015e759a6043c866a346dfa6e7e247bbf94b0f7a"
+      "bytes": 9783,
+      "sha256": "a19af878ef23213c3e51b7a8b5bb70aad6595989afd5a6937d422463ccbc6441"
     },
     {
       "path": "frontend/eslint.config.mjs",
@@ -321,13 +324,13 @@
     },
     {
       "path": "frontend/lib/genlayer.test.ts",
-      "bytes": 3005,
-      "sha256": "f1524b91f9cdfa152c9eb62394a8e7adfc7937d341827f28463493f1588b614e"
+      "bytes": 4617,
+      "sha256": "24441257361ad194e3dcc5ccc84599d0bf1fc6fb543513e05b3c9f9634148446"
     },
     {
       "path": "frontend/lib/genlayer.ts",
-      "bytes": 13493,
-      "sha256": "c523f7ab71e9de01d230c7427643b559a05fe5987c2609da5cdaa342ac9c0ca9"
+      "bytes": 14326,
+      "sha256": "d6c646345583ab10c298c30ebdd502e85e75265038c688a938699954939bc4bc"
     },
     {
       "path": "frontend/lib/network.ts",
@@ -346,8 +349,8 @@
     },
     {
       "path": "frontend/lib/wallet-preparation.test.ts",
-      "bytes": 1132,
-      "sha256": "5faad5ff52913d9d60b4a13f3fbd6a797a020dee87f722c8fe29029f3daed6ef"
+      "bytes": 1140,
+      "sha256": "713d61c333e1348fbd9d35a1917c39cbf46b9d84032727b0ee598a22b4d83df9"
     },
     {
       "path": "frontend/lib/wallet-store.ts",
@@ -391,8 +394,8 @@
     },
     {
       "path": "frontend/tsconfig.json",
-      "bytes": 699,
-      "sha256": "9f6409111d541fd054809ae3c4ffb90600eeda64530cc8082770878906007d12"
+      "bytes": 698,
+      "sha256": "9ae7ca3817f842a5d233859a9b48b0bcebe7f71e5d7b678f24d707a9fae94abe"
     },
     {
       "path": "frontend/vitest.config.mts",
@@ -451,19 +454,55 @@
     },
     {
       "path": "tests/test_contract.py",
-      "bytes": 61568,
-      "sha256": "e2d674b2c02e3600e6537a28ed95f602f4ab6e9eee659943a069fabd0e33c966"
+      "bytes": 71246,
+      "sha256": "21d6599ba33f5eceb338101d873f56bdf049dbc2157f2e59813f3e86ecea6dd0"
+    },
+    {
+      "path": "scripts/check_release_consistency.py",
+      "bytes": 4256,
+      "sha256": "e9e613087e33d5db3ae395694120c7087b1e75d1779effff084402a6bcf14a27"
+    },
+    {
+      "path": "scripts/check_release_consistency.py",
+      "bytes": 4256,
+      "sha256": "e9e613087e33d5db3ae395694120c7087b1e75d1779effff084402a6bcf14a27"
     }
   ],
-  "release_note": "Deployed to stable Studionet 61999 at 0x5715eACA23d495b71E800Dd9eD6e13875855bd9c with normalized source-byte parity. Fresh 2-wei missing-evidence expiry, closure, refund and no-duplicate replay evidence is recorded. Production Vercel now points to this contract. Positive qualification, challenge flip, current-branch browser-wallet proof, and reconciled delivery remain outstanding.",
+  "release_note": "Canonical Git source in audited main commit 8fd697b07485f46011cac331ec05a9aa958c0007 is 72,445 LF bytes with SHA-256 bfb369ad103b9e98dfecd92ecc9d9800187b6e7661bfdb68b9d5387a9b44714e. Stable Studionet gen_getContractCode readback at 0x5bF12b1033A5827edBB27cdc92C7FAb0C4d1304F is 73,994 CRLF bytes with SHA-256 98bc175a714326dd926a92ffff709f2cfd42fc4709e04c1a940d9c5e94017a04; conversion comparison is byte-identical. Live qualification, challenge reversal, negative/refund and conflicting-source receipts are recorded in docs/LIVE_VERIFICATION.md. Child credits remain unreconciled in contract state. Existing exact-main CI run 39273157272 succeeded on the audited commit.",
   "deployment": {
-    "contract_address": "0x5715eACA23d495b71E800Dd9eD6e13875855bd9c",
-    "transaction": "0x3c36b8b0391e9a5a1c6447e0108c84501d235f89a9f989c57eae02bf9b3a380e",
-    "source_body_sha256": "0E5FA7A4018A45F64A6CD5D44F3F67F5BF16831109A63C834396228AF3CE8014",
-    "source_file_sha256": "DE88D012F894F982E384182AEAF6E58FFF01D5CCD172362EA39498BF900595C",
+    "contract_address": "0x5bF12b1033A5827edBB27cdc92C7FAb0C4d1304F",
+    "network": "stable Studionet",
+    "chain_id": 61999,
+    "deployment_transaction": "0x8dd7d2e4483b6f9e370e4c1985d482c47a819662caf5251c4e0eb0c092ab247b",
+    "source_file_bytes": 73994,
+    "source_file_sha256": "98bc175a714326dd926a92ffff709f2cfd42fc4709e04c1a940d9c5e94017a04",
+    "source_body_sha256": "98bc175a714326dd926a92ffff709f2cfd42fc4709e04c1a940d9c5e94017a04",
+    "source_commit": "ff50ce9316673496dae423ca63f155043a2dba53",
     "production_frontend_updated": true,
     "production_frontend_url": "https://ascende-sand.vercel.app/",
-    "production_vercel_deployment_id": "dpl_AbJYH1Q7VYDh156KPqpdXtxEWwHZ",
-    "production_frontend_route_checks": ["/", "/programs", "/programs/1", "/programs/1/evidence", "/programs/1/challenges", "/create", "/my-work", "/treasury", "/activity", "/docs"]
+    "production_vercel_deployment_id": "dpl_HEUi47BAn1GdnSiknNW83GhrPM84"
+  },
+  "audited_github_commit": "8fd697b07485f46011cac331ec05a9aa958c0007",
+  "source_equivalence": {
+    "result": "byte_identical_after_lf_to_crlf_conversion",
+    "canonical_github_source_sha256": "bfb369ad103b9e98dfecd92ecc9d9800187b6e7661bfdb68b9d5387a9b44714e",
+    "canonical_github_source_bytes": 72445,
+    "canonical_lf_newlines": 1549,
+    "deployed_source_sha256": "98bc175a714326dd926a92ffff709f2cfd42fc4709e04c1a940d9c5e94017a04",
+    "deployed_source_bytes": 73994,
+    "rpc_method": "gen_getContractCode",
+    "rpc_address": "0x5bF12b1033A5827edBB27cdc92C7FAb0C4d1304F",
+    "rpc_returned_bytes": 73994,
+    "rpc_returned_sha256": "98bc175a714326dd926a92ffff709f2cfd42fc4709e04c1a940d9c5e94017a04",
+    "rpc_response_equals_converted_github_source": true,
+    "reverse_normalization_equals_github_source": true,
+    "explanation": "Each canonical LF was converted to CRLF. The source hashes differ because each of 1,549 line endings gains one byte; the source content is byte-identical after reversing that conversion."
+  },
+  "ci": {
+    "run_id": 39273157272,
+    "url": "https://github.com/Ifem1/Ascende/actions/runs/39273157272",
+    "commit": "8fd697b07485f46011cac331ec05a9aa958c0007",
+    "status": "completed",
+    "conclusion": "success"
   }
 }
